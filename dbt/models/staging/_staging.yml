@@ -1,0 +1,34 @@
+version: 2
+
+models:
+  - name: stg_itens
+    description: Um registro por item por versao de prova.
+    columns:
+      - name: co_item
+        tests: [not_null]
+      - name: co_prova
+        tests: [not_null]
+      - name: area
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['CN', 'CH', 'LC', 'MT']
+      - name: habilidade
+        tests: [not_null]
+
+  - name: stg_resultados
+    description: Um registro por participante. Nao relacionavel a stg_participantes.
+    columns:
+      - name: id_resultado
+        tests: [unique, not_null]
+      - name: cod_presenca_mt
+        tests:
+          - accepted_values:
+              values: [0, 1, 2]
+              quote: false
+
+  - name: stg_participantes
+    description: Perfil e questionario socioeconomico.
+    columns:
+      - name: id_inscricao
+        tests: [unique, not_null]

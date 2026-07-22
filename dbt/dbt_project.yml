@@ -1,0 +1,15 @@
+name: enem
+version: '1.0'
+profile: enem
+
+model-paths: ['models']
+seed-paths: ['seeds']
+macro-paths: ['macros']
+
+models:
+  enem:
+    staging:
+      +materialized: view
+
+seeds:
+  enem: {}

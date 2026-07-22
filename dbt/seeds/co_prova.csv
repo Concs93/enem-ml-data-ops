@@ -1,0 +1,75 @@
+co_prova,sg_area,cor,rotulo,tipo_aplicacao,is_regular
+1447,CH,Azul,Azul,regular,true
+1448,CH,Amarela,Amarela,regular,true
+1449,CH,Branca,Branca,regular,true
+1450,CH,Verde,Verde,regular,true
+1451,CH,Laranja,Laranja - Ampliada,acessibilidade,false
+1452,CH,Laranja,Laranja - Superampliada,acessibilidade,false
+1454,CH,Laranja,Laranja - Adaptada Ledor,acessibilidade,false
+1455,CH,Roxo,Roxo - Videoprova - Libras,acessibilidade,false
+1495,CH,Laranja,Laranja - Atendimento Especializado,acessibilidade,false
+1539,CH,Azul,Azul (Reaplicação),reaplicacao,false
+1541,CH,Branca,Branca (Reaplicação),reaplicacao,false
+1542,CH,Verde,Verde (Reaplicação),reaplicacao,false
+1583,CH,Azul,Azul - BAM,bam,false
+1584,CH,Amarela,Amarela - BAM,bam,false
+1585,CH,Branca,Branca - BAM,bam,false
+1586,CH,Verde,Verde - BAM,bam,false
+1587,CH,Laranja,Laranja - Ampliada - BAM,bam,false
+1631,CH,Laranja,Laranja - Atendimento Especializado - BAM,bam,false
+1483,CN,Azul,Azul,regular,true
+1484,CN,Amarela,Amarela,regular,true
+1485,CN,Verde,Verde,regular,true
+1486,CN,Cinza,Cinza,regular,true
+1487,CN,Laranja,Laranja - Ampliada,acessibilidade,false
+1488,CN,Laranja,Laranja - Superampliada,acessibilidade,false
+1490,CN,Laranja,Laranja - Adaptada Ledor,acessibilidade,false
+1491,CN,Roxo,Roxo - Videoprova - Libras,acessibilidade,false
+1498,CN,Laranja,Laranja - Atendimento Especializado,acessibilidade,false
+1569,CN,Azul,Azul (Reaplicação),reaplicacao,false
+1570,CN,Amarela,Amarela (Reaplicação),reaplicacao,false
+1571,CN,Cinza,Cinza (Reaplicação),reaplicacao,false
+1572,CN,Verde,Verde (Reaplicação),reaplicacao,false
+1619,CN,Azul,Azul - BAM,bam,false
+1620,CN,Amarela,Amarela - BAM,bam,false
+1621,CN,Verde,Verde - BAM,bam,false
+1622,CN,Cinza,Cinza - BAM,bam,false
+1623,CN,Laranja,Laranja - Ampliada - BAM,bam,false
+1634,CN,Laranja,Laranja - Atendimento Especializado - BAM,bam,false
+1459,LC,Azul,Azul,regular,true
+1460,LC,Amarela,Amarela,regular,true
+1461,LC,Verde,Verde,regular,true
+1462,LC,Branca,Branca,regular,true
+1463,LC,Laranja,Laranja - Ampliada,acessibilidade,false
+1464,LC,Laranja,Laranja - Superampliada,acessibilidade,false
+1466,LC,Laranja,Laranja - Adaptada Ledor,acessibilidade,false
+1467,LC,Roxo,Roxo - Videoprova - Libras,acessibilidade,false
+1496,LC,Laranja,Laranja - Atendimento Especializado,acessibilidade,false
+1549,LC,Azul,Azul (Reaplicação),reaplicacao,false
+1551,LC,Verde,Verde (Reaplicação),reaplicacao,false
+1552,LC,Branca,Branca (Reaplicação),reaplicacao,false
+1595,LC,Azul,Azul - BAM,bam,false
+1596,LC,Amarela,Amarela - BAM,bam,false
+1597,LC,Verde,Verde - BAM,bam,false
+1598,LC,Branca,Branca - BAM,bam,false
+1599,LC,Laranja,Laranja - Ampliada - BAM,bam,false
+1632,LC,Laranja,Laranja - Atendimento Especializado - BAM,bam,false
+1471,MT,Azul,Azul,regular,true
+1472,MT,Amarela,Amarela,regular,true
+1473,MT,Verde,Verde,regular,true
+1474,MT,Cinza,Cinza,regular,true
+1475,MT,Laranja,Laranja - Ampliada,acessibilidade,false
+1476,MT,Laranja,Laranja - Superampliada,acessibilidade,false
+1478,MT,Laranja,Laranja - Adaptada Ledor,acessibilidade,false
+1479,MT,Roxo,Roxo - Videoprova - Libras,acessibilidade,false
+1497,MT,Laranja,Laranja - Atendimento Especializado,acessibilidade,false
+1559,MT,Azul,Azul (Reaplicação),reaplicacao,false
+1560,MT,Amarela,Amarela (Reaplicação),reaplicacao,false
+1561,MT,Verde,Verde (Reaplicação),reaplicacao,false
+1562,MT,Cinza,Cinza (Reaplicação),reaplicacao,false
+1607,MT,Azul,Azul - BAM,bam,false
+1608,MT,Amarela,Amarela - BAM,bam,false
+1609,MT,Verde,Verde - BAM,bam,false
+1610,MT,Cinza,Cinza - BAM,bam,false
+1611,MT,Laranja,Laranja - Ampliada - BAM,bam,false
+1633,MT,Laranja,Laranja - Atendimento Especializado - BAM,bam,false

@@ -1,0 +1,13 @@
+version: 2
+
+sources:
+  - name: raw
+    description: Microdados do ENEM 2025 carregados pela ingestao, sem transformacao.
+    schema: raw
+    tables:
+      - name: resultados_2025
+        description: Um registro por participante; nao relacionavel a base de participantes.
+      - name: participantes_2025
+        description: Perfil e questionario socioeconomico.
+      - name: itens_prova_2025
+        description: Itens de cada versao de prova, com habilidade e parametros de TRI.

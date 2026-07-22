@@ -1,0 +1,501 @@
+base,variavel,codigo,rotulo
+itens_prova,IN_ITEM_ABAN,0,Não
+itens_prova,IN_ITEM_ABAN,1,Sim
+itens_prova,IN_ITEM_ADAPTADO,0,Não
+itens_prova,IN_ITEM_ADAPTADO,1,Sim
+itens_prova,SG_AREA,CH,Ciências Humanas
+itens_prova,SG_AREA,CN,Ciências da Natureza
+itens_prova,SG_AREA,LC,Linguagens e Códigos
+itens_prova,SG_AREA,MT,Matemática
+itens_prova,TP_LINGUA,0,Inglês
+itens_prova,TP_LINGUA,1,Espanhol
+participantes,CO_UF_PROVA,11,Rondônia
+participantes,CO_UF_PROVA,12,Acre
+participantes,CO_UF_PROVA,13,Amazonas
+participantes,CO_UF_PROVA,14,Roraima
+participantes,CO_UF_PROVA,15,Pará
+participantes,CO_UF_PROVA,16,Amapá
+participantes,CO_UF_PROVA,17,Tocantins
+participantes,CO_UF_PROVA,21,Maranhão
+participantes,CO_UF_PROVA,22,Piauí
+participantes,CO_UF_PROVA,23,Ceará
+participantes,CO_UF_PROVA,24,Rio Grande do Norte
+participantes,CO_UF_PROVA,25,Paraíba
+participantes,CO_UF_PROVA,26,Pernambuco
+participantes,CO_UF_PROVA,27,Alagoas
+participantes,CO_UF_PROVA,28,Sergipe
+participantes,CO_UF_PROVA,29,Bahia
+participantes,CO_UF_PROVA,31,Minas Gerais
+participantes,CO_UF_PROVA,32,Espírito Santo
+participantes,CO_UF_PROVA,33,Rio de Janeiro
+participantes,CO_UF_PROVA,35,São Paulo
+participantes,CO_UF_PROVA,41,Paraná
+participantes,CO_UF_PROVA,42,Santa Catarina
+participantes,CO_UF_PROVA,43,Rio Grande do Sul
+participantes,CO_UF_PROVA,50,Mato Grosso do Sul
+participantes,CO_UF_PROVA,51,Mato Grosso
+participantes,CO_UF_PROVA,52,Goiás
+participantes,CO_UF_PROVA,53,Distrito Federal
+participantes,IN_TREINEIRO,0,Não
+participantes,IN_TREINEIRO,1,Sim
+participantes,Q001,A,Nunca estudou.
+participantes,Q001,B,Não completou a 4ª série/5º ano do Ensino Fundamental.
+participantes,Q001,C,"Completou a 4ª série/5º ano, mas não completou a 8ª série/9º ano do Ensino Fundamental."
+participantes,Q001,D,"Completou a 8ª série/9º ano do Ensino Fundamental, mas não completou o Ensino Médio."
+participantes,Q001,E,"Completou o Ensino Médio, mas não completou a Faculdade."
+participantes,Q001,F,"Completou a Faculdade, mas não completou a Pós-graduação."
+participantes,Q001,G,Completou a Pós-graduação.
+participantes,Q001,H,Não sei.
+participantes,Q002,A,Nunca estudou.
+participantes,Q002,B,Não completou a 4ª série/5º ano do Ensino Fundamental.
+participantes,Q002,C,"Completou a 4ª série/5º ano, mas não completou a 8ª série/9º ano do Ensino Fundamental."
+participantes,Q002,D,"Completou a 8ª série/9º ano do Ensino Fundamental, mas não completou o Ensino Médio."
+participantes,Q002,E,"Completou o Ensino Médio, mas não completou a Faculdade."
+participantes,Q002,F,"Completou a Faculdade, mas não completou a Pós-graduação."
+participantes,Q002,G,Completou a Pós-graduação.
+participantes,Q002,H,Não sei.
+participantes,Q003,A,"Grupo 1: Lavrador, agricultor sem empregados, bóia fria, criador de animais (gado, porcos, galinhas, ovelhas, cavalos etc.), apicultor, pescador, lenhador, seringueiro, extrativista."
+participantes,Q003,B,"Grupo 2: Diarista, empregado doméstico, cuidador de idosos, babá, cozinheiro (em casas particulares), motorista particular, jardineiro, faxineiro de empresas e prédios, vigilante, porteiro, carteiro, office-boy, vendedor, caixa, atendente de loja, auxiliar administrativo, recepcionista, servente de pedreiro, repositor de mercadoria."
+participantes,Q003,C,"Grupo 3: Padeiro, cozinheiro industrial ou em restaurantes, sapateiro, costureiro, joalheiro, torneiro mecânico, operador de máquinas, soldador, operário de fábrica, trabalhador da mineração, pedreiro, pintor, eletricista, encanador, motorista, caminhoneiro, taxista."
+participantes,Q003,D,"Grupo 4: Professor (de ensino fundamental ou médio, idioma, música, artes etc.), técnico (de enfermagem, contabilidade, eletrônica etc.), policial, militar de baixa patente (soldado, cabo, sargento), corretor de imóveis, supervisor, gerente, mestre de obras, pastor, microempresário (proprietário de empresa com menos de 10 empregados), pequeno comerciante, pequeno proprietário de terras, trabalhador autônomo ou por conta própria."
+participantes,Q003,E,"Grupo 5: Médico, engenheiro, dentista, psicólogo, economista, advogado, juiz, promotor, defensor, delegado, tenente, capitão, coronel, professor universitário, diretor em empresas públicas ou privadas, político, proprietário de empresas com mais de 10 empregados."
+participantes,Q003,F,Não sei.
+participantes,Q004,A,"Grupo 1: Lavradora, agricultora sem empregados, bóia fria, criadora de animais (gado, porcos, galinhas, ovelhas, cavalos etc.), apicultora, pescadora, lenhadora, seringueira, extrativista."
+participantes,Q004,B,"Grupo 2: Diarista, empregada doméstica, cuidadora de idosos, babá, cozinheira (em casas particulares), motorista particular, jardineira, faxineira de empresas e prédios, vigilante, porteira, carteira, office-boy, vendedora, caixa, atendente de loja, auxiliar administrativa, recepcionista, servente de pedreiro, repositora de mercadoria."
+participantes,Q004,C,"Grupo 3: Padeira, cozinheira industrial ou em restaurantes, sapateira, costureira, joalheira, torneira mecânica, operadora de máquinas, soldadora, operária de fábrica, trabalhadora da mineração, pedreira, pintora, eletricista, encanadora, motorista, caminhoneira, taxista."
+participantes,Q004,D,"Grupo 4: Professora (de ensino fundamental ou médio, idioma, música, artes etc.), técnica (de enfermagem, contabilidade, eletrônica etc.), policial, militar de baixa patente (soldado, cabo, sargento), corretora de imóveis, supervisora, gerente, mestre de obras, pastora, microempresária (proprietária de empresa com menos de 10 empregados), pequena comerciante, pequena proprietária de terras, trabalhadora autônoma ou por conta própria."
+participantes,Q004,E,"Grupo 5: Médica, engenheira, dentista, psicóloga, economista, advogada, juíza, promotora, defensora, delegada, tenente, capitã, coronel, professora universitária, diretora em empresas públicas ou privadas, política, proprietária de empresas com mais de 10 empregados."
+participantes,Q004,F,Não sei.
+participantes,Q005,1,"1, pois moro sozinho(a)"
+participantes,Q005,2,2 pessoas
+participantes,Q005,3,3 pessoas
+participantes,Q005,4,4 pessoas
+participantes,Q005,5,5 pessoas
+participantes,Q005,6,6 pessoas
+participantes,Q005,7,7 pessoas
+participantes,Q005,8,8 pessoas
+participantes,Q005,9,9 pessoas
+participantes,Q005,10,10 pessoas
+participantes,Q005,11,11 pessoas
+participantes,Q005,12,12 pessoas
+participantes,Q005,13,13 pessoas
+participantes,Q005,14,14 pessoas
+participantes,Q005,15,15 pessoas
+participantes,Q005,16,16 pessoas
+participantes,Q005,17,17 pessoas
+participantes,Q005,18,18 pessoas
+participantes,Q005,19,19 pessoas
+participantes,Q005,20,20 pessoas
+participantes,Q006,A,Não
+participantes,Q006,B,Sim
+participantes,Q007,A,Nenhuma renda
+participantes,Q007,B,"Até R$ 1.518,00"
+participantes,Q007,C,"De R$ 1.518,01 até R$ 2.277,00"
+participantes,Q007,D,"De R$ 2.277,01 até R$ 3.036,00"
+participantes,Q007,E,"De R$ 3.036,01 até R$ 3.795,00"
+participantes,Q007,F,"De R$ 3.795,01 até R$ 4.554,00"
+participantes,Q007,G,"De R$ 4.554,01 até R$ 6.072,00"
+participantes,Q007,H,"De R$ 6.072,01 até R$ 7.590,00"
+participantes,Q007,I,"De R$ 7.590,01 até R$ 9.108,00"
+participantes,Q007,J,"De R$ 9.108,01 até R$10.626,00"
+participantes,Q007,K,"De R$ 10.626,01 até R$ 12.144,00"
+participantes,Q007,L,"De R$ 12.144,01 até R$ 13.662,00"
+participantes,Q007,M,"De R$ 13.662,01 até R$ 15.180,00"
+participantes,Q007,N,"De R$ 15.180,01 até R$ 18.216,00"
+participantes,Q007,O,"De R$ 18.216,01 até R$ 22.770,00"
+participantes,Q007,P,"De R$ 22.770,01 até R$ 30.360,00"
+participantes,Q007,Q,"Acima de R$ 30.360,00"
+participantes,Q008,A,Não
+participantes,Q008,B,"Sim, um ou dois dias por semana"
+participantes,Q008,C,"Sim, três ou quatro dias por semana"
+participantes,Q008,D,"Sim, pelo menos cinco dias por semana"
+participantes,Q009,A,Não
+participantes,Q009,B,"Sim, um"
+participantes,Q009,C,"Sim, dois"
+participantes,Q009,D,"Sim, três ou mais"
+participantes,Q010,A,Não
+participantes,Q010,B,"Sim, um"
+participantes,Q010,C,"Sim, dois"
+participantes,Q010,D,"Sim, três ou mais"
+participantes,Q011,A,Não
+participantes,Q011,B,"Sim, um"
+participantes,Q011,C,"Sim, dois"
+participantes,Q011,D,"Sim, três ou mais"
+participantes,Q012,A,Não
+participantes,Q012,B,"Sim, uma"
+participantes,Q012,C,"Sim, duas"
+participantes,Q012,D,"Sim, três ou mais"
+participantes,Q013,A,Não
+participantes,Q013,B,"Sim, uma"
+participantes,Q013,C,"Sim, duas"
+participantes,Q013,D,"Sim, três ou mais"
+participantes,Q014,A,Não
+participantes,Q014,B,Sim
+participantes,Q015,A,Não
+participantes,Q015,B,Sim
+participantes,Q016,A,Não
+participantes,Q016,B,Sim
+participantes,Q017,A,Não
+participantes,Q017,B,Sim
+participantes,Q018,A,Não
+participantes,Q018,B,"Sim, um"
+participantes,Q018,C,"Sim, dois"
+participantes,Q018,D,"Sim, três ou mais"
+participantes,Q019,A,Não
+participantes,Q019,B,Sim
+participantes,Q020,A,Não
+participantes,Q020,B,Sim
+participantes,Q021,A,Não
+participantes,Q021,B,"Sim, um"
+participantes,Q021,C,"Sim, dois"
+participantes,Q021,D,"Sim, três"
+participantes,Q021,E,"Sim, quatro ou mais"
+participantes,Q022,A,Não
+participantes,Q022,B,"Sim, um"
+participantes,Q022,C,"Sim, dois"
+participantes,Q022,D,"Sim, três"
+participantes,Q022,E,"Sim, quatro ou mais"
+participantes,Q023,A,Somente em escola pública.
+participantes,Q023,B,Parte em escola pública e parte em escola privada sem bolsa de estudo integral
+participantes,Q023,C,Parte em escola pública e parte em escola privada com bolsa de estudo integral
+participantes,Q023,D,Somente em escola privada sem bolsa de estudo integral
+participantes,Q023,E,Somente em escola privada com bolsa de estudo integral
+participantes,Q023,F,Não frequentei escola de Ensino Médio
+participantes,SG_UF_PROVA,RO,Rondônia
+participantes,SG_UF_PROVA,AC,Acre
+participantes,SG_UF_PROVA,AM,Amazonas
+participantes,SG_UF_PROVA,RR,Roraima
+participantes,SG_UF_PROVA,PA,Pará
+participantes,SG_UF_PROVA,AP,Amapá
+participantes,SG_UF_PROVA,TO,Tocantins
+participantes,SG_UF_PROVA,MA,Maranhão
+participantes,SG_UF_PROVA,PI,Piauí
+participantes,SG_UF_PROVA,CE,Ceará
+participantes,SG_UF_PROVA,RN,Rio Grande do Norte
+participantes,SG_UF_PROVA,PB,Paraíba
+participantes,SG_UF_PROVA,PE,Pernambuco
+participantes,SG_UF_PROVA,AL,Alagoas
+participantes,SG_UF_PROVA,SE,Sergipe
+participantes,SG_UF_PROVA,BA,Bahia
+participantes,SG_UF_PROVA,MG,Minas Gerais
+participantes,SG_UF_PROVA,ES,Espírito Santo
+participantes,SG_UF_PROVA,RJ,Rio de Janeiro
+participantes,SG_UF_PROVA,SP,São Paulo
+participantes,SG_UF_PROVA,PR,Paraná
+participantes,SG_UF_PROVA,SC,Santa Catarina
+participantes,SG_UF_PROVA,RS,Rio Grande do Sul
+participantes,SG_UF_PROVA,MS,Mato Grosso do Sul
+participantes,SG_UF_PROVA,MT,Mato Grosso
+participantes,SG_UF_PROVA,GO,Goiás
+participantes,SG_UF_PROVA,DF,Distrito Federal
+participantes,TP_ANO_CONCLUIU,0,Não informado
+participantes,TP_ANO_CONCLUIU,1,2024
+participantes,TP_ANO_CONCLUIU,2,2023
+participantes,TP_ANO_CONCLUIU,3,2022
+participantes,TP_ANO_CONCLUIU,4,2021
+participantes,TP_ANO_CONCLUIU,5,2020
+participantes,TP_ANO_CONCLUIU,6,2019
+participantes,TP_ANO_CONCLUIU,7,2018
+participantes,TP_ANO_CONCLUIU,8,2017
+participantes,TP_ANO_CONCLUIU,9,2016
+participantes,TP_ANO_CONCLUIU,10,2015
+participantes,TP_ANO_CONCLUIU,11,2014
+participantes,TP_ANO_CONCLUIU,12,2013
+participantes,TP_ANO_CONCLUIU,13,2012
+participantes,TP_ANO_CONCLUIU,14,2011
+participantes,TP_ANO_CONCLUIU,15,2010
+participantes,TP_ANO_CONCLUIU,16,2009
+participantes,TP_ANO_CONCLUIU,17,2008
+participantes,TP_ANO_CONCLUIU,18,2007
+participantes,TP_ANO_CONCLUIU,19,Antes de 2007
+participantes,TP_COR_RACA,0,Não declarado
+participantes,TP_COR_RACA,1,Branca
+participantes,TP_COR_RACA,2,Preta
+participantes,TP_COR_RACA,3,Parda
+participantes,TP_COR_RACA,4,Amarela
+participantes,TP_COR_RACA,5,Indígena
+participantes,TP_COR_RACA,6,Não dispõe da informação
+participantes,TP_ENSINO,1,Ensino Regular
+participantes,TP_ENSINO,2,Educação Especial - Modalidade Substitutiva
+participantes,TP_ESTADO_CIVIL,0,Não informado
+participantes,TP_ESTADO_CIVIL,1,Solteiro(a)
+participantes,TP_ESTADO_CIVIL,2,Casado(a)/Em união estável/Mora com companheiro(a)
+participantes,TP_ESTADO_CIVIL,3,Divorciado(a)/Desquitado(a)/Separado(a)
+participantes,TP_ESTADO_CIVIL,4,Viúvo(a)
+participantes,TP_FAIXA_ETARIA,1,Menor de 17 anos
+participantes,TP_FAIXA_ETARIA,2,17 anos
+participantes,TP_FAIXA_ETARIA,3,18 anos
+participantes,TP_FAIXA_ETARIA,4,19 anos
+participantes,TP_FAIXA_ETARIA,5,20 anos
+participantes,TP_FAIXA_ETARIA,6,21 anos
+participantes,TP_FAIXA_ETARIA,7,22 anos
+participantes,TP_FAIXA_ETARIA,8,23 anos
+participantes,TP_FAIXA_ETARIA,9,24 anos
+participantes,TP_FAIXA_ETARIA,10,25 anos
+participantes,TP_FAIXA_ETARIA,11,Entre 26 e 30 anos
+participantes,TP_FAIXA_ETARIA,12,Entre 31 e 35 anos
+participantes,TP_FAIXA_ETARIA,13,Entre 36 e 40 anos
+participantes,TP_FAIXA_ETARIA,14,Entre 41 e 45 anos
+participantes,TP_FAIXA_ETARIA,15,Entre 46 e 50 anos
+participantes,TP_FAIXA_ETARIA,16,Entre 51 e 55 anos
+participantes,TP_FAIXA_ETARIA,17,Entre 56 e 60 anos
+participantes,TP_FAIXA_ETARIA,18,Entre 61 e 65 anos
+participantes,TP_FAIXA_ETARIA,19,Entre 66 e 70 anos
+participantes,TP_FAIXA_ETARIA,20,Maior de 70 anos
+participantes,TP_NACIONALIDADE,0,Não informado
+participantes,TP_NACIONALIDADE,1,Brasileiro(a)
+participantes,TP_NACIONALIDADE,2,Brasileiro(a) Naturalizado(a)
+participantes,TP_NACIONALIDADE,3,Estrangeiro(a)
+participantes,TP_NACIONALIDADE,4,"Brasileiro(a) Nato(a), nascido(a) no exterior"
+participantes,TP_SEXO,M,Masculino
+participantes,TP_SEXO,F,Feminino
+participantes,TP_ST_CONCLUSAO,1,Já concluí o Ensino Médio
+participantes,TP_ST_CONCLUSAO,2,Estou cursando e concluirei o Ensino Médio em 2025
+participantes,TP_ST_CONCLUSAO,3,Estou cursando e concluirei o Ensino Médio após 2025
+participantes,TP_ST_CONCLUSAO,4,Não concluí e não estou cursando o Ensino Médio
+resultados,CO_PROVA_CH,1447,Azul
+resultados,CO_PROVA_CH,1448,Amarela
+resultados,CO_PROVA_CH,1449,Branca
+resultados,CO_PROVA_CH,1450,Verde
+resultados,CO_PROVA_CH,1451,Laranja - Ampliada
+resultados,CO_PROVA_CH,1452,Laranja - Superampliada
+resultados,CO_PROVA_CH,1454,Laranja - Adaptada Ledor
+resultados,CO_PROVA_CH,1455,Roxo - Videoprova - Libras
+resultados,CO_PROVA_CH,1495,Laranja - Atendimento Especializado
+resultados,CO_PROVA_CH,1539,Azul (Reaplicação)
+resultados,CO_PROVA_CH,1541,Branca (Reaplicação)
+resultados,CO_PROVA_CH,1542,Verde (Reaplicação)
+resultados,CO_PROVA_CH,1583,Azul - BAM
+resultados,CO_PROVA_CH,1584,Amarela - BAM
+resultados,CO_PROVA_CH,1585,Branca - BAM
+resultados,CO_PROVA_CH,1586,Verde - BAM
+resultados,CO_PROVA_CH,1587,Laranja - Ampliada - BAM
+resultados,CO_PROVA_CH,1631,Laranja - Atendimento Especializado - BAM
+resultados,CO_PROVA_CN,1483,Azul
+resultados,CO_PROVA_CN,1484,Amarela
+resultados,CO_PROVA_CN,1485,Verde
+resultados,CO_PROVA_CN,1486,Cinza
+resultados,CO_PROVA_CN,1487,Laranja - Ampliada
+resultados,CO_PROVA_CN,1488,Laranja - Superampliada
+resultados,CO_PROVA_CN,1490,Laranja - Adaptada Ledor
+resultados,CO_PROVA_CN,1491,Roxo - Videoprova - Libras
+resultados,CO_PROVA_CN,1498,Laranja - Atendimento Especializado
+resultados,CO_PROVA_CN,1569,Azul (Reaplicação)
+resultados,CO_PROVA_CN,1570,Amarela (Reaplicação)
+resultados,CO_PROVA_CN,1571,Cinza (Reaplicação)
+resultados,CO_PROVA_CN,1572,Verde (Reaplicação)
+resultados,CO_PROVA_CN,1619,Azul - BAM
+resultados,CO_PROVA_CN,1620,Amarela - BAM
+resultados,CO_PROVA_CN,1621,Verde - BAM
+resultados,CO_PROVA_CN,1622,Cinza - BAM
+resultados,CO_PROVA_CN,1623,Laranja - Ampliada - BAM
+resultados,CO_PROVA_CN,1634,Laranja - Atendimento Especializado - BAM
+resultados,CO_PROVA_LC,1459,Azul
+resultados,CO_PROVA_LC,1460,Amarela
+resultados,CO_PROVA_LC,1461,Verde
+resultados,CO_PROVA_LC,1462,Branca
+resultados,CO_PROVA_LC,1463,Laranja - Ampliada
+resultados,CO_PROVA_LC,1464,Laranja - Superampliada
+resultados,CO_PROVA_LC,1466,Laranja - Adaptada Ledor
+resultados,CO_PROVA_LC,1467,Roxo - Videoprova - Libras
+resultados,CO_PROVA_LC,1496,Laranja - Atendimento Especializado
+resultados,CO_PROVA_LC,1549,Azul (Reaplicação)
+resultados,CO_PROVA_LC,1551,Verde (Reaplicação)
+resultados,CO_PROVA_LC,1552,Branca (Reaplicação)
+resultados,CO_PROVA_LC,1595,Azul - BAM
+resultados,CO_PROVA_LC,1596,Amarela - BAM
+resultados,CO_PROVA_LC,1597,Verde - BAM
+resultados,CO_PROVA_LC,1598,Branca - BAM
+resultados,CO_PROVA_LC,1599,Laranja - Ampliada - BAM
+resultados,CO_PROVA_LC,1632,Laranja - Atendimento Especializado - BAM
+resultados,CO_PROVA_MT,1471,Azul
+resultados,CO_PROVA_MT,1472,Amarela
+resultados,CO_PROVA_MT,1473,Verde
+resultados,CO_PROVA_MT,1474,Cinza
+resultados,CO_PROVA_MT,1475,Laranja - Ampliada
+resultados,CO_PROVA_MT,1476,Laranja - Superampliada
+resultados,CO_PROVA_MT,1478,Laranja - Adaptada Ledor
+resultados,CO_PROVA_MT,1479,Roxo - Videoprova - Libras
+resultados,CO_PROVA_MT,1497,Laranja - Atendimento Especializado
+resultados,CO_PROVA_MT,1559,Azul (Reaplicação)
+resultados,CO_PROVA_MT,1560,Amarela (Reaplicação)
+resultados,CO_PROVA_MT,1561,Verde (Reaplicação)
+resultados,CO_PROVA_MT,1562,Cinza (Reaplicação)
+resultados,CO_PROVA_MT,1607,Azul - BAM
+resultados,CO_PROVA_MT,1608,Amarela - BAM
+resultados,CO_PROVA_MT,1609,Verde - BAM
+resultados,CO_PROVA_MT,1610,Cinza - BAM
+resultados,CO_PROVA_MT,1611,Laranja - Ampliada - BAM
+resultados,CO_PROVA_MT,1633,Laranja - Atendimento Especializado - BAM
+resultados,CO_UF_ESC,11,Rondônia
+resultados,CO_UF_ESC,12,Acre
+resultados,CO_UF_ESC,13,Amazonas
+resultados,CO_UF_ESC,14,Roraima
+resultados,CO_UF_ESC,15,Pará
+resultados,CO_UF_ESC,16,Amapá
+resultados,CO_UF_ESC,17,Tocantins
+resultados,CO_UF_ESC,21,Maranhão
+resultados,CO_UF_ESC,22,Piauí
+resultados,CO_UF_ESC,23,Ceará
+resultados,CO_UF_ESC,24,Rio Grande do Norte
+resultados,CO_UF_ESC,25,Paraíba
+resultados,CO_UF_ESC,26,Pernambuco
+resultados,CO_UF_ESC,27,Alagoas
+resultados,CO_UF_ESC,28,Sergipe
+resultados,CO_UF_ESC,29,Bahia
+resultados,CO_UF_ESC,31,Minas Gerais
+resultados,CO_UF_ESC,32,Espírito Santo
+resultados,CO_UF_ESC,33,Rio de Janeiro
+resultados,CO_UF_ESC,35,São Paulo
+resultados,CO_UF_ESC,41,Paraná
+resultados,CO_UF_ESC,42,Santa Catarina
+resultados,CO_UF_ESC,43,Rio Grande do Sul
+resultados,CO_UF_ESC,50,Mato Grosso do Sul
+resultados,CO_UF_ESC,51,Mato Grosso
+resultados,CO_UF_ESC,52,Goiás
+resultados,CO_UF_ESC,53,Distrito Federal
+resultados,CO_UF_PROVA,11,Rondônia
+resultados,CO_UF_PROVA,12,Acre
+resultados,CO_UF_PROVA,13,Amazonas
+resultados,CO_UF_PROVA,14,Roraima
+resultados,CO_UF_PROVA,15,Pará
+resultados,CO_UF_PROVA,16,Amapá
+resultados,CO_UF_PROVA,17,Tocantins
+resultados,CO_UF_PROVA,21,Maranhão
+resultados,CO_UF_PROVA,22,Piauí
+resultados,CO_UF_PROVA,23,Ceará
+resultados,CO_UF_PROVA,24,Rio Grande do Norte
+resultados,CO_UF_PROVA,25,Paraíba
+resultados,CO_UF_PROVA,26,Pernambuco
+resultados,CO_UF_PROVA,27,Alagoas
+resultados,CO_UF_PROVA,28,Sergipe
+resultados,CO_UF_PROVA,29,Bahia
+resultados,CO_UF_PROVA,31,Minas Gerais
+resultados,CO_UF_PROVA,32,Espírito Santo
+resultados,CO_UF_PROVA,33,Rio de Janeiro
+resultados,CO_UF_PROVA,35,São Paulo
+resultados,CO_UF_PROVA,41,Paraná
+resultados,CO_UF_PROVA,42,Santa Catarina
+resultados,CO_UF_PROVA,43,Rio Grande do Sul
+resultados,CO_UF_PROVA,50,Mato Grosso do Sul
+resultados,CO_UF_PROVA,51,Mato Grosso
+resultados,CO_UF_PROVA,52,Goiás
+resultados,CO_UF_PROVA,53,Distrito Federal
+resultados,SG_UF_ESC,AC,Acre
+resultados,SG_UF_ESC,AL,Alagoas
+resultados,SG_UF_ESC,AM,Amazonas
+resultados,SG_UF_ESC,AP,Amapá
+resultados,SG_UF_ESC,BA,Bahia
+resultados,SG_UF_ESC,CE,Ceará
+resultados,SG_UF_ESC,DF,Distrito Federal
+resultados,SG_UF_ESC,ES,Espírito Santo
+resultados,SG_UF_ESC,GO,Goiás
+resultados,SG_UF_ESC,MA,Maranhão
+resultados,SG_UF_ESC,MG,Minas Gerais
+resultados,SG_UF_ESC,MS,Mato Grosso do Sul
+resultados,SG_UF_ESC,MT,Mato Grosso
+resultados,SG_UF_ESC,PA,Pará
+resultados,SG_UF_ESC,PB,Paraíba
+resultados,SG_UF_ESC,PE,Pernambuco
+resultados,SG_UF_ESC,PI,Piauí
+resultados,SG_UF_ESC,PR,Paraná
+resultados,SG_UF_ESC,RJ,Rio de Janeiro
+resultados,SG_UF_ESC,RN,Rio Grande do Norte
+resultados,SG_UF_ESC,RO,Rondônia
+resultados,SG_UF_ESC,RR,Roraima
+resultados,SG_UF_ESC,RS,Rio Grande do Sul
+resultados,SG_UF_ESC,SC,Santa Catarina
+resultados,SG_UF_ESC,SE,Sergipe
+resultados,SG_UF_ESC,SP,São Paulo
+resultados,SG_UF_ESC,TO,Tocantins
+resultados,SG_UF_PROVA,RO,Rondônia
+resultados,SG_UF_PROVA,AC,Acre
+resultados,SG_UF_PROVA,AM,Amazonas
+resultados,SG_UF_PROVA,RR,Roraima
+resultados,SG_UF_PROVA,PA,Pará
+resultados,SG_UF_PROVA,AP,Amapá
+resultados,SG_UF_PROVA,TO,Tocantins
+resultados,SG_UF_PROVA,MA,Maranhão
+resultados,SG_UF_PROVA,PI,Piauí
+resultados,SG_UF_PROVA,CE,Ceará
+resultados,SG_UF_PROVA,RN,Rio Grande do Norte
+resultados,SG_UF_PROVA,PB,Paraíba
+resultados,SG_UF_PROVA,PE,Pernambuco
+resultados,SG_UF_PROVA,AL,Alagoas
+resultados,SG_UF_PROVA,SE,Sergipe
+resultados,SG_UF_PROVA,BA,Bahia
+resultados,SG_UF_PROVA,MG,Minas Gerais
+resultados,SG_UF_PROVA,ES,Espírito Santo
+resultados,SG_UF_PROVA,RJ,Rio de Janeiro
+resultados,SG_UF_PROVA,SP,São Paulo
+resultados,SG_UF_PROVA,PR,Paraná
+resultados,SG_UF_PROVA,SC,Santa Catarina
+resultados,SG_UF_PROVA,RS,Rio Grande do Sul
+resultados,SG_UF_PROVA,MS,Mato Grosso do Sul
+resultados,SG_UF_PROVA,MT,Mato Grosso
+resultados,SG_UF_PROVA,GO,Goiás
+resultados,SG_UF_PROVA,DF,Distrito Federal
+resultados,TP_DEPENDENCIA_ADM_ESC,1,Federal
+resultados,TP_DEPENDENCIA_ADM_ESC,2,Estadual
+resultados,TP_DEPENDENCIA_ADM_ESC,3,Municipal
+resultados,TP_DEPENDENCIA_ADM_ESC,4,Privada
+resultados,TP_LINGUA,0,Inglês
+resultados,TP_LINGUA,1,Espanhol
+resultados,TP_LOCALIZACAO_ESC,1,Urbana
+resultados,TP_LOCALIZACAO_ESC,2,Rural
+resultados,TP_PRESENCA_CH,0,Faltou à prova
+resultados,TP_PRESENCA_CH,1,Presente na prova
+resultados,TP_PRESENCA_CH,2,Eliminado na prova
+resultados,TP_PRESENCA_CN,0,Faltou à prova
+resultados,TP_PRESENCA_CN,1,Presente na prova
+resultados,TP_PRESENCA_CN,2,Eliminado na prova
+resultados,TP_PRESENCA_LC,0,Faltou à prova
+resultados,TP_PRESENCA_LC,1,Presente na prova
+resultados,TP_PRESENCA_LC,2,Eliminado na prova
+resultados,TP_PRESENCA_MT,0,Faltou à prova
+resultados,TP_PRESENCA_MT,1,Presente na prova
+resultados,TP_PRESENCA_MT,2,Eliminado na prova
+resultados,TP_SIT_FUNC_ESC,1,Em atividade
+resultados,TP_SIT_FUNC_ESC,2,Paralisada
+resultados,TP_SIT_FUNC_ESC,3,Extinta
+resultados,TP_SIT_FUNC_ESC,4,Escola extinta em anos anteriores.
+resultados,TP_STATUS_REDACAO,1,Sem problemas
+resultados,TP_STATUS_REDACAO,2,Anulada
+resultados,TP_STATUS_REDACAO,3,Cópia Texto Motivador
+resultados,TP_STATUS_REDACAO,4,Em Branco
+resultados,TP_STATUS_REDACAO,6,Fuga ao tema
+resultados,TP_STATUS_REDACAO,7,Não atendimento ao tipo textual
+resultados,TP_STATUS_REDACAO,8,Texto insuficiente
+resultados,TP_STATUS_REDACAO,9,Parte desconectada
+resultados,TP_STATUS_REDACAO_AV1,1,Sem problemas
+resultados,TP_STATUS_REDACAO_AV1,2,Anulada
+resultados,TP_STATUS_REDACAO_AV1,3,Cópia Texto Motivador
+resultados,TP_STATUS_REDACAO_AV1,4,Em Branco
+resultados,TP_STATUS_REDACAO_AV1,6,Fuga ao tema
+resultados,TP_STATUS_REDACAO_AV1,7,Não atendimento ao tipo textual
+resultados,TP_STATUS_REDACAO_AV1,8,Texto insuficiente
+resultados,TP_STATUS_REDACAO_AV1,9,Parte desconectada
+resultados,TP_STATUS_REDACAO_AV2,1,Sem problemas
+resultados,TP_STATUS_REDACAO_AV2,2,Anulada
+resultados,TP_STATUS_REDACAO_AV2,3,Cópia Texto Motivador
+resultados,TP_STATUS_REDACAO_AV2,4,Em Branco
+resultados,TP_STATUS_REDACAO_AV2,6,Fuga ao tema
+resultados,TP_STATUS_REDACAO_AV2,7,Não atendimento ao tipo textual
+resultados,TP_STATUS_REDACAO_AV2,8,Texto insuficiente
+resultados,TP_STATUS_REDACAO_AV2,9,Parte desconectada
+resultados,TP_STATUS_REDACAO_AV3,1,Sem problemas
+resultados,TP_STATUS_REDACAO_AV3,2,Anulada
+resultados,TP_STATUS_REDACAO_AV3,3,Cópia Texto Motivador
+resultados,TP_STATUS_REDACAO_AV3,4,Em Branco
+resultados,TP_STATUS_REDACAO_AV3,6,Fuga ao tema
+resultados,TP_STATUS_REDACAO_AV3,7,Não atendimento ao tipo textual
+resultados,TP_STATUS_REDACAO_AV3,8,Texto insuficiente
+resultados,TP_STATUS_REDACAO_AV3,9,Parte desconectada
+resultados,TP_STATUS_REDACAO_AV4,1,Sem problemas
+resultados,TP_STATUS_REDACAO_AV4,2,Anulada
+resultados,TP_STATUS_REDACAO_AV4,3,Cópia Texto Motivador
+resultados,TP_STATUS_REDACAO_AV4,4,Em Branco
+resultados,TP_STATUS_REDACAO_AV4,6,Fuga ao tema
+resultados,TP_STATUS_REDACAO_AV4,7,Não atendimento ao tipo textual
+resultados,TP_STATUS_REDACAO_AV4,8,Texto insuficiente
+resultados,TP_STATUS_REDACAO_AV4,9,Parte desconectada
