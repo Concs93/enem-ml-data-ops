@@ -1,0 +1,45 @@
+CSV_SEP = ";"
+CSV_ENCODING = "latin-1"
+CHUNKSIZE = 50_000  # linhas por bloco; reduza se faltar RAM
+
+PARTICIPANTES = [
+    "NU_INSCRICAO", "NU_ANO",
+    "TP_FAIXA_ETARIA", "TP_SEXO", "TP_COR_RACA",
+    "TP_ST_CONCLUSAO", "TP_ANO_CONCLUIU", "TP_ENSINO", "IN_TREINEIRO",
+    "CO_MUNICIPIO_PROVA", "CO_UF_PROVA", "SG_UF_PROVA",
+] + [f"Q{i:03d}" for i in range(1, 24)]
+
+RESULTADOS = [
+    "NU_SEQUENCIAL", "NU_ANO",
+    # escola — a chave do projeto
+    "CO_ESCOLA", "CO_MUNICIPIO_ESC", "NO_MUNICIPIO_ESC",
+    "CO_UF_ESC", "SG_UF_ESC",
+    "TP_DEPENDENCIA_ADM_ESC", "TP_LOCALIZACAO_ESC", "TP_SIT_FUNC_ESC",
+    # aplicação
+    "CO_MUNICIPIO_PROVA", "CO_UF_PROVA", "SG_UF_PROVA",
+    # presença e prova
+    "TP_PRESENCA_CN", "TP_PRESENCA_CH", "TP_PRESENCA_LC", "TP_PRESENCA_MT",
+    "CO_PROVA_CN", "CO_PROVA_CH", "CO_PROVA_LC", "CO_PROVA_MT",
+    "NU_NOTA_CN", "NU_NOTA_CH", "NU_NOTA_LC", "NU_NOTA_MT",
+    # vetores de resposta e gabarito
+    "TX_RESPOSTAS_CN", "TX_RESPOSTAS_CH", "TX_RESPOSTAS_LC", "TX_RESPOSTAS_MT",
+    "TX_GABARITO_CN", "TX_GABARITO_CH", "TX_GABARITO_LC", "TX_GABARITO_MT",
+    "TP_LINGUA",
+    # redação
+    "TP_STATUS_REDACAO", "NU_NOTA_REDACAO",
+    "NU_NOTA_COMP1", "NU_NOTA_COMP2", "NU_NOTA_COMP3",
+    "NU_NOTA_COMP4", "NU_NOTA_COMP5",
+]
+
+ITENS_PROVA = [
+    "CO_PROVA", "TX_COR", "TP_LINGUA",
+    "CO_ITEM", "CO_POSICAO", "SG_AREA", "TX_GABARITO",
+    "IN_ITEM_ADAPTADO", "IN_ITEM_ABAN", "TX_MOTIVO_ABAN",
+    "CO_HABILIDADE", "NU_PARAM_A", "NU_PARAM_B", "NU_PARAM_C",
+]
+
+BASES = {
+    "participantes": PARTICIPANTES,
+    "resultados": RESULTADOS,
+    "itens_prova": ITENS_PROVA,
+}
