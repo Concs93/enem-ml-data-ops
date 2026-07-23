@@ -3,7 +3,7 @@ with fonte as (
 )
 
 select
-    {{ inteiro('"NU_INSCRICAO"') }}     as id_inscricao,
+    {{ grande('"NU_INSCRICAO"') }}      as id_inscricao,
     {{ inteiro('"NU_ANO"') }}           as ano,
 
     -- perfil

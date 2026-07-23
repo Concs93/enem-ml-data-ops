@@ -5,7 +5,11 @@ with fonte as (
 select
     {{ inteiro('"CO_ITEM"') }}          as co_item,
     {{ inteiro('"CO_PROVA"') }}         as co_prova,
-    {{ inteiro('"CO_POSICAO"') }}       as posicao,
+    row_number() over (
+        partition by {{ inteiro('"CO_PROVA"') }}
+        order by {{ inteiro('"CO_POSICAO"') }}
+    )                                   as posicao,
+    {{ inteiro('"CO_POSICAO"') }}       as co_posicao_global,
     "SG_AREA"                           as area,
     "TX_COR"                            as cor_prova,
     {{ inteiro('"TP_LINGUA"') }}        as cod_lingua,

@@ -5,5 +5,7 @@ __pycache__/
 *.pyc
 dbt/target/
 dbt/logs/
+logs/
+docs/
 dbt/dbt_packages/
 dbt/.user.yml

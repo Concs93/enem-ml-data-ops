@@ -1,0 +1,34 @@
+version: 2
+
+models:
+  - name: int_acerto_item_escola
+    description: >
+      Acertos por escola e item, apenas provas regulares. Itens anulados
+      (gabarito X) e abandonados (sem parametro de TRI) sao preservados no grao
+      com taxa_acerto nula, para aparecerem no diagnostico como "nao avaliados"
+      em vez de sumir.
+    columns:
+      - name: co_escola
+        tests: [not_null]
+      - name: item_anulado
+        description: Gabarito 'X' - item sem resposta correta, fora da escoragem.
+      - name: item_abandonado
+        description: Sem parametro de TRI (calibracao nao convergiu) - nao escorado.
+      - name: taxa_acerto
+        description: Nula para itens anulados/abandonados (nao avaliaveis).
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 100
+
+  - name: int_acerto_item_nacional
+    description: >
+      Taxa de acerto nacional por item. Referencia do diagnostico. Itens nao
+      avaliaveis (anulados/abandonados) aparecem com taxa_acerto_nacional nula.
+    columns:
+      - name: co_item
+        tests: [not_null]
+      - name: item_anulado
+        description: Gabarito 'X' - item sem resposta correta, fora da escoragem.
+      - name: item_abandonado
+        description: Sem parametro de TRI (calibracao nao convergiu) - nao escorado.

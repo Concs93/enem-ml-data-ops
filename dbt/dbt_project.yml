@@ -10,6 +10,14 @@ models:
   enem:
     staging:
       +materialized: view
+      stg_resultados:
+        +materialized: table
+    intermediate:
+      +materialized: view
 
 seeds:
-  enem: {}
+  enem:
+    co_prova:
+      +column_types:
+        co_prova: integer
+        is_regular: boolean
