@@ -18,7 +18,7 @@ with presentes as (
         '{{ a | upper }}' as area,
         r.nota_{{ a }}    as nota
     from {{ ref('stg_resultados') }} r
-    join {{ ref('co_prova') }} p
+    join {{ ref('co_prova_que_nao_existe') }} p
       on p.co_prova = r.co_prova_{{ a }}
      and p.sg_area  = '{{ a | upper }}'
     where r.cod_presenca_{{ a }} = 1
