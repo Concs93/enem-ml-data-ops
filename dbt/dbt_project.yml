@@ -6,6 +6,11 @@ model-paths: ['models']
 seed-paths: ['seeds']
 macro-paths: ['macros']
 
+vars:
+  # N minimo de participantes para publicar diagnostico de uma escola.
+  # Abaixo disso o resultado e instavel e potencialmente identificavel.
+  n_minimo_diagnostico: 20
+
 models:
   enem:
     staging:
@@ -14,6 +19,10 @@ models:
         +materialized: table
     intermediate:
       +materialized: view
+    marts:
+      +materialized: table
+      +schema: marts
+      +pre_hook: "set max_parallel_workers_per_gather = 0"
 
 seeds:
   enem:

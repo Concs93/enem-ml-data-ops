@@ -17,35 +17,36 @@ item, não só da nota final.
 | 1 — Ingestão (camada raw) | concluída |
 | 2 — Staging + schema canônico (dbt) | concluída |
 | 3 — Desmembrar respostas + acerto por item | concluída e validada |
-| 4 — Marts + diagnóstico por escola | próxima |
-| 5 — Qualidade de dados (Great Expectations) | pendente |
+| 4 — Marts + diagnóstico por escola | concluída e validada |
+| 5 — Qualidade de dados (Great Expectations) | próxima |
 | 6 — Orquestração (Airflow) | pendente |
 | 7 — CI/CD + docs no GitHub Pages | pendente |
 | MLOps | pendente |
 
-### Edições da Etapa 3 (aplicadas e validadas)
+### Etapa 4 — o que ficou de pé
 
-Preservar itens anulados/abandonados, tratar `item_abandonado` como não
-avaliável, piso de 5% em `taxa_acerto_plausivel` e o novo teste
-`item_sem_parametro` — todas **aplicadas** (ver "Itens problemáticos" e
-"Validação"). Removido o `where acertou is not null` do `agrega_por_item`; as
-flags `item_anulado`/`item_abandonado` sobem até o agregado e a taxa vira nula
-via `case when item_anulado or item_abandonado then null`. A correlação
-continuou idêntica (CH −0,808 · CN −0,799 · LC −0,910 · MT −0,854) e a MT hab 21
-voltou ao agregado como "não avaliada". `dbt test` verde (16/16).
+Schema `marts` (sem prefixo, via `generate_schema_name`), três modelos e quatro
+testes singulares novos. `dbt test` verde: **31/31**.
+
+| modelo | linhas | tempo |
+|---|---|---|
+| `dim_escola` | 29.904 | 3s |
+| `mart_escola_area` | 116.906 | 12s |
+| `mart_diagnostico_habilidade` | 3.507.180 | ~1min |
+
+O `dim_escola` é maior que as 29.265 escolas do diagnóstico porque cobre **toda**
+escola nos resultados, inclusive as que só têm participantes de reaplicação/BAM.
+É de propósito: dimensão descreve quem existe, o fato decide quem entra.
 
 ### Decisões em aberto
 
-- **Filtro `co_escola is not null` no macro ou nas camadas de cima?** Hoje está
-  nos macros de explode (corta 64% do volume e viabiliza a máquina, filtrando
-  antes do `substring`), o que redefine a referência "nacional" como *entre
-  concluintes com escola identificada*. Reenquadramento provável: esse recorte é
-  o *peer group correto* para um diagnóstico de escola — concluintes, não a
-  população inteira do ENEM (treineiros, reingressantes) — não só uma concessão
-  à máquina. Se confirmado, deixa de ser dívida e vira decisão.
 - **BAM (Belém/Ananindeua/Marituba)** está fora por `is_regular`. São 62 mil
   participantes — nenhuma escola dessas cidades recebe diagnóstico. Merece
-  recorte próprio na Etapa 4.
+  recorte próprio: o mesmo pipeline com referência própria.
+- **Seed da Matriz de Referência** (habilidade → competência + descrição). É a
+  saída para as 62 habilidades de um item só (agregar em competência) e o que
+  transforma "habilidade 21" em algo que um professor lê. Único dado do projeto
+  que não sai de script — transcrever do PDF oficial e conferir os totais.
 
 ---
 
@@ -110,8 +111,11 @@ CSV bruto (INEP)
   → raw            ingestão via COPY, tudo TEXT, sem interpretação
   → staging        tipagem + schema canônico (dbt, views)
   → intermediate   explosão das respostas + agregação por item
-  → marts          diagnóstico por escola (Etapa 4)
+  → marts          diagnóstico por escola — schema próprio, fronteira de consumo
 ```
+
+O que está em `marts` é contrato com o mundo externo (a futura API); o que está
+em `staging` é cozinha interna.
 
 ### Estrutura
 
@@ -131,7 +135,8 @@ enem-ml-data-ops/
 │   │   ├── util.sql            num, inteiro, grande, booleano
 │   │   ├── explode_respostas.sql        CH, CN, MT
 │   │   ├── explode_respostas_lc.sql     LC (caso especial)
-│   │   └── agrega_por_item.sql
+│   │   ├── agrega_por_item.sql
+│   │   └── generate_schema_name.sql     marts sem prefixo staging_
 │   ├── seeds/
 │   │   ├── dominios.csv        500 pares código→rótulo, 59 variáveis
 │   │   └── co_prova.csv        74 versões de prova classificadas
@@ -142,16 +147,25 @@ enem-ml-data-ops/
 │   │   │   ├── stg_itens.sql
 │   │   │   ├── stg_participantes.sql
 │   │   │   └── stg_resultados.sql
-│   │   └── intermediate/
-│   │       ├── _intermediate.yml
-│   │       ├── int_respostas_{mt,ch,cn,lc}.sql       views
-│   │       ├── int_acerto_item_{mt,ch,cn,lc}.sql     tables
-│   │       ├── int_acerto_item_escola.sql
-│   │       └── int_acerto_item_nacional.sql
+│   │   ├── intermediate/
+│   │   │   ├── _intermediate.yml
+│   │   │   ├── int_respostas_{mt,ch,cn,lc}.sql       views
+│   │   │   ├── int_acerto_item_{mt,ch,cn,lc}.sql     tables
+│   │   │   ├── int_acerto_item_escola.sql
+│   │   │   └── int_acerto_item_nacional.sql
+│   │   └── marts/
+│   │       ├── _marts.yml
+│   │       ├── dim_escola.sql
+│   │       ├── mart_escola_area.sql
+│   │       └── mart_diagnostico_habilidade.sql
 │   └── tests/
 │       ├── stg_itens_grao_unico.sql
 │       ├── taxa_acerto_plausivel.sql
-│       └── item_sem_parametro.sql
+│       ├── item_sem_parametro.sql
+│       ├── percentil_publicavel.sql
+│       ├── taxa_condiz_com_status.sql
+│       ├── habilidades_completas.sql
+│       └── marts_mesma_populacao.sql
 └── data/raw/                   CSVs do INEP, fora do Git
 ```
 
@@ -161,10 +175,17 @@ enem-ml-data-ops/
   reconverte 4,8 milhões de linhas de texto a cada consulta).
 - `intermediate` → `int_respostas_*` são **view** (o grão fino nunca toca o
   disco); `int_acerto_item_*` são **table**.
+- `marts` → **table**, com `+schema: marts` e o `pre_hook` no nível da pasta (no
+  `dbt_project.yml`), para que todo mart novo já nasça com paralelismo desligado.
 - Os `int_acerto_item_{area}` usam
   `pre_hook="set max_parallel_workers_per_gather = 0"`. Isso **não é opcional**:
   cada worker paralelo recebe sua própria fatia de memória, e é isso que derruba
   o servidor.
+- O macro `generate_schema_name` faz o `+schema` valer como está. Sem ele o dbt
+  concatena e o schema viraria `staging_marts`.
+- `vars: n_minimo_diagnostico: 20` no `dbt_project.yml` — o N mínimo mora num
+  lugar só e aparece no diff. Vira seed se um dia ganhar estrutura (N por rede,
+  por exemplo).
 
 ### Ordem de construção
 
@@ -189,8 +210,15 @@ dbt run --select int_acerto_item_lc
 dbt run --select int_acerto_item_escola
 dbt run --select int_acerto_item_nacional
 
+dbt run --select dim_escola
+dbt run --select mart_escola_area
+dbt run --select mart_diagnostico_habilidade   # depende do mart_escola_area
+
 dbt test
 ```
+
+Os marts são baratos (segundos a ~1 min). `dbt build --select marts` também
+serve e resolve a ordem de dependência sozinho.
 
 ---
 
@@ -235,6 +263,28 @@ No catálogo, as posições 1–10 de LC são os itens de língua estrangeira,
 **intercalados** entre inglês e espanhol (não 1–5 / 6–10). A junção filtra por
 `(i.cod_lingua is null or i.cod_lingua = p.cod_lingua)` e um `row_number`
 particionado por aluno renumera de 1 a 45.
+
+### Linha que não existe é omissão silenciosa — LC habilidade 8
+
+A `int_acerto_item_escola` só tem linha para item **respondido**. A habilidade 8
+de LC é coberta só por **itens de espanhol** — nenhum comum, nenhum de inglês.
+Numa escola sem aluno de espanhol, ninguém respondeu nada dessa habilidade, e a
+linha simplesmente não existe: são **1.824 das 29.260 escolas com presença em
+LC (6,2%)**.
+
+Um mart que parte das linhas da escola faz a habilidade **sumir** do relatório
+dessas escolas. É o mesmo defeito da MT hab 21 por outro caminho — lá a edição
+não tinha item válido, aqui a escola não teve quem respondesse.
+
+**Solução:** o `mart_diagnostico_habilidade` monta um **grid completo** escola ×
+área × habilidade e distingue os dois casos: `nao_avaliada` (a edição não tem o
+que medir) e `nao_administrada` (a escola não teve quem respondesse). O teste
+`habilidades_completas` trava a regressão — nenhum teste por linha vê uma linha
+que não existe.
+
+As habilidades **5, 6 e 7 de LC** sofrem uma versão mais branda: o lastro varia
+com o mix de línguas da escola (1 a 3 itens, contra 2–3 no nacional). Por isso o
+mart carrega `n_itens_validos` e `n_itens_validos_nacional` lado a lado.
 
 ### `NU_INSCRICAO` estoura o `integer`
 
@@ -347,15 +397,21 @@ se fosse item normal — um item que o INEP havia tirado da escoragem. Foi a
 preservação de anulados/abandonados que expôs isso; o `96748` sequer estava
 documentado antes.
 
-### Itens por habilidade — relevante para a Etapa 4
+### Itens por habilidade — o fato que mais pesa no produto
 
-30 habilidades por área (MT tem 29 após o anulado). Média de itens por
-habilidade: CH 1,50 · CN 1,43 · LC 1,67 · MT 1,52.
+30 habilidades por área, 120 no total. Média de itens **válidos** por
+habilidade: CH 1,50 · CN 1,40 · LC 1,67 · MT 1,43.
+
+Distribuição: **1 habilidade com zero** itens válidos (MT 21), **62 com um
+único item**, 57 com dois ou mais. Ou seja, **mais da metade das habilidades é
+medida por um item só**.
 
 Consequência: *precisão* não é problema (uma escola com 100 alunos tem 100
 respostas por item), mas *validade de conteúdo* é. Um item não representa a
-habilidade inteira. Duas saídas combináveis: reportar o número de itens que
-embasa cada habilidade, e agregar também no nível de **competência de área**.
+habilidade inteira — mede também o enunciado, o distrator, o tema. Duas saídas
+combináveis: reportar o número de itens que embasa cada medida (feito — a coluna
+`n_itens_validos` e o `status` no mart) e agregar no nível de **competência de
+área** (pendente do seed da Matriz).
 
 **Lacuna conhecida:** os microdados trazem só o *número* da habilidade, não a
 descrição nem a competência. Isso está na Matriz de Referência do ENEM, que é
@@ -402,6 +458,26 @@ desses itens fica entre 0,063 e 0,125, então o piso da curva é 6-12%, não 20%
 o aluno não chuta ao acaso, escolhe convictamente o distrator. Itens muito
 difíceis chegam legitimamente a 8-15%. O piso do teste é **5%**.
 
+### Verificações dos marts (Etapa 4)
+
+```sql
+-- os dois casos-limite estao declarados, nao omitidos
+select area, habilidade, status, count(*) as escolas
+from marts.mart_diagnostico_habilidade
+where (area = 'MT' and habilidade = 21) or (area = 'LC' and habilidade = 8)
+group by 1,2,3 order by 1,2,3;
+
+-- publicaveis por area
+select area, count(*) filter (where publicavel) as publicaveis
+from marts.mart_escola_area group by 1 order by 1;
+```
+
+Valores obtidos: MT 21 → 29.193 escolas `nao_avaliada`. LC 8 → 1.824
+`nao_administrada` + 27.436 `ok`. Publicáveis: **CH/LC 18.115 · CN/MT 17.601**
+(os pares batem porque CH+LC caem num dia de prova e CN+MT no outro).
+
+O `\dn` deve listar `marts`, nunca `staging_marts`.
+
 ---
 
 ## Decisões metodológicas
@@ -412,8 +488,12 @@ difíceis chegam legitimamente a 8-15%. O piso do teste é **5%**.
   próprios e não são comparáveis na mesma métrica.
 - **Só participantes presentes** (`cod_presenca = 1`).
 - **Só quem tem `CO_ESCOLA`** — participante sem escola não pode ser atribuído a
-  escola nenhuma. Consequência documentada: a referência "nacional" é entre
-  concluintes com escola identificada.
+  escola nenhuma. A consequência deixou de ser dívida e virou **decisão**: a
+  referência é *entre concluintes com escola identificada*, e esse é o peer group
+  correto para um diagnóstico de escola. Comparar a turma que se forma agora
+  contra a população inteira do ENEM (treineiros, quem terminou o médio há dez
+  anos) não seria mais rigoroso, seria menos. Limitação a registrar no README: a
+  referência representa concluintes vinculados ao Censo, não "o Brasil inteiro".
 - **Item anulado sai do cálculo**, sem crédito e sem penalidade. Não é uma
   escolha entre duas opções: em TRI a nota não é contagem de acertos, é
   estimativa de traço latente. Item sem gabarito não carrega informação sobre
@@ -422,9 +502,26 @@ difíceis chegam legitimamente a 8-15%. O piso do teste é **5%**.
 - **Ausência estrutural não é fracasso.** Um aluno que fez inglês não respondeu
   os itens de espanhol — isso é item não administrado, nunca erro. A junção por
   `cod_lingua` resolve na origem.
-- **N mínimo para publicar diagnóstico:** definir na Etapa 4 (referência: 20
-  participantes). Escola com poucos alunos gera resultado instável e
-  potencialmente identificável.
+- **N mínimo para publicar diagnóstico: 20** (`var n_minimo_diagnostico`), e
+  exige 20 **presentes** e 20 **com nota**. Escola com poucos alunos gera
+  resultado instável e potencialmente identificável. Escolas abaixo do limiar
+  **continuam nas tabelas** com `publicavel = false`, sem percentil — excluí-las
+  apagaria a informação de que existem; publicá-las exporia o que o N não
+  sustenta. O flag viaja nos **dois** marts: quem consome só o de habilidades
+  não pode publicar escola pequena sem saber.
+- **Percentil pela nota oficial**, não pela taxa de acerto. É a escala pública
+  que as escolas conhecem, estimada por TRI (pondera dificuldade, desconta
+  acerto casual) e auditável. A taxa de acerto fica com o que só ela faz: abrir
+  o desempenho por habilidade. Cada medida no seu posto.
+- **Uma régua por área, não por rede.** O percentil compara todas as escolas
+  publicáveis da área — Federal e Municipal juntas. Recortar por rede/UF embute
+  um juízo sobre o que é comparável e faria "percentil 80" significar coisas
+  diferentes em tabelas diferentes. Os atributos de recorte estão na
+  `dim_escola`; a API pode *filtrar* o ranking, não recalculá-lo.
+- **Taxa ponderada, não média das taxas.** Soma acertos ÷ soma respostas, na
+  escola e na referência, simetricamente — agregadas pela mesma regra, são
+  comparáveis por construção. Exceção honesta: LC 5–8, onde o conjunto de itens
+  varia com o mix de línguas (por isso os dois lastros lado a lado).
 - **Staging faz três coisas e só três:** renomeia, converte tipo, mantém
   um-para-um com a fonte. Sem junções, sem filtros de regra de negócio, sem
   agregação. Filtro de prova regular e de presença é decisão de análise e vive
@@ -441,6 +538,12 @@ difíceis chegam legitimamente a 8-15%. O piso do teste é **5%**.
 - Colunas explícitas em `union all`, nunca `select *` entre modelos de origens
   diferentes.
 - Decisões de escopo viram **seed versionado**, não `WHERE` com números mágicos.
+  Escalar solto (o N mínimo) vira `var` no `dbt_project.yml` — seed de uma célula
+  é cerimônia; vira seed quando ganhar estrutura.
+- **Linha ausente é omissão silenciosa.** Onde o grão é "entidade × dimensão",
+  montar o **grid completo** e declarar o vazio com um status, em vez de deixar a
+  linha faltar. Nenhum teste por linha vê uma linha que não existe — por isso
+  também um teste de *completude* (`habilidades_completas`).
 - Nomes canônicos em português nas camadas acima de raw (`renda_familiar`, não
   `Q007`), para que a troca de edição não propague mudança de nome.
 - Prefixo `qtd_` para variáveis de quantidade e `tem_` para binárias no

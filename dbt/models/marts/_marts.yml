@@ -1,0 +1,78 @@
+version: 2
+
+models:
+  - name: dim_escola
+    description: >
+      Uma linha por escola, atributos decodificados pelo seed dominios.
+      Consumida pela aplicacao, nao pelos fatos. Cobre toda escola presente
+      nos resultados, inclusive as que nao recebem diagnostico.
+    columns:
+      - name: co_escola
+        tests: [not_null, unique]
+      - name: dependencia
+        description: Federal, Estadual, Municipal ou Privada.
+      - name: localizacao
+        description: Urbana ou Rural.
+
+  - name: mart_escola_area
+    description: >
+      Presenca, media da nota oficial e percentil por escola e area, apenas
+      provas regulares. Percentil calculado somente entre escolas publicaveis
+      (n_presentes e n_com_nota acima do minimo), para que a posicao de quem
+      tem N suficiente nao oscile com a entrada de escolas instaveis.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: [co_escola, area]
+    columns:
+      - name: co_escola
+        tests: [not_null]
+      - name: n_presentes
+        description: Concluintes presentes na area, em prova regular.
+      - name: n_com_nota
+        description: Subconjunto de n_presentes com nota oficial atribuida.
+      - name: percentil
+        description: >
+          Posicao entre as escolas publicaveis da area, regua unica (todas as
+          redes juntas). Nulo quando a escola nao e publicavel.
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 100
+      - name: publicavel
+        description: Atingiu o N minimo definido em var n_minimo_diagnostico.
+        tests: [not_null]
+
+  - name: mart_diagnostico_habilidade
+    description: >
+      O produto do projeto - taxa de acerto por escola, area e habilidade,
+      comparada com a referencia nacional, com o numero de itens que sustenta
+      cada medida. Grid completo - nenhuma habilidade e omitida, nunca.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: [co_escola, area, habilidade]
+    columns:
+      - name: co_escola
+        tests: [not_null]
+      - name: n_itens_validos
+        description: Lastro da medida na escola. Itens anulados/abandonados fora.
+      - name: n_itens_validos_nacional
+        description: >
+          Lastro da mesma medida na referencia. Difere do da escola nas
+          habilidades de lingua estrangeira (LC 5-8), onde o conjunto de itens
+          depende do mix de ingles e espanhol dos alunos da escola.
+      - name: status
+        description: >
+          ok (2+ itens validos) | um_item (medida fragil) | nao_administrada
+          (nenhum aluno da escola viu itens da habilidade) | nao_avaliada
+          (a edicao nao tem item valido).
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['ok', 'um_item', 'nao_administrada', 'nao_avaliada']
+      - name: publicavel
+        description: Gate do N minimo, herdado de mart_escola_area.
+        tests: [not_null]
+      - name: diferenca
+        description: >
+          taxa_acerto menos taxa_acerto_nacional, em pontos percentuais.
+          Ordena o relatorio - as maiores lacunas primeiro.
