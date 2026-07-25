@@ -1,0 +1,53 @@
+"""
+Cria a camada raw VAZIA -- so a estrutura, zero linhas.
+
+Serve a Faixa 2 da CI: o Postgres precisa das tabelas para julgar coluna,
+tipo e juncao, mas nao precisa de uma linha sequer. Com elas de pe, o
+`dbt build --empty` executa o SQL de todos os modelos contra um banco de
+verdade sem processar dado nenhum.
+
+A lista de colunas vem de ingestion/config.py -- a mesma que a ingestao usa.
+Escrever um .sql a parte criaria uma segunda fonte de verdade, que diverge em
+silencio no dia em que alguem acrescentar uma coluna. E a mesma regra dos
+seeds: derivar de artefato, nunca transcrever.
+
+Uso (da raiz do projeto):
+    python -m ci.cria_raw_vazia
+"""
+
+import os
+
+import psycopg2
+
+from ingestion.config import BASES
+
+ANO = 2025
+
+
+def main():
+    conn = psycopg2.connect(
+        host=os.environ.get("POSTGRES_HOST", "localhost"),
+        port=os.environ.get("POSTGRES_PORT", "5432"),
+        user=os.environ["POSTGRES_USER"],
+        password=os.environ["POSTGRES_PASSWORD"],
+        dbname=os.environ["POSTGRES_DB"],
+    )
+    cur = conn.cursor()
+    cur.execute("create schema if not exists raw;")
+
+    for base, colunas in BASES.items():
+        tabela = f"raw.{base}_{ANO}"
+        # tudo TEXT, igual a ingestao de verdade (decisao da Etapa 1:
+        # a camada raw nao interpreta nada)
+        cols = ", ".join(f'"{c}" text' for c in colunas)
+        cur.execute(f"drop table if exists {tabela} cascade;")
+        cur.execute(f"create table {tabela} ({cols});")
+        print(f"  {tabela}: {len(colunas)} colunas, 0 linhas")
+
+    conn.commit()
+    conn.close()
+    print(f"ok: {len(BASES)} tabelas criadas em raw")
+
+
+if __name__ == "__main__":
+    main()

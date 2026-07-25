@@ -1,0 +1,97 @@
+name: Documentacao
+
+# Gera a documentacao do dbt (modelos, colunas, testes e o grafo de lineage)
+# e publica no GitHub Pages. O conteudo vem do CODIGO, nao do dado -- por
+# isso o banco vazio da Faixa 2 basta.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:          # botao manual na aba Actions
+
+# o Pages exige estas tres permissoes explicitamente
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# uma publicacao por vez, e sem cancelar a que ja esta no ar
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+
+  build:
+    name: Gera a documentacao
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: enem
+          POSTGRES_PASSWORD: enem
+          POSTGRES_DB: enem
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DBT_PROFILES_DIR: ${{ github.workspace }}/dbt
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER: enem
+      POSTGRES_PASSWORD: enem
+      POSTGRES_DB: enem
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      # o mesmo banco vazio da CI: o lineage e as descricoes saem do codigo
+      - name: Cria a raw vazia
+        run: python -m ci.cria_raw_vazia
+
+      # build normal: a raw esta vazia, entao tudo processa zero linhas.
+      # O docs generate precisa dos objetos existindo no banco para montar
+      # o catalogo de colunas.
+      - name: Constroi e documenta
+        working-directory: dbt
+        run: |
+          dbt deps
+          dbt seed
+          dbt build
+          dbt docs generate
+
+      # o index.html do dbt busca manifest.json e catalog.json por caminho
+      # relativo -- os tres precisam viajar juntos
+      - name: Monta o site
+        run: |
+          mkdir -p site
+          cp dbt/target/index.html    site/
+          cp dbt/target/manifest.json site/
+          cp dbt/target/catalog.json  site/
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    name: Publica no Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

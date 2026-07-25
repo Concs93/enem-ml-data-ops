@@ -20,7 +20,7 @@ item, não só da nota final.
 | 4 — Marts + diagnóstico por escola | concluída e validada |
 | 5 — Qualidade de dados (Great Expectations) | concluída e validada |
 | 6 — Orquestração (Airflow) | concluída e validada |
-| 7 — CI/CD + docs no GitHub Pages | próxima |
+| 7 — CI/CD + docs no GitHub Pages | concluída |
 | MLOps | pendente |
 
 ### Etapa 4 — o que ficou de pé
@@ -98,6 +98,34 @@ Quatro armadilhas que já morderam aqui:
 - **dbt em venv separado** (`/home/airflow/projeto-venv`). Airflow e dbt
   disputam versões de `jinja2` e `pydantic`; instalar juntos degrada um dos
   dois e o erro aparece longe da causa.
+
+### Etapa 7 — o que ficou de pé
+
+Dois workflows em `.github/workflows/`, em **três faixas** de verificação
+segundo o quanto de dado cada uma precisa:
+
+| faixa | precisa de | pega | onde |
+|---|---|---|---|
+| 1 | nada | sintaxe, `ref()` quebrado, import do DAG, dependência faltando | CI |
+| 2 | Postgres com tabelas vazias | coluna inexistente, tipo, junção | CI |
+| 3 | os 2,6 GB | regressão de **lógica** | Airflow, local |
+
+A Faixa 2 usa `ci/cria_raw_vazia.py`, que deriva as tabelas de
+`ingestion/config.py` (mesma regra dos seeds: derivar, nunca transcrever) e
+depois roda `dbt build` normal — **59 nós verdes em 17s**, porque a fonte
+vazia faz o trabalho sozinha.
+
+**Não usar `dbt build --empty`.** A flag embrulha cada ref numa subconsulta
+com alias próprio (`_dbt_limit_subq_x`), e o padrão `{{ ref('x') }} r` deste
+projeto vira dois aliases em sequência: `syntax error at or near "r"` em 6
+modelos. Além de desnecessária — aqui a raw é vazia de verdade.
+
+A CI **não usa nenhum segredo**, e isso é desenho, não descuido: o Postgres do
+job é descartável e morre em minutos. Se ela precisasse de senha real, seria
+sinal de que está tocando um ambiente que não deveria.
+
+As Data Docs do Great Expectations **não** são publicadas pela CI: elas
+relatam uma validação, e num banco vazio não há o que validar.
 
 ### Decisões em aberto
 

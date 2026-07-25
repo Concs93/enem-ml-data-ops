@@ -1,0 +1,160 @@
+name: CI
+
+# Duas faixas de verificacao, em jobs paralelos. A terceira -- rodar o
+# pipeline sobre os 2,6 GB reais -- nao cabe aqui: leva 43 min e o dado nao
+# esta no repositorio. Ela vive no Airflow (Etapa 6).
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+
+  # -------------------------------------------------------------------
+  # Faixa 1a: sem banco. O que o codigo diz sobre si mesmo.
+  # -------------------------------------------------------------------
+  sintaxe:
+    name: Faixa 1 - sintaxe e grafo do dbt
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      # se faltar alguma dependencia aqui, o requirements.txt esta
+      # incompleto -- e essa e a primeira coisa que uma maquina limpa
+      # descobre e a sua nunca descobriria
+      - name: Dependencias do projeto
+        run: pip install -r requirements.txt
+
+      - name: Python compila
+        run: python -m compileall -q ingestion quality ci
+
+      # dbt parse resolve todo {{ ref() }} e todo o Jinja SEM abrir conexao.
+      # As variaveis falsas existem porque o profiles.yml usa env_var() --
+      # o parse nao conecta, mas exige que o profile seja renderizavel
+      - name: dbt parse
+        working-directory: dbt
+        env:
+          DBT_PROFILES_DIR: .
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: "5432"
+          POSTGRES_USER: ninguem
+          POSTGRES_PASSWORD: nada
+          POSTGRES_DB: nenhum
+        run: |
+          dbt deps
+          dbt parse
+
+  # -------------------------------------------------------------------
+  # Faixa 1b: o DAG importa? Job separado de proposito -- Airflow e dbt
+  # disputam versoes de jinja2 e pydantic, o mesmo motivo do venv separado
+  # na imagem da Etapa 6. Aqui a separacao sai de graca: sao dois jobs.
+  # -------------------------------------------------------------------
+  dag:
+    name: Faixa 1 - o DAG importa
+    runs-on: ubuntu-latest
+    env:
+      AIRFLOW_HOME: ${{ github.workspace }}/.airflow-ci
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      # constraint file oficial: sem ele o resolvedor do pip tenta combinar
+      # centenas de provedores e demora (ou falha)
+      - name: Airflow
+        run: |
+          pip install "apache-airflow==3.3.0" \
+            --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-3.3.0/constraints-3.12.txt"
+
+      # importar o arquivo executa o @dag e monta as tasks em memoria, sem
+      # banco de metadados. Foi esta classe de erro (airflow.sdk,
+      # providers.standard) que quase passou na Etapa 6
+      - name: Importa o DAG
+        run: |
+          python - <<'PY'
+          import importlib.util
+          spec = importlib.util.spec_from_file_location(
+              "enem_pipeline", "dags/enem_pipeline.py")
+          mod = importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(mod)
+          print("ok: dags/enem_pipeline.py importou sem erro")
+          PY
+
+  # -------------------------------------------------------------------
+  # Faixa 2: Postgres descartavel com as tabelas vazias. O SQL executa de
+  # verdade contra um banco -- so nao ha linhas para processar.
+  # -------------------------------------------------------------------
+  sql:
+    name: Faixa 2 - o SQL executa
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: enem
+          POSTGRES_PASSWORD: enem
+          POSTGRES_DB: enem
+        ports: ["5432:5432"]
+        # sem healthcheck o job comeca antes de o banco aceitar conexao e
+        # falha de forma intermitente -- o pior tipo de falha
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DBT_PROFILES_DIR: ${{ github.workspace }}/dbt
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER: enem
+      POSTGRES_PASSWORD: enem
+      POSTGRES_DB: enem
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Cria a raw vazia
+        run: python -m ci.cria_raw_vazia
+
+      # os seeds sao versionados justamente para isto: quem clona constroi
+      # sem baixar 2,6 GB de microdados. Se alguem esquecer de commitar um
+      # seed regenerado, este passo denuncia
+      - name: Seeds
+        working-directory: dbt
+        run: |
+          dbt deps
+          dbt seed
+
+      # build normal, sem truque: a raw AQUI ja esta vazia, entao cada
+      # modelo processa zero linhas naturalmente. O SQL executa exatamente
+      # como em producao -- e o EXPLAIN das Etapas 4 e 5, agora automatico e
+      # para o pipeline inteiro. Leva ~17s.
+      #
+      # NAO usar --empty: ele embrulha cada ref numa subconsulta com alias
+      # proprio (_dbt_limit_subq_x), e o padrao "{{ ref('x') }} r" deste
+      # projeto vira dois aliases em sequencia -- erro de sintaxe. Alem de
+      # desnecessario, ja que a fonte aqui e vazia de verdade.
+      #
+      # Atencao ao ler o verde: com zero linhas TODO teste de dados passa.
+      # Isto prova que o SQL e valido, nunca que o resultado esta certo.
+      - name: Modelos e testes sobre a raw vazia
+        working-directory: dbt
+        run: dbt build
