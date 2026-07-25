@@ -1,0 +1,20 @@
+# Normaliza finais de linha.
+#
+# O repositorio guarda tudo com LF; no Windows o checkout entrega CRLF quando
+# o core.autocrlf pedir. Sem isto, um arquivo editado por uma ferramenta que
+# escreve CRLF (ou LF) aparece com TODAS as linhas alteradas no diff -- ja
+# aconteceu tres vezes aqui, e chegou a poluir um pull request de uma linha.
+* text=auto
+
+# Arquivos que o Linux executa: LF sempre, mesmo no Windows
+*.sh          text eol=lf
+Dockerfile    text eol=lf
+
+# Script de PowerShell: CRLF, que e o nativo da plataforma que o roda
+*.ps1         text eol=crlf
+
+# Binarios: nao tocar
+*.pdf         binary
+*.png         binary
+*.jpg         binary
+*.vhdx        binary
