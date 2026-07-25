@@ -43,3 +43,43 @@ BASES = {
     "resultados": RESULTADOS,
     "itens_prova": ITENS_PROVA,
 }
+
+
+# ----------------------------------------------------------------- Censo Escolar
+#
+# Fonte diferente das tres acima: o Censo Escolar (INEP) traz o CADASTRO das
+# escolas, que os microdados do ENEM nao tem. O ENEM so identifica a escola por
+# CO_ESCOLA -- um codigo que ninguem sabe de cabeca. Sem este cruzamento,
+# nenhuma escola consegue se achar num relatorio.
+#
+# Sao 426 colunas no arquivo; ficam estas, em quatro grupos. O criterio e o
+# mesmo das outras bases: entra o que tem uso previsto, nao o que existe.
+CENSO_ESCOLAR = [
+    # identidade -- CO_ENTIDADE e a chave que casa com CO_ESCOLA do ENEM
+    "NU_ANO_CENSO", "CO_ENTIDADE", "NO_ENTIDADE", "TP_SITUACAO_FUNCIONAMENTO",
+
+    # geografia. MESO e MICRORREGIAO sao a agregacao do IBGE que permite subir
+    # de nivel quando o municipio e pequeno demais para publicar sozinho --
+    # 45% dos municipios tem uma escola so, e publicar o municipio seria
+    # publicar aquela escola com outro rotulo
+    "CO_REGIAO", "CO_UF", "SG_UF", "CO_MUNICIPIO", "NO_MUNICIPIO",
+    "CO_MESORREGIAO", "CO_MICRORREGIAO", "TP_LOCALIZACAO",
+
+    # rede
+    "TP_DEPENDENCIA", "TP_CATEGORIA_ESCOLA_PRIVADA",
+
+    # porte no ensino medio -- o publico do ENEM
+    "IN_MED", "QT_MAT_MED", "QT_DOC_MED", "QT_TUR_MED", "QT_SALAS_UTILIZADAS",
+
+    # infraestrutura: contexto para comparar escolas de perfil semelhante
+    "IN_INTERNET", "IN_BIBLIOTECA", "IN_LABORATORIO_INFORMATICA",
+    "IN_LABORATORIO_CIENCIAS", "IN_QUADRA_ESPORTES", "IN_AGUA_POTAVEL",
+    "IN_ENERGIA_REDE_PUBLICA", "IN_ESGOTO_REDE_PUBLICA",
+    "IN_ACESSIBILIDADE_INEXISTENTE",
+]
+
+# o zip do INEP, e o caminho do CSV dentro dele. O ano vai por formatacao
+# porque a estrutura se repete entre edicoes.
+CENSO_URL = ("https://download.inep.gov.br/dados_abertos/"
+             "microdados_censo_escolar_{ano}.zip")
+CENSO_CSV_INTERNO = "dados/microdados_ed_basica_{ano}.csv"
