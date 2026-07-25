@@ -18,8 +18,8 @@ item, não só da nota final.
 | 2 — Staging + schema canônico (dbt) | concluída |
 | 3 — Desmembrar respostas + acerto por item | concluída e validada |
 | 4 — Marts + diagnóstico por escola | concluída e validada |
-| 5 — Qualidade de dados (Great Expectations) | próxima |
-| 6 — Orquestração (Airflow) | pendente |
+| 5 — Qualidade de dados (Great Expectations) | concluída e validada |
+| 6 — Orquestração (Airflow) | próxima |
 | 7 — CI/CD + docs no GitHub Pages | pendente |
 | MLOps | pendente |
 
@@ -38,15 +38,29 @@ O `dim_escola` é maior que as 29.265 escolas do diagnóstico porque cobre **tod
 escola nos resultados, inclusive as que só têm participantes de reaplicação/BAM.
 É de propósito: dimensão descreve quem existe, o fato decide quem entra.
 
+### Etapa 5 — o que ficou de pé
+
+Seed da Matriz de Referência derivado do PDF oficial, correção do sentinela das
+notas zeradas, mart de competência e a guarda de fronteira com Great
+Expectations. `dbt test` verde: **39/39**.
+
+| modelo | linhas |
+|---|---|
+| `matriz_referencia` (seed) | 120 |
+| `mart_diagnostico_competencia` | 876.795 |
+
+A Matriz **não** precisou de transcrição manual — o `build_matriz.py` deriva do
+PDF oficial. Aquela pendência do CLAUDE.md ("único dado que não sai de script")
+deixou de existir.
+
 ### Decisões em aberto
 
 - **BAM (Belém/Ananindeua/Marituba)** está fora por `is_regular`. São 62 mil
   participantes — nenhuma escola dessas cidades recebe diagnóstico. Merece
   recorte próprio: o mesmo pipeline com referência própria.
-- **Seed da Matriz de Referência** (habilidade → competência + descrição). É a
-  saída para as 62 habilidades de um item só (agregar em competência) e o que
-  transforma "habilidade 21" em algo que um professor lê. Único dado do projeto
-  que não sai de script — transcrever do PDF oficial e conferir os totais.
+- **Por que CH tem quatro vezes mais prova em branco que LC?** 2.489 contra 663,
+  no mesmo dia de aplicação e praticamente a mesma população. Não há explicação
+  ainda; registrar a pergunta é melhor que inventar a resposta.
 
 ---
 
@@ -126,7 +140,10 @@ enem-ml-data-ops/
 ├── ingestion/
 │   ├── config.py               colunas de cada base, separador, encoding
 │   ├── load_raw.py             ingestão via COPY, idempotente, em blocos
-│   └── build_seeds.py          gera os seeds a partir dos artefatos do INEP
+│   ├── build_seeds.py          gera os seeds a partir dos artefatos do INEP
+│   └── build_matriz.py         gera o seed da Matriz a partir do PDF oficial
+├── quality/
+│   └── expectations_raw.py     Great Expectations na fronteira (camada raw)
 ├── dbt/
 │   ├── dbt_project.yml
 │   ├── profiles.yml            usa env_var, versionado
@@ -139,7 +156,8 @@ enem-ml-data-ops/
 │   │   └── generate_schema_name.sql     marts sem prefixo staging_
 │   ├── seeds/
 │   │   ├── dominios.csv        500 pares código→rótulo, 59 variáveis
-│   │   └── co_prova.csv        74 versões de prova classificadas
+│   │   ├── co_prova.csv        74 versões de prova classificadas
+│   │   └── matriz_referencia.csv  120 habilidades → competência + descrição
 │   ├── models/
 │   │   ├── staging/
 │   │   │   ├── _sources.yml
@@ -157,7 +175,8 @@ enem-ml-data-ops/
 │   │       ├── _marts.yml
 │   │       ├── dim_escola.sql
 │   │       ├── mart_escola_area.sql
-│   │       └── mart_diagnostico_habilidade.sql
+│   │       ├── mart_diagnostico_habilidade.sql
+│   │       └── mart_diagnostico_competencia.sql
 │   └── tests/
 │       ├── stg_itens_grao_unico.sql
 │       ├── taxa_acerto_plausivel.sql
@@ -165,7 +184,9 @@ enem-ml-data-ops/
 │       ├── percentil_publicavel.sql
 │       ├── taxa_condiz_com_status.sql
 │       ├── habilidades_completas.sql
-│       └── marts_mesma_populacao.sql
+│       ├── marts_mesma_populacao.sql
+│       ├── nota_zero_nao_entra_na_media.sql
+│       └── competencia_cobre_habilidades.sql
 └── data/raw/                   CSVs do INEP, fora do Git
 ```
 
@@ -212,9 +233,27 @@ dbt run --select int_acerto_item_nacional
 
 dbt run --select dim_escola
 dbt run --select mart_escola_area
-dbt run --select mart_diagnostico_habilidade   # depende do mart_escola_area
+dbt run --select mart_diagnostico_habilidade    # depende do mart_escola_area
+dbt run --select mart_diagnostico_competencia   # depende do mart_escola_area
 
 dbt test
+```
+
+Antes dos marts, o seed da Matriz precisa existir:
+
+```powershell
+# uma vez, da raiz (o PDF vai para data/raw/, fora do Git)
+curl -o data/raw/matriz_referencia.pdf `
+  https://download.inep.gov.br/download/enem/matriz_referencia.pdf
+python -m ingestion.build_matriz --pdf data/raw/matriz_referencia.pdf
+cd dbt; dbt seed --select matriz_referencia
+```
+
+E a guarda de fronteira, uma vez depois da ingestão (não a cada `dbt run` — ela
+varre a `raw` inteira):
+
+```powershell
+python -m quality.expectations_raw
 ```
 
 Os marts são baratos (segundos a ~1 min). `dbt build --select marts` também
@@ -285,6 +324,37 @@ que não existe.
 As habilidades **5, 6 e 7 de LC** sofrem uma versão mais branda: o lastro varia
 com o mix de línguas da escola (1 a 3 itens, contra 2–3 no nacional). Por isso o
 mart carrega `n_itens_validos` e `n_itens_validos_nacional` lado a lado.
+
+### Nota 0 é sentinela, não desempenho
+
+`NU_NOTA_*` vem **0** para quem esteve presente e entregou a prova
+**inteiramente em branco** — verificado: 100% dos zerados têm o vetor de
+respostas só com pontos. A TRI estima proficiência a partir do *padrão* de
+respostas; sem resposta não há padrão, e o INEP grava 0 porque a coluna precisa
+de um número.
+
+O sinal que denuncia: existem milhares de notas **exatamente** 0 e **nenhuma**
+entre 0 e 250 — o piso real da escala é 308–320. Distribuição contínua não dá
+salto assim.
+
+Um `avg(nota)` ingênuo distorce a média da escola em **até 147,5 pontos**
+(218 escolas afetadas em MT, 197 delas publicáveis). O tipo não denuncia: um
+`numeric` aceita zero sem reclamar. Solução: `avg(nullif(nota, 0))` e a
+contagem exposta em `n_prova_em_branco`.
+
+Provas em branco por área: **CH 2.489 · LC 663 · MT 221 · CN 163** (na população
+do diagnóstico).
+
+### Extração de PDF quebra palavras
+
+Extratores que **inferem** o espaço comparando a distância entre glifos com uma
+largura de referência quebram palavras em PDF justificado: `signif icados`,
+`natur ais`, `argumenta tivas`, `situações -problema`. Calibrar o limiar não
+resolve — o sinal é ambíguo por natureza.
+
+Usar extrator que trabalhe com o **posicionamento real** de cada caractere
+(`pdfplumber`). A diferença não aparece em teste nenhum — aparece quando alguém
+lê "signif icados" no relatório.
 
 ### `NU_INSCRICAO` estoura o `integer`
 
@@ -413,10 +483,19 @@ combináveis: reportar o número de itens que embasa cada medida (feito — a co
 `n_itens_validos` e o `status` no mart) e agregar no nível de **competência de
 área** (pendente do seed da Matriz).
 
-**Lacuna conhecida:** os microdados trazem só o *número* da habilidade, não a
-descrição nem a competência. Isso está na Matriz de Referência do ENEM, que é
-pública mas não vem no pacote — vai precisar de um seed montado à mão e
-versionado.
+**Resolvido na Etapa 5:** os microdados trazem só o *número* da habilidade; a
+descrição e a competência vêm da Matriz de Referência
+(`download.inep.gov.br/download/enem/matriz_referencia.pdf`), derivada pelo
+`build_matriz.py`.
+
+Competências por área: **LC 9 · MT 7 · CN 8 · CH 6** (30 no total, 120
+habilidades). Agregar no grão da competência dá **4 a 11 itens válidos por
+medida** (mínimo por área: CH 6, CN 4, LC 4, MT 4) contra 0–2 por habilidade —
+é o que resolve o problema de validade de conteúdo.
+
+Confirmação cruzada: a Competência 2 de LC ("língua estrangeira moderna")
+agrupa exatamente H5–H8, que é o conjunto que a Etapa 4 identificou
+empiricamente como dependente de língua.
 
 ---
 
@@ -473,10 +552,28 @@ from marts.mart_escola_area group by 1 order by 1;
 ```
 
 Valores obtidos: MT 21 → 29.193 escolas `nao_avaliada`. LC 8 → 1.824
-`nao_administrada` + 27.436 `ok`. Publicáveis: **CH/LC 18.115 · CN/MT 17.601**
-(os pares batem porque CH+LC caem num dia de prova e CN+MT no outro).
+`nao_administrada` + 27.436 `ok`.
 
 O `\dn` deve listar `marts`, nunca `staging_marts`.
+
+### Verificações da Etapa 5
+
+```sql
+-- o sentinela saiu da media: esperado ZERO linhas
+select area, count(*) from marts.mart_escola_area where media_nota < 300 group by 1;
+
+-- lastro por competencia: esperado minimo >= 4 nas quatro areas
+select area, min(n_itens_validos_nacional), round(avg(n_itens_validos_nacional),1)
+from marts.mart_diagnostico_competencia group by 1 order by 1;
+```
+
+Publicáveis **após** a correção do sentinela: **CH 18.098 · LC 18.108 ·
+CN 17.600 · MT 17.600**. Eram 18.115/18.115/17.601/17.601 antes — 26 escolas
+perderam publicação por terem 20+ presentes mas menos de 20 notas estimáveis.
+CH perdeu 17, coerente com ser a área com muito mais prova em branco.
+
+Lastro por competência: CH mín 6 (média 7,5) · CN mín 4 (5,3) · LC mín 4 (5,6) ·
+MT mín 4 (6,1).
 
 ---
 
@@ -522,6 +619,17 @@ O `\dn` deve listar `marts`, nunca `staging_marts`.
   escola e na referência, simetricamente — agregadas pela mesma regra, são
   comparáveis por construção. Exceção honesta: LC 5–8, onde o conjunto de itens
   varia com o mix de línguas (por isso os dois lastros lado a lado).
+- **Nota zero sai da média e é contada à parte.** Não é desempenho, é ausência
+  de evidência (ver "Nota 0 é sentinela"). Mesmo princípio do item anulado e da
+  habilidade não avaliada: **preservar a linha, anular a métrica, expor a
+  contagem**. O contra-argumento — o aluno que entregou em branco faz parte da
+  realidade da escola — é legítimo, e por isso a saída não é apagar, é separar e
+  mostrar: uma métrica que mistura "foi mal" com "não fez" não mede nem uma coisa
+  nem outra.
+- **Habilidade e competência convivem.** Habilidade é *acionável* (diz o que
+  trabalhar) mas frágil (1–2 itens); competência é *confiável* (4–11 itens) mas
+  larga demais para virar plano de aula. Publicar os dois, com
+  `n_itens_validos` em ambos, deixa quem lê escolher o peso de cada afirmação.
 - **Staging faz três coisas e só três:** renomeia, converte tipo, mantém
   um-para-um com a fonte. Sem junções, sem filtros de regra de negócio, sem
   agregação. Filtro de prova regular e de presença é decisão de análise e vive
@@ -540,6 +648,16 @@ O `\dn` deve listar `marts`, nunca `staging_marts`.
 - Decisões de escopo viram **seed versionado**, não `WHERE` com números mágicos.
   Escalar solto (o N mínimo) vira `var` no `dbt_project.yml` — seed de uma célula
   é cerimônia; vira seed quando ganhar estrutura.
+- **Derivar de artefato oficial, nunca transcrever.** Todo seed sai de script
+  (`build_seeds.py`, `build_matriz.py`), e o script **falha alto** em vez de
+  gravar resultado parcial. Transcrição manual em volume é onde o erro silencioso
+  mora: um seed pela metade vira join, vira relatório, e ninguém percebe porque
+  não há com o que comparar.
+- **Teste de fronteira ≠ teste de transformação.** O `dbt test` pergunta "meu SQL
+  fez o que eu quis?"; o Great Expectations pergunta "o dado que chegou é o que
+  eu esperava?". Falha no primeiro = meu código está errado; no segundo = o
+  mundo mudou. Pressuposto sobre a fonte vira expectation na `raw`, não teste no
+  dbt.
 - **Linha ausente é omissão silenciosa.** Onde o grão é "entidade × dimensão",
   montar o **grid completo** e declarar o vazio com um status, em vez de deixar a
   linha faltar. Nenhum teste por linha vê uma linha que não existe — por isso

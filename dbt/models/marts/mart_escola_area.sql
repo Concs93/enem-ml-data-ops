@@ -34,9 +34,15 @@ por_escola as (
     select
         co_escola,
         area,
-        count(*)            as n_presentes,
-        count(nota)         as n_com_nota,
-        round(avg(nota), 1) as media_nota
+        count(*)                         as n_presentes,
+        -- nota 0 e sentinela para "sem padrao de resposta para estimar":
+        -- sao provas entregues inteiramente em branco. A TRI nao tem o que
+        -- estimar, e o INEP grava 0 porque a coluna precisa de um numero.
+        -- Virar null e o que ela sempre significou -- do contrario a media
+        -- da escola desaba (ate 147 pontos) sem nada denunciar.
+        count(nullif(nota, 0))           as n_com_nota,
+        count(*) filter (where nota = 0) as n_prova_em_branco,
+        round(avg(nullif(nota, 0)), 1)   as media_nota
     from presentes
     group by 1, 2
 
@@ -66,6 +72,7 @@ select
     e.area,
     e.n_presentes,
     e.n_com_nota,
+    e.n_prova_em_branco,
     e.media_nota,
     p.percentil,
     p.co_escola is not null as publicavel

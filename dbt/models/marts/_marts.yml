@@ -29,7 +29,15 @@ models:
       - name: n_presentes
         description: Concluintes presentes na area, em prova regular.
       - name: n_com_nota
-        description: Subconjunto de n_presentes com nota oficial atribuida.
+        description: >
+          Presentes com nota ESTIMAVEL. Exclui prova entregue em branco, cuja
+          nota vem como 0 -- sentinela, nao desempenho (Volume 5, secao 2).
+      - name: n_prova_em_branco
+        description: >
+          Presentes que nao marcaram nada. A nota 0 do INEP significa "sem
+          padrao de resposta para estimar". Contado a parte em vez de somido
+          na media: e informacao pedagogica, nao ruido.
+        tests: [not_null]
       - name: percentil
         description: >
           Posicao entre as escolas publicaveis da area, regua unica (todas as
@@ -76,3 +84,32 @@ models:
         description: >
           taxa_acerto menos taxa_acerto_nacional, em pontos percentuais.
           Ordena o relatorio - as maiores lacunas primeiro.
+      - name: descricao_habilidade
+        description: >
+          Texto oficial da Matriz de Referencia. E o que transforma
+          "habilidade 21" em algo que um coordenador pedagogico le.
+
+  - name: mart_diagnostico_competencia
+    description: >
+      Diagnostico no grao da competencia de area. Mesma pergunta do mart de
+      habilidade, com lastro de 4 a 11 itens por medida em vez de 1 ou 2.
+      Nao substitui o de habilidade - habilidade e acionavel, competencia e
+      confiavel; o relatorio precisa dos dois.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: [co_escola, area, competencia]
+    columns:
+      - name: co_escola
+        tests: [not_null]
+      - name: descricao_competencia
+        tests: [not_null]
+      - name: publicavel
+        description: Gate do N minimo, herdado de mart_escola_area.
+        tests: [not_null]
+      - name: n_itens_validos_nacional
+        description: >
+          Nunca menor que 4 nesta edicao - e exatamente o ganho sobre o grao
+          da habilidade, onde 62 de 120 tem um item so.
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 4

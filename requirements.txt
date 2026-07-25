@@ -4,3 +4,5 @@ psycopg2-binary>=2.9
 python-dotenv>=1.0
 dbt-postgres>=1.8
 openpyxl>=3.1
+pdfplumber>=0.11
+great_expectations>=1.0

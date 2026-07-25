@@ -63,6 +63,12 @@ select
     g.area,
     g.habilidade,
 
+    -- o vocabulario da Matriz de Referencia: sem isto o relatorio diz
+    -- "habilidade 21", que nao significa nada para quem vai usa-lo
+    m.competencia,
+    m.descricao_habilidade,
+    m.descricao_competencia,
+
     coalesce(e.n_itens, 0)         as n_itens,
     coalesce(e.n_itens_validos, 0) as n_itens_validos,
     -- o lastro da referencia ao lado do da escola: nas habilidades de lingua
@@ -105,3 +111,10 @@ left join escola e
 left join {{ ref('mart_escola_area') }} ea
   on ea.co_escola = g.co_escola
  and ea.area      = g.area
+
+-- left join, nao join: se a Matriz mudar e uma habilidade ficar sem
+-- correspondencia, a linha do diagnostico NAO pode sumir. Ela aparece sem
+-- descricao e o teste competencia_cobre_habilidades denuncia.
+left join {{ ref('matriz_referencia') }} m
+  on m.area       = g.area
+ and m.habilidade = g.habilidade

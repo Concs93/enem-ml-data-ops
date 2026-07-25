@@ -30,3 +30,7 @@ seeds:
       +column_types:
         co_prova: integer
         is_regular: boolean
+    matriz_referencia:
+      +column_types:
+        habilidade: integer
+        competencia: integer
