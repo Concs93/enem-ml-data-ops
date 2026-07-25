@@ -19,7 +19,7 @@ item, não só da nota final.
 | 3 — Desmembrar respostas + acerto por item | concluída e validada |
 | 4 — Marts + diagnóstico por escola | concluída e validada |
 | 5 — Qualidade de dados (Great Expectations) | concluída e validada |
-| 6 — Orquestração (Airflow) | DAG validado, pipeline completo ainda não disparado |
+| 6 — Orquestração (Airflow) | concluída e validada |
 | 7 — CI/CD + docs no GitHub Pages | próxima |
 | MLOps | pendente |
 
@@ -69,17 +69,26 @@ A senha do `admin` é gerada no primeiro boot e sai no
 `docker compose logs airflow` (e em
 `/opt/airflow/simple_auth_manager_passwords.json.generated`).
 
-**Verificado:** imagem constrói, `dags list-import-errors` limpo, e
-`airflow tasks test enem_pipeline staging.stg_itens` roda de verdade — dbt
-dentro do container, bind mount do projeto, conexão em `postgres:5432`.
+**Execução completa validada: 23/23 tasks `success` em 43,1 min**, incluindo o
+`dbt test` (39/39) no fim. Reconstruiu tudo a partir dos CSVs e reproduziu os
+números idênticos — mesmas contagens nos quatro marts e mesmas correlações
+(CH −0,808 · CN −0,799 · LC −0,910 · MT −0,854).
 
-**Não verificado:** o pipeline **completo** nunca foi disparado. Isso
-reingeriria os 2,6 GB de CSV e reconstruiria tudo (~1 h). O DAG está correto
-no grafo e na execução de task isolada; a execução ponta a ponta continua em
-aberto.
+O desenho se sustentou na prática, medido no banco de metadados:
 
-Três armadilhas que já morderam aqui:
+- **0 sobreposições** entre tasks do pool `banco_pesado` — a serialização
+  funcionou.
+- **6 pares simultâneos** entre as `int_respostas_*`, que é C(4,2): as quatro
+  views leves rodaram **juntas**. O pool não as atrapalhou.
 
+Tasks mais lentas: `carrega_resultados` 478s · `int_acerto_item_lc` 377s ·
+`int_acerto_item_mt` 305s · `stg_resultados` 225s.
+
+Quatro armadilhas que já morderam aqui:
+
+- **`DROP TABLE` da ingestão precisa de `CASCADE`.** Ver a armadilha
+  "Idempotência da ingestão" abaixo — foi o único erro real da primeira
+  execução completa.
 - **O contexto de build é a raiz**, não `airflow/` — o `Dockerfile` precisa
   alcançar o `requirements.txt`. Daí o `.dockerignore`, sem o qual os 2,6 GB
   de `data/raw` iriam para o daemon a cada build.
@@ -396,6 +405,28 @@ que não existe.
 As habilidades **5, 6 e 7 de LC** sofrem uma versão mais branda: o lastro varia
 com o mix de línguas da escola (1 a 3 itens, contra 2–3 no nacional). Por isso o
 mart carrega `n_itens_validos` e `n_itens_validos_nacional` lado a lado.
+
+### Idempotência da ingestão — o `DROP` precisa de `CASCADE`
+
+O `load_raw.py` faz `DROP TABLE IF EXISTS raw.<base>` para ser idempotente.
+A partir da Etapa 2 isso **quebra**: `stg_itens` e `stg_participantes` são
+**views** sobre as tabelas raw, e o Postgres recusa o drop —
+`cannot drop table ... because other objects depend on it`.
+
+O erro ficou escondido por cinco etapas porque, manualmente, a ingestão sempre
+rodou **antes** de existir qualquer modelo. Só apareceu na primeira execução
+orquestrada, que é a primeira vez que o pipeline roda a *segunda* vez.
+
+Solução: `DROP TABLE IF EXISTS raw.<base> CASCADE`. É seguro porque tudo acima
+da raw é derivado e o próprio DAG reconstrói em seguida — derrubar a view e
+recriá-la em minutos é correto; manter uma view apontando para uma tabela
+recriada do zero é que seria perigoso.
+
+Note que `stg_resultados` **não** dá esse problema: é materializado como
+*table*, e tabela não cria dependência com a origem.
+
+Lição além do bug: **"é idempotente" só vale depois de rodar duas vezes.** O
+retry automático não salvaria — a falha é determinística, não transitória.
 
 ### Nota 0 é sentinela, não desempenho
 

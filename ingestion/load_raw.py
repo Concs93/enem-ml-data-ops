@@ -40,7 +40,17 @@ def load(base, year, path):
     try:
         cur = conn.cursor()
         cur.execute("CREATE SCHEMA IF NOT EXISTS raw;")
-        cur.execute(f'DROP TABLE IF EXISTS raw.{table};')
+        # CASCADE porque, a partir da Etapa 2, existem views do staging
+        # apoiadas nestas tabelas (stg_itens, stg_participantes). Sem ele, o
+        # Postgres recusa o DROP -- "cannot drop table because other objects
+        # depend on it" -- e a reingestao so funciona num banco virgem, o que
+        # quebra a idempotencia justamente quando o pipeline vira rotina.
+        #
+        # E seguro: tudo acima da raw e derivado e reconstruido pelo dbt, que
+        # no DAG roda logo em seguida. Derrubar a view e recria-la em minutos
+        # e o comportamento correto; manter uma view apontando para uma tabela
+        # que sera recriada do zero e que seria perigoso.
+        cur.execute(f'DROP TABLE IF EXISTS raw.{table} CASCADE;')
         conn.commit()
 
         for i, chunk in enumerate(reader):
