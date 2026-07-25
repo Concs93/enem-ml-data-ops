@@ -575,6 +575,22 @@ CH perdeu 17, coerente com ser a área com muito mais prova em branco.
 Lastro por competência: CH mín 6 (média 7,5) · CN mín 4 (5,3) · LC mín 4 (5,6) ·
 MT mín 4 (6,1).
 
+### Baseline do Great Expectations
+
+`python -m quality.expectations_raw` → **3 suites, 22 expectations, 100%**
+(itens 9 · resultados 9 · notas 4). Leva ~3 min: varre a `raw` inteira, então
+rodar **uma vez** depois da ingestão, nunca a cada `dbt run`.
+
+Duas leituras da saída que evitam susto:
+
+- `missing_count` alto em `TX_RESPOSTAS_*` (1,55 mi em CN/MT, 1,35 mi em CH/LC)
+  é **esperado** — são os ausentes, que não têm vetor. Expectation de *valor*
+  avalia só os não nulos. Já `TP_PRESENCA_*` vem com `missing_count: 0`.
+- O `element_count` do query asset das notas já é o total **filtrado** pelo
+  `row_condition` (sem os zeros): MT 3.259.443 · CH 3.448.468 · LC 3.455.194 ·
+  CN 3.259.561. Somando os zeros de volta reconstrói os presentes — CH e LC
+  fecham em 3.457.555, o mesmo dia de prova.
+
 ---
 
 ## Decisões metodológicas
