@@ -19,8 +19,8 @@ item, não só da nota final.
 | 3 — Desmembrar respostas + acerto por item | concluída e validada |
 | 4 — Marts + diagnóstico por escola | concluída e validada |
 | 5 — Qualidade de dados (Great Expectations) | concluída e validada |
-| 6 — Orquestração (Airflow) | próxima |
-| 7 — CI/CD + docs no GitHub Pages | pendente |
+| 6 — Orquestração (Airflow) | DAG validado, pipeline completo ainda não disparado |
+| 7 — CI/CD + docs no GitHub Pages | próxima |
 | MLOps | pendente |
 
 ### Etapa 4 — o que ficou de pé
@@ -52,6 +52,43 @@ Expectations. `dbt test` verde: **39/39**.
 A Matriz **não** precisou de transcrição manual — o `build_matriz.py` deriva do
 PDF oficial. Aquela pendência do CLAUDE.md ("único dado que não sai de script")
 deixou de existir.
+
+### Etapa 6 — o que ficou de pé
+
+DAG `enem_pipeline` com **23 tasks** em quatro grupos, imagem própria (2,98 GB)
+e o pool que serializa o que é pesado. Sobe pelo perfil:
+
+```powershell
+docker compose --profile airflow up -d          # UI em localhost:8080
+docker compose exec airflow airflow pools set `
+  banco_pesado 1 "Uma varredura grande do Postgres por vez"
+docker compose --profile airflow down           # devolve a memoria
+```
+
+A senha do `admin` é gerada no primeiro boot e sai no
+`docker compose logs airflow` (e em
+`/opt/airflow/simple_auth_manager_passwords.json.generated`).
+
+**Verificado:** imagem constrói, `dags list-import-errors` limpo, e
+`airflow tasks test enem_pipeline staging.stg_itens` roda de verdade — dbt
+dentro do container, bind mount do projeto, conexão em `postgres:5432`.
+
+**Não verificado:** o pipeline **completo** nunca foi disparado. Isso
+reingeriria os 2,6 GB de CSV e reconstruiria tudo (~1 h). O DAG está correto
+no grafo e na execução de task isolada; a execução ponta a ponta continua em
+aberto.
+
+Três armadilhas que já morderam aqui:
+
+- **O contexto de build é a raiz**, não `airflow/` — o `Dockerfile` precisa
+  alcançar o `requirements.txt`. Daí o `.dockerignore`, sem o qual os 2,6 GB
+  de `data/raw` iriam para o daemon a cada build.
+- **`POSTGRES_HOST`/`PORT` são sobrescritos no serviço do Airflow.** Dentro de
+  um container, `localhost` é o próprio container; o banco de dados é
+  `postgres:5432` (nome do serviço, porta interna), não o que está no `.env`.
+- **dbt em venv separado** (`/home/airflow/projeto-venv`). Airflow e dbt
+  disputam versões de `jinja2` e `pydantic`; instalar juntos degrada um dos
+  dois e o erro aparece longe da causa.
 
 ### Decisões em aberto
 
@@ -98,9 +135,39 @@ encheu o disco do sistema mais de uma vez. Regras não negociáveis:
   por vez.
 - Os modelos `int_acerto_item_*` levam **minutos** cada. Isso é normal.
 - Os `int_respostas_*` são views: reconstroem em segundos.
-- Docker está configurado com 8 GB de memória e disco em
-  `E:\Projetos\00 - Data Ops, ML Ops e ENEM\docker`. Não mover de volta para o
-  `C:` — o `.vhdx` do WSL2 só cresce, nunca encolhe.
+- **Recursos reais (medidos em 25/07/2026, não estimados):** máquina com
+  **32 GB de RAM** e **4 CPUs**; `C:` com 14,3 GB livres, `E:` com 119,2 GB.
+  A VM do Docker tem teto de **20 GB** (`.wslconfig`, `memory=20GB`) e
+  devolve o que não usa (`autoMemoryReclaim=gradual`).
+  **RAM nunca foi o gargalo — são os 4 núcleos.** Aumentar o teto não torna o
+  paralelismo seguro: a regra do `--select` continua valendo igual.
+- **Teto por container** no `docker-compose.yml`, dentro dos 20 GB da VM:
+  Postgres de dados 13 GB · Airflow 4 GB (e 2 CPUs) · Postgres de metadados
+  512 MB. O teto não desconfia do Postgres — **localiza o estrago**: sem ele,
+  uma consulta que derrapa leva a VM inteira, que foi como o Docker Desktop
+  caiu mais de uma vez.
+- O Postgres de dados sobe com `shared_buffers=2GB`,
+  `effective_cache_size=8GB`, `work_mem=64MB`. O padrão da imagem
+  (128 MB / 4 GB / 4 MB) é para uma máquina qualquer; o `pgdata` inteiro tem
+  8,8 GB e cabe em cache.
+- Disco do Docker em `E:\Projetos\00 - Data Ops, ML Ops e ENEM\docker`. Não
+  mover de volta para o `C:` — o `.vhdx` do WSL2 só cresce, nunca encolhe
+  (hoje 19,5 GB para 12,6 GB de conteúdo real).
+- **Nada do `.wslconfig` vale até `wsl --shutdown`** com o Docker Desktop
+  fechado pela bandeja. Isso já mordeu uma vez: o arquivo dizia
+  `memory=16GB` e `swap=8GB` no `E:`, e a VM rodava havia 63 h com os padrões
+  do WSL (16 GB de teto por coincidência, 4 GB de swap no `C:`) — a
+  configuração estava escrita e **nunca aplicada**. Conferir sempre depois:
+
+```powershell
+wsl -d docker-desktop -e sh -c "free -m; cat /proc/swaps"   # swap deve dar 8192
+Get-ChildItem E:\wsl                                        # swap.vhdx deve existir aqui
+```
+
+- **Fora do `C:` por decisão:** swap do WSL2 (`swapFile=E:\\wsl\\swap.vhdx`),
+  disco do Docker e o arquivo de paginação do Windows (`E:\pagefile.sys`, com
+  o do `C:` removido). O `C:` é o disco do sistema e vive perto do limite;
+  cada um desses arquivos passa de 8 GB.
 - **`Ctrl+C` não cancela a consulta.** O dbt é só o cliente; o Postgres continua
   moendo e consumindo disco. Para cancelar de verdade:
 
@@ -137,6 +204,11 @@ em `staging` é cozinha interna.
 enem-ml-data-ops/
 ├── load_env.ps1
 ├── docker-compose.yml          só Postgres (pgAdmin foi removido)
+├── .dockerignore               mantem data/raw fora do contexto de build
+├── airflow/
+│   └── Dockerfile              imagem oficial + venv separado do projeto
+├── dags/
+│   └── enem_pipeline.py        23 tasks, pool banco_pesado
 ├── ingestion/
 │   ├── config.py               colunas de cada base, separador, encoding
 │   ├── load_raw.py             ingestão via COPY, idempotente, em blocos

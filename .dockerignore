@@ -1,0 +1,17 @@
+# O contexto de build e a raiz do projeto (para o Dockerfile alcancar o
+# requirements.txt). Sem este arquivo, o Docker enviaria os 2,6 GB de
+# microdados ao daemon a cada build.
+
+data/
+.venv/
+.git/
+docs/
+logs/
+
+dbt/target/
+dbt/logs/
+dbt/dbt_packages/
+
+__pycache__/
+*.pyc
+.env

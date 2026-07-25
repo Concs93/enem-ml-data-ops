@@ -8,11 +8,112 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     shm_size: 512mb
+    # Teto de 13 GB dentro da VM de 20 GB. Nao e desconfianca do Postgres: e
+    # localizar o estrago. Sem teto, uma consulta que derrapa leva a VM
+    # inteira junto -- foi assim que o Docker Desktop caiu mais de uma vez.
+    # Com teto, o kernel joga fora page cache antes de matar qualquer coisa,
+    # e o que sobra do orcamento continua de pe para o Airflow registrar o
+    # que aconteceu.
+    mem_limit: 13g
+    # O padrao do postgres:16 e para uma maquina qualquer: 128 MB de
+    # shared_buffers e 4 GB de effective_cache_size. O pgdata inteiro tem
+    # 8,8 GB -- cabe folgado nos 13 GB acima, mas o planejador so aproveita
+    # isso se souber que a memoria existe.
+    command:
+      - postgres
+      - -c
+      - shared_buffers=2GB
+      # apenas um palpite para o planejador, nao aloca nada
+      - -c
+      - effective_cache_size=8GB
+      # por no de ordenacao/hash, nao por consulta -- por isso 64 MB e nao 1 GB
+      - -c
+      - work_mem=64MB
+      - -c
+      - maintenance_work_mem=512MB
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 5
 
+  # ---------------------------------------------------------------------
+  # Orquestracao. Sobe so com --profile airflow, para que a memoria seja
+  # toda do Postgres de dados enquanto voce desenvolve modelo.
+  # ---------------------------------------------------------------------
+
+  # Banco de metadados PROPRIO, de proposito. Reaproveitar o Postgres de
+  # dados acoplaria os dois: se o pipeline sufocar aquele servidor, o
+  # Airflow perderia o registro do que aconteceu justamente quando voce
+  # mais precisa dele.
+  airflow-db:
+    image: postgres:16
+    container_name: enem_airflow_db
+    profiles: ["airflow"]
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - airflow_pgdata:/var/lib/postgresql/data
+    # metadados do Airflow sao alguns milhares de linhas por execucao
+    mem_limit: 512m
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U airflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  airflow:
+    build:
+      # o contexto e a raiz para o Dockerfile alcancar o requirements.txt --
+      # e o .dockerignore mantem data/raw fora do envio
+      context: .
+      dockerfile: airflow/Dockerfile
+    container_name: enem_airflow
+    profiles: ["airflow"]
+    depends_on:
+      airflow-db:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-db/airflow
+      # dentro de um container, localhost e o proprio container. O Postgres
+      # de dados e alcancavel pelo NOME DO SERVICO -- e por isso este valor
+      # sobrescreve o POSTGRES_HOST=localhost que vem do .env
+      POSTGRES_HOST: postgres
+      # a porta tambem: o .env traz a porta MAPEADA para o Windows, e dentro
+      # da rede do compose vale a porta interna do container
+      POSTGRES_PORT: "5432"
+      DBT_PROFILES_DIR: /opt/projeto/dbt
+      # O pool 'banco_pesado' ja serializa quem varre o banco. Este teto
+      # cuida do outro lado da conta: cada task do LocalExecutor e um
+      # processo com um dbt dentro (~400 MB). No padrao (32), as quatro
+      # int_respostas_* mais o que vier junto cabem em 4 GB por sorte, nao
+      # por desenho. Com 4, o pior caso e conhecido: 4 x 400 MB + os
+      # daemons (~1,5 GB) fecha nos 4 GB do mem_limit abaixo.
+      AIRFLOW__CORE__PARALLELISM: "4"
+      AIRFLOW__CORE__MAX_ACTIVE_TASKS_PER_DAG: "4"
+    # standalone sobe quatro processos num container so: api-server,
+    # scheduler, triggerer e dag-processor.
+    mem_limit: 4g
+    # 2 dos 4 nucleos. O trabalho pesado acontece DENTRO do Postgres -- o
+    # dbt aqui e cliente esperando resposta. Sem este teto, o parsing de DAG
+    # e a interface web competem por CPU justamente com quem esta moendo.
+    cpus: 2.0
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - .:/opt/projeto
+      - airflow_logs:/opt/airflow/logs
+    ports:
+      - "8080:8080"
+    command: standalone
+
 volumes:
   pgdata:
+  airflow_pgdata:
+  airflow_logs:
