@@ -21,7 +21,12 @@ item, não só da nota final.
 | 5 — Qualidade de dados (Great Expectations) | concluída e validada |
 | 6 — Orquestração (Airflow) | concluída e validada |
 | 7 — CI/CD + docs no GitHub Pages | concluída |
-| MLOps | pendente |
+| Produto analítico (motor psicométrico + geografia) | em curso — ver `PLANO.md` |
+
+**MLOps foi descartado por decisão** (26/07/2026): dado anual, sem loop de
+feedback, sem decisão automatizada. O projeto é DataOps + produto analítico.
+O plano vigente — dores, funcionalidades, amparo científico e o que ficou
+fora — está no **`PLANO.md`**, na raiz.
 
 ### Etapa 4 — o que ficou de pé
 
