@@ -4,8 +4,11 @@
 [![Documentação](https://github.com/Concs93/enem-ml-data-ops/actions/workflows/docs.yml/badge.svg)](https://github.com/Concs93/enem-ml-data-ops/actions/workflows/docs.yml)
 
 Pipeline de DataOps sobre os microdados do ENEM 2025 (INEP), do CSV bruto ao
-diagnóstico pedagógico por escola. Construído do zero, com testes nos dois
-lados da fronteira, orquestração e documentação publicada.
+diagnóstico pedagógico por escola — mais um **motor psicométrico** servido
+como tabela e a **geografia em cinco níveis** que levam o diagnóstico de
+município a país. Construído do zero, com testes nos dois lados da fronteira,
+orquestração e documentação publicada. O plano do produto (e o que ficou fora,
+com o porquê) está no [`PLANO.md`](PLANO.md).
 
 **📊 [Documentação e lineage do pipeline](https://concs93.github.io/enem-ml-data-ops/)**
 
@@ -48,8 +51,8 @@ CSV do INEP (2,6 GB)
 | `raw` | 4.810.772 resultados · 4.810.772 participantes · 6.105 itens |
 | `marts` | 29.265 escolas · 120 habilidades · 30 competências |
 
-**Números do pipeline:** 39 testes dbt · 22 expectations na fronteira ·
-23 tasks orquestradas · execução completa em 43 min.
+**Números do pipeline:** 31 modelos · 76 testes dbt · 22 expectations na
+fronteira · 23 tasks orquestradas · execução completa em 43 min.
 
 ### A validação que sustenta tudo
 
@@ -66,6 +69,28 @@ e a **taxa de acerto calculada do zero** a partir dos vetores de resposta:
 São dois caminhos independentes concordando sobre quais itens são difíceis.
 Se essa correlação vier fraca, alguma junção quebrou — e nenhum outro teste
 pegaria.
+
+## O motor psicométrico
+
+Os parâmetros de TRI (`a`, `b`, `c`) que o INEP publica viraram um motor
+consultável — **como tabela versionada pelo dbt, não como binário**:
+
+- **Curva e informação por item × nível** (`mart_curva_item`): a prioridade de
+  estudo ordena por *informação de Fisher*, não por taxa de erro — a
+  habilidade que a pessoa mais erra costuma ser a pior escolha de estudo no
+  curto prazo.
+- **Calibração empírica nota → θ** (`mart_calibracao_nota`), medida em 1,27
+  milhão de participantes por área: a fórmula ingênua `(nota−500)/100` erra
+  até 0,7 desvio-padrão nas caudas (nota 800 → θ real 2,35, não 3,05).
+- **Distribuição empírica de acertos por nota** (`mart_distribuicao_acertos`):
+  valida entrada e responde "entre os participantes com a sua nota, esse
+  total está no percentil X" — contagem pura, sem teoria.
+
+E a **geografia em cinco níveis** (município → região imediata IBGE → UF →
+região → país), com regra dupla de publicação (≥ 3 escolas e ≥ 50
+participantes) aplicada honestamente em todo nível: 45% dos municípios têm
+uma escola só, e publicá-los seria publicar a escola com outro rótulo. Quem
+não passa não some — sobe de nível com o motivo declarado.
 
 ## O que os dados esconderam
 

@@ -53,8 +53,30 @@ H25; θ=2,0 → H28 dominante (informação 7,3). E H28 é a mesma habilidade em
 que o Norte mais afunda — lacuna regional e fronteira dos níveis altos
 coincidem.
 
-Falta: **Passo 3** (geografia com regra dupla e roll-up) e **Passo 4**
-(reposicionar Volume 8, README). Depois, Volume 9 = API e site.
+### Produto analítico — Passo 3 (geografia) concluído e validado
+
+`dbt test` verde: **76/76** (31 modelos). `mart_geografia_area` e
+`mart_geografia_habilidade`: cinco níveis (município → **região geográfica
+imediata**, IBGE 2017 → UF → região → país) numa tabela, com `codigo_pai`
+apontando a subida.
+
+- Regra dupla (≥3 escolas E ≥50 participantes) em **todo** nível:
+  **1.942 municípios publicáveis** (o número exato do desenho da regra) e as
+  **510 regiões imediatas todas publicáveis** — o roll-up nunca dá em beco.
+- **Boa Esperança do Norte/MT**: município instalado em 2025, existe no ENEM
+  mas não no Censo 2024 — logo sem região imediata. Preservado com UF/região
+  derivadas do próprio código IBGE (2 primeiros dígitos = UF, 1º = região).
+  O teste `geografia_cobre_populacao` compara município↔país com igualdade
+  exata; a região imediata fica documentadamente fora dessa soma.
+- `int_acerto_item_municipio` é o agregado reaproveitável: uma varredura das
+  5,4 mi de linhas, e os níveis acima somam por cima.
+
+Passo 4 (fechamento) feito: Volume 8 reposicionado com a Seção 4 nova ("A
+medição que mudou o motor" — Poisson-binomial, morte do nível 2, calibração
+empírica), código real nos blocos (incluindo o join `is_regular` que o
+rascunho não tinha), e README com o motor e a geografia.
+
+**Próximo: Volume 9 — API e site** (as duas faces; o `lz` calcula na API).
 
 ### Etapa 4 — o que ficou de pé
 
