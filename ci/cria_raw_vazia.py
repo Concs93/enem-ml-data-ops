@@ -19,9 +19,10 @@ import os
 
 import psycopg2
 
-from ingestion.config import BASES
+from ingestion.config import BASES, CENSO_ESCOLAR
 
 ANO = 2025
+ANO_CENSO = 2024
 
 
 def main():
@@ -35,8 +36,14 @@ def main():
     cur = conn.cursor()
     cur.execute("create schema if not exists raw;")
 
-    for base, colunas in BASES.items():
-        tabela = f"raw.{base}_{ANO}"
+    # as tres bases do ENEM (ano da edicao) + o cadastro do Censo, que tem
+    # ano proprio: o Censo do ano do ENEM nao existe quando os microdados
+    # saem, entao a fonte real e censo_escolar_2024 (ver load_censo.py)
+    tabelas = {f"{base}_{ANO}": colunas for base, colunas in BASES.items()}
+    tabelas[f"censo_escolar_{ANO_CENSO}"] = CENSO_ESCOLAR
+
+    for nome, colunas in tabelas.items():
+        tabela = f"raw.{nome}"
         # tudo TEXT, igual a ingestao de verdade (decisao da Etapa 1:
         # a camada raw nao interpreta nada)
         cols = ", ".join(f'"{c}" text' for c in colunas)
@@ -46,7 +53,7 @@ def main():
 
     conn.commit()
     conn.close()
-    print(f"ok: {len(BASES)} tabelas criadas em raw")
+    print(f"ok: {len(tabelas)} tabelas criadas em raw")
 
 
 if __name__ == "__main__":
