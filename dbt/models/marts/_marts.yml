@@ -3,12 +3,22 @@ version: 2
 models:
   - name: dim_escola
     description: >
-      Uma linha por escola, atributos decodificados pelo seed dominios.
+      Uma linha por escola, atributos decodificados pelo seed dominios e
+      cadastro do Censo Escolar 2024 (nome, microrregiao, porte, infra).
       Consumida pela aplicacao, nao pelos fatos. Cobre toda escola presente
       nos resultados, inclusive as que nao recebem diagnostico.
     columns:
       - name: co_escola
         tests: [not_null, unique]
+      - name: nome_escola
+        description: >
+          Do Censo 2024. Nula para 12,5% das escolas (0,4% das publicaveis) -
+          o Censo do ano do ENEM nao existe quando os microdados saem.
+      - name: co_microrregiao
+        description: Microrregiao do IBGE - o nivel do roll-up geografico.
+      - name: tem_cadastro
+        description: A escola casou com o Censo 2024.
+        tests: [not_null]
       - name: dependencia
         description: Federal, Estadual, Municipal ou Privada.
       - name: localizacao
@@ -88,6 +98,76 @@ models:
         description: >
           Texto oficial da Matriz de Referencia. E o que transforma
           "habilidade 21" em algo que um coordenador pedagogico le.
+
+  - name: mart_curva_item
+    description: >
+      O motor psicometrico como tabela - curva caracteristica (3PL) e
+      informacao de Fisher de cada item valido das provas regulares, numa
+      grade de theta de 0,05. Parametros calibrados pelo INEP; nada e
+      ajustado aqui, so avaliado - e por isso o modelo herda versionamento,
+      teste e documentacao do proprio dbt.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: [co_item, theta]
+    columns:
+      - name: prob_acerto
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 1
+      - name: informacao
+        description: Zera nos dois extremos - item facil ou dificil demais nao distingue ninguem.
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+
+  - name: mart_calibracao_nota
+    description: >
+      Calibracao empirica nota -> theta_efetivo, medida em 1,27 mi de
+      participantes por area. Substitui o mapeamento ingenuo (nota-500)/100,
+      que falha nas caudas (Passo 0 do PLANO.md - em branco quebra o piso de
+      chute na base; no topo o real fica ~5 acertos abaixo do teorico).
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: [area, cod_lingua, nota_faixa]
+    columns:
+      - name: theta_efetivo
+        tests: [not_null]
+
+  - name: mart_distribuicao_acertos
+    description: >
+      Distribuicao empirica completa de acertos por faixa de nota - contagem
+      pura, sem teoria. Usos - validar entrada do nivel 3 e a frase de
+      percentil empirico. NAO autoriza interpretar causa de desvio.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: [area, cod_lingua, nota_faixa, acertos]
+    columns:
+      - name: percentil_ate
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 100
+
+  - name: mart_perfil_habilidade
+    description: >
+      A face do aluno - para cada nivel (theta), area (e lingua em LC) e
+      habilidade, o acerto esperado e a informacao total dos itens. A
+      prioridade ordena por informacao, nao por taxa de erro. Comunicar
+      sempre como "onde a prova mais distingue pessoas do seu nivel" - a TRI
+      do ENEM e unidimensional e nao autoriza mais que isso.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: [theta, area, cod_lingua, habilidade]
+    columns:
+      - name: prioridade
+        tests: [not_null]
+      - name: n_itens
+        description: O lastro. 62 das 120 habilidades tem um unico item.
+        tests: [not_null]
 
   - name: mart_diagnostico_competencia
     description: >

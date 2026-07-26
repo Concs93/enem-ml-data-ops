@@ -62,10 +62,23 @@ Regras duras da face do aluno:
 
 ## Passos
 
-- **Passo 0 — medição que decide o nível 2.** Dispersão teórica de acertos
-  dado θ (Poisson-binomial) × dispersão observada dado a NOTA. A observada
-  tende a ser mais estreita (a nota é estimada das mesmas respostas); se for
-  estreita demais, o nível 2 morre e o produto pula do 1 ao 3.
+- **Passo 0 — medição que decide o nível 2. FEITO (26/07/2026), em MT:**
+  - Dispersão observada ≈ **metade** da teórica (nota 600: DP 1,42 vs 2,68;
+    nota 700: 1,21 vs 2,32). O encolhimento previsto confirmou-se: a nota é
+    estimada das mesmas respostas. p10–p90 na faixa 600–750 abrange só ~4
+    acertos — comparável ao erro de quem conta os próprios acertos.
+  - **Veredito: nível 2 como diagnóstico morre.** Sobrevive como (a) validação
+    de entrada do nível 3 (total fora do envelope ⇒ área/prova/contagem
+    errada) e (b) frase empírica de percentil entre participantes reais de
+    2025 — contagem pura, sem teoria (base: 1,27 mi de pessoas em MT).
+  - **Achado adicional que muda o motor:** a calibração observada diverge da
+    teórica nas caudas. Na base, o observado fica ABAIXO do piso de chute
+    (~7,4 acertos em 43): quem está ali deixa em branco, e branco não chuta —
+    o piso `c` do 3PL não vale. No topo, nota 700 ⇒ 24,7 acertos reais vs
+    29,7 teóricos. Consequência: o motor mapeia nota→θ pela **calibração
+    empírica** (nota → acertos típicos → θ efetivo via TCC inversa), não por
+    `(nota−500)/100` ingênuo. A tabela medida no Passo 0 vira insumo do
+    produto (`mart_calibracao_nota`).
 - **Passo 1 — fundação.** `stg_censo_escola`; `dim_escola` ganha nome,
   microrregião e infraestrutura.
 - **Passo 2 — motor.** `mart_curva_item` (P e informação por item × grade de

@@ -32,3 +32,13 @@ models:
     columns:
       - name: id_inscricao
         tests: [unique, not_null]
+
+  - name: stg_censo_escola
+    description: >
+      Cadastro de escolas do Censo Escolar 2024, um por escola. E o que da
+      nome ao co_escola e traz a microrregiao do IBGE.
+    columns:
+      - name: co_escola
+        tests: [unique, not_null]
+      - name: nome_escola
+        tests: [not_null]

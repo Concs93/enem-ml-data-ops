@@ -11,3 +11,9 @@ sources:
         description: Perfil e questionario socioeconomico.
       - name: itens_prova_2025
         description: Itens de cada versao de prova, com habilidade e parametros de TRI.
+      - name: censo_escolar_2024
+        description: >
+          Cadastro de escolas do Censo Escolar (INEP), carregado pelo
+          load_censo.py. Edicao 2024 de proposito: o Censo do mesmo ano do
+          ENEM ainda nao existe quando os microdados saem. Custo medido do
+          descasamento: 0,4% das escolas publicaveis sem cadastro.

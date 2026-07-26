@@ -28,6 +28,34 @@ feedback, sem decisão automatizada. O projeto é DataOps + produto analítico.
 O plano vigente — dores, funcionalidades, amparo científico e o que ficou
 fora — está no **`PLANO.md`**, na raiz.
 
+### Produto analítico — Passos 0 a 2 concluídos e validados
+
+`dbt test` verde: **61/61** (27 modelos). O motor psicométrico existe como
+tabela, não como binário:
+
+| modelo | grão | linhas |
+|---|---|---|
+| `int_distribuicao_acertos` | área × língua × faixa × acertos | ~14 mil |
+| `mart_curva_item` | item × θ (passo 0,05) | ~29 mil |
+| `mart_calibracao_nota` | área × língua × faixa de nota | ~250 |
+| `mart_distribuicao_acertos` | + percentil acumulado | ~14 mil |
+| `mart_perfil_habilidade` | θ × área × língua × habilidade | ~24 mil |
+
+A `dim_escola` ganhou **nome** (Censo 2024), microrregião e infraestrutura.
+
+**A calibração empírica não é detalhe:** nota 800 → θ_efetivo 2,35 contra
+3,05 da fórmula ingênua; nota 500 → 0,50 contra 0,05. Só ~600 coincide.
+Faixas ≤ ~380 saturam no piso da grade (−3,00) — região de prova em branco,
+onde a TCC não desce; comportamento esperado, não bug.
+
+**A prioridade muda com o nível** (a tese do produto): em MT, θ=0,5 → H4/H10/
+H25; θ=2,0 → H28 dominante (informação 7,3). E H28 é a mesma habilidade em
+que o Norte mais afunda — lacuna regional e fronteira dos níveis altos
+coincidem.
+
+Falta: **Passo 3** (geografia com regra dupla e roll-up) e **Passo 4**
+(reposicionar Volume 8, README). Depois, Volume 9 = API e site.
+
 ### Etapa 4 — o que ficou de pé
 
 Schema `marts` (sem prefixo, via `generate_schema_name`), três modelos e quatro

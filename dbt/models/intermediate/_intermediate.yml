@@ -21,6 +21,19 @@ models:
               min_value: 0
               max_value: 100
 
+  - name: int_distribuicao_acertos
+    description: >
+      Quantas pessoas com cada nota fizeram cada numero de acertos (itens
+      validos, nota > 0). Estatistica suficiente do Passo 0 do PLANO.md - a
+      media, o desvio e o percentil empirico saem daqui sem persistir o grao
+      por pessoa. Em LC o grao inclui a lingua.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: [area, cod_lingua, nota_faixa, acertos]
+    columns:
+      - name: n
+        tests: [not_null]
+
   - name: int_acerto_item_nacional
     description: >
       Taxa de acerto nacional por item. Referencia do diagnostico. Itens nao
