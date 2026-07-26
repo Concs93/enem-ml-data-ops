@@ -58,11 +58,16 @@ CENSO_ESCOLAR = [
     # identidade -- CO_ENTIDADE e a chave que casa com CO_ESCOLA do ENEM
     "NU_ANO_CENSO", "CO_ENTIDADE", "NO_ENTIDADE", "TP_SITUACAO_FUNCIONAMENTO",
 
-    # geografia. MESO e MICRORREGIAO sao a agregacao do IBGE que permite subir
-    # de nivel quando o municipio e pequeno demais para publicar sozinho --
-    # 45% dos municipios tem uma escola so, e publicar o municipio seria
-    # publicar aquela escola com outro rotulo
-    "CO_REGIAO", "CO_UF", "SG_UF", "CO_MUNICIPIO", "NO_MUNICIPIO",
+    # geografia. A REGIAO GEOGRAFICA IMEDIATA (IBGE 2017, ~510 unidades em
+    # torno de polos de servico) e o nivel para onde um municipio pequeno
+    # demais sobe em vez de sumir -- 45% dos municipios tem uma escola so, e
+    # publicar o municipio seria publicar aquela escola com outro rotulo.
+    # MESO/MICRO (divisao de 1989) ficam por compatibilidade; os NOMES vem
+    # porque a API fala "regiao de Sobral", nao "codigo 230005"
+    "CO_REGIAO", "NO_REGIAO", "CO_UF", "SG_UF", "NO_UF",
+    "CO_MUNICIPIO", "NO_MUNICIPIO",
+    "CO_REGIAO_GEOG_IMED", "NO_REGIAO_GEOG_IMED",
+    "CO_REGIAO_GEOG_INTERM", "NO_REGIAO_GEOG_INTERM",
     "CO_MESORREGIAO", "CO_MICRORREGIAO", "TP_LOCALIZACAO",
 
     # rede

@@ -44,14 +44,14 @@ Regras duras da face do aluno:
 
 ## Face do gestor
 
-- Hierarquia: escola → município → **microrregião (IBGE)** → UF → região → país.
+- Hierarquia: escola → município → **região geográfica imediata (IBGE 2017)** → UF → região → país.
 - Busca por **nome** (Censo Escolar; 99,6% das publicáveis nomeadas).
 - **Regra dupla de publicação: ≥ 3 escolas E ≥ 50 participantes.** Os dois
   critérios respondem perguntas distintas (estabilidade × privacidade); 45%
   dos municípios têm UMA escola — publicá-los seria publicar a escola com
   outro rótulo. Medido: a regra cobre 87% dos participantes em 35% dos
   municípios.
-- Quem não passa **não some**: sobe para a microrregião com status e motivo
+- Quem não passa **não some**: sobe para a região imediata com status e motivo
   (mesmo princípio da MT 21 / LC 8: preservar a linha, anular a métrica,
   dizer por quê). Registrado: os excluídos têm nota média 23 pontos MENOR —
   a proteção cala quem mais precisa de atenção, e é por isso que o roll-up é
@@ -80,13 +80,19 @@ Regras duras da face do aluno:
     `(nota−500)/100` ingênuo. A tabela medida no Passo 0 vira insumo do
     produto (`mart_calibracao_nota`).
 - **Passo 1 — fundação.** `stg_censo_escola`; `dim_escola` ganha nome,
-  microrregião e infraestrutura.
-- **Passo 2 — motor.** `mart_curva_item` (P e informação por item × grade de
-  θ, ~25 mil linhas — o modelo é uma TABELA versionada pelo dbt, não um
-  binário); `mart_perfil_habilidade`; `mart_distribuicao_acertos`
-  (condicional ao Passo 0).
-- **Passo 3 — geografia.** `mart_diagnostico_municipio` e níveis acima, com a
-  regra dupla e o roll-up.
+  região imediata e infraestrutura. FEITO.
+- **Passo 2 — motor. FEITO** (61/61). `mart_curva_item` (o modelo é uma
+  TABELA versionada pelo dbt, não um binário), `mart_calibracao_nota`,
+  `mart_distribuicao_acertos`, `mart_perfil_habilidade`. A calibração
+  empírica confirmada em produção: nota 800 → θ 2,35 contra 3,05 da fórmula;
+  e a prioridade muda com o nível (θ 0,5 → H4/H10/H25; θ 2,0 → H28
+  dominante — a mesma habilidade em que o Norte mais afunda).
+- **Passo 3 — geografia. FEITO** (76/76). `mart_geografia_area` e
+  `mart_geografia_habilidade`: cinco níveis numa tabela, regra dupla aplicada
+  honestamente em todos, e as 510 regiões imediatas TODAS publicáveis — o
+  roll-up nunca dá em beco. Caso de borda preservado: Boa Esperança do
+  Norte/MT (município instalado em 2025, fora do Censo 2024) existe sem
+  região imediata, com UF e região derivadas do próprio código IBGE.
 - **Passo 4 — fechamento.** Testes no padrão dos 39; Volume 8 reposicionado
   (motor psicométrico, não MLOps); README/roadmap ajustados.
 - **Volume 9 — API e site.** As duas faces. O lz calcula na API (depende do

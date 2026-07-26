@@ -36,6 +36,8 @@ select
     e.co_municipio,
     e.municipio,
     e.uf,
+    c.co_regiao_imediata,
+    c.nome_regiao_imediata,
     c.co_mesorregiao,
     c.co_microrregiao,
 

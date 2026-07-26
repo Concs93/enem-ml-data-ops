@@ -18,12 +18,19 @@ select
     {{ inteiro('"NU_ANO_CENSO"') }}             as ano_censo,
     {{ inteiro('"TP_SITUACAO_FUNCIONAMENTO"') }} as cod_situacao_funcionamento,
 
-    -- geografia (IBGE)
+    -- geografia (IBGE). A regiao imediata (2017) e o nivel do roll-up;
+    -- micro/meso (1989) ficam por compatibilidade
     {{ inteiro('"CO_REGIAO"') }}                as co_regiao,
+    "NO_REGIAO"                                 as nome_regiao,
     {{ inteiro('"CO_UF"') }}                    as co_uf,
     "SG_UF"                                     as uf,
+    "NO_UF"                                     as nome_uf,
     {{ inteiro('"CO_MUNICIPIO"') }}             as co_municipio,
     "NO_MUNICIPIO"                              as municipio,
+    {{ inteiro('"CO_REGIAO_GEOG_IMED"') }}      as co_regiao_imediata,
+    "NO_REGIAO_GEOG_IMED"                       as nome_regiao_imediata,
+    {{ inteiro('"CO_REGIAO_GEOG_INTERM"') }}    as co_regiao_intermediaria,
+    "NO_REGIAO_GEOG_INTERM"                     as nome_regiao_intermediaria,
     {{ inteiro('"CO_MESORREGIAO"') }}           as co_mesorregiao,
     {{ inteiro('"CO_MICRORREGIAO"') }}          as co_microrregiao,
     {{ inteiro('"TP_LOCALIZACAO"') }}           as cod_localizacao,

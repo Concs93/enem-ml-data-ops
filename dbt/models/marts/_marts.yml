@@ -169,6 +169,46 @@ models:
         description: O lastro. 62 das 120 habilidades tem um unico item.
         tests: [not_null]
 
+  - name: mart_geografia_area
+    description: >
+      A face do gestor, nivel area - municipio, regiao imediata (IBGE 2017),
+      UF, regiao e pais numa tabela so. Regra dupla de publicacao (3 escolas
+      E 50 participantes) aplicada honestamente em TODO nivel; quem nao passa
+      fica na tabela com publicavel = false e codigo_pai apontando para onde
+      subir. Boa Esperanca do Norte/MT (municipio de 2025, fora do Censo
+      2024) existe aqui sem regiao imediata - a divisao de 2024 realmente
+      nao o continha.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: [nivel, codigo, area]
+    columns:
+      - name: nivel
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['municipio', 'regiao_imediata', 'uf', 'regiao', 'pais']
+      - name: nome
+        tests: [not_null]
+      - name: publicavel
+        tests: [not_null]
+
+  - name: mart_geografia_habilidade
+    description: >
+      A face do gestor, nivel habilidade - taxa vs nacional nos cinco niveis
+      geograficos, com grid completo por unidade e o gate de publicacao
+      herdado. Mesmos status do mart de escola - nenhuma habilidade some.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: [nivel, codigo, area, habilidade]
+    columns:
+      - name: status
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['ok', 'um_item', 'nao_administrada', 'nao_avaliada']
+      - name: publicavel
+        tests: [not_null]
+
   - name: mart_diagnostico_competencia
     description: >
       Diagnostico no grao da competencia de area. Mesma pergunta do mart de
