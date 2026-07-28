@@ -1,0 +1,1440 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Onde estudar rende mais — ENEM 2025</title>
+<style>
+  :root{
+    --bg:#fbfaf7; --surface:#ffffff; --text:#20211f; --muted:#5f625d;
+    --accent:#0d9488; --accent-deep:#115e59; --accent-soft:#e6f4f1;
+    /* fundo cheio + texto sobre ele. Separados do --accent porque o accent
+       que funciona como TRACO (barra, borda) nao e o que funciona como
+       FUNDO DE TEXTO: branco sobre #0d9488 da 3,74, abaixo do minimo de 4,5.
+       Com #0f766e da 5,47 */
+    --accent-fill:#0f766e; --sobre-accent:#ffffff;
+    --border:#e6e4dc; --chip:#f5f7f6;
+    --warn:#b45309; --warn-soft:#fdf3e3; --tip:#3b6d11; --tip-soft:#eef6e2;
+    --alert:#b91c1c; --alert-soft:#fdeeee;
+    /* escala tipografica: 6 degraus no lugar de 13 tamanhos, seis deles
+       espremidos entre 11 e 13,5px -- meio pixel ninguem distingue */
+    --fs-100:12px; --fs-200:13px; --fs-300:15px; --fs-400:17px;
+    --fs-500:20px; --fs-600:clamp(26px,4vw,36px);
+    /* raios: 9 valores para 3 papeis reais */
+    --r-card:14px; --r-ctrl:10px; --r-chip:6px; --r-pill:999px;
+    --serif:Georgia,'Iowan Old Style','Times New Roman',serif;
+    --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    --mono:'SFMono-Regular',Consolas,Menlo,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#17181a; --surface:#1f2123; --text:#e7e6e1; --muted:#a3a29b;
+      --accent:#2dd4bf; --accent-deep:#5eead4; --accent-soft:#123330;
+      /* no escuro o accent e CLARO: texto branco sobre ele daria 1,86 --
+         ilegivel. O texto passa a ser o proprio fundo da pagina (9,54) */
+      --accent-fill:#2dd4bf; --sobre-accent:#17181a;
+      --border:#31343a; --chip:#26292c;
+      --warn:#f0a952; --warn-soft:#2c2413; --tip:#a3d160; --tip-soft:#1a250f;
+      --alert:#f87171; --alert-soft:#2e1616;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--serif);
+       line-height:1.65;font-size:var(--fs-400);-webkit-font-smoothing:antialiased}
+  /* Foco visivel em TUDO que recebe teclado. Antes existia so nos campos de
+     nota; botoes, selects do gabarito, links e os blocos expansiveis ficavam
+     sem marca nenhuma -- quem navega por Tab se perdia na pagina */
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:var(--r-chip)}
+  summary:focus-visible{outline-offset:-2px}
+  /* Numero em coluna alinha por digito: os "+25 pontos" de cada competencia
+     ficam um sob o outro */
+  .cmeta,.hab .meta,.comp-areas .val,.qtag{font-variant-numeric:tabular-nums}
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:.01ms !important;animation-iteration-count:1 !important;
+      transition-duration:.01ms !important;scroll-behavior:auto !important}
+  }
+  header{border-bottom:1px solid var(--border);background:var(--surface)}
+  .nav{max-width:980px;margin:0 auto;padding:14px 24px;display:flex;gap:18px;align-items:baseline;
+       font-family:var(--sans);font-size:var(--fs-200)}
+  .nav .brand{font-weight:700;font-size:var(--fs-300);margin-right:auto}
+  .nav a{color:var(--muted);text-decoration:none}
+  .nav a:hover{color:var(--accent-deep);text-decoration:underline;text-underline-offset:2px}
+  .nav a.on{color:var(--accent-deep);font-weight:600}
+  .nav .breve{opacity:.45;cursor:default}
+  main{max-width:980px;margin:0 auto;padding:40px 24px 90px}
+  h1{font-family:var(--sans);font-weight:700;font-size:var(--fs-600);line-height:1.15;margin:0 0 10px}
+  .lede{font-size:var(--fs-400);color:var(--muted);margin:0 0 8px;max-width:640px}
+  .privacidade{font-family:var(--sans);font-size:var(--fs-200);color:var(--muted);margin:0 0 30px}
+  .privacidade b{color:var(--accent-deep)}
+  /* formulario */
+  .painel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-card);padding:22px 24px;margin:0 0 34px}
+  .grid-notas{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;align-items:end}
+  .campo{font-family:var(--sans)}
+  .campo label{display:block;font-size:var(--fs-100);font-weight:700;letter-spacing:.05em;
+               text-transform:uppercase;color:var(--accent-deep);margin-bottom:5px}
+  .campo small{display:block;font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted);font-size:var(--fs-100);margin-top:2px}
+  .campo input,.campo select{width:100%;padding:10px 12px;font-size:var(--fs-400);font-family:var(--sans);
+        border:1px solid var(--border);border-radius:var(--r-ctrl);background:var(--bg);color:var(--text)}
+  .campo input:focus-visible,.campo select:focus-visible{border-color:transparent}
+  details.opcional{margin-top:16px;font-family:var(--sans);font-size:var(--fs-200)}
+  details.opcional summary{cursor:pointer;color:var(--accent-deep);font-weight:600}
+  .acao{margin-top:20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  button.analisar{font-family:var(--sans);font-weight:700;font-size:var(--fs-300);padding:12px 28px;
+        border:1px solid transparent;border-radius:var(--r-ctrl);
+        background:var(--accent-fill);color:var(--sobre-accent);cursor:pointer}
+  button.analisar.secundaria{background:transparent;color:var(--accent-deep);border-color:var(--border)}
+  button.analisar:hover{background:var(--accent-deep)}
+  .aviso-form{font-family:var(--sans);font-size:var(--fs-200);color:var(--alert)}
+  /* resultados */
+  .cartao{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-card);
+          padding:20px 24px;margin:0 0 22px}
+  .cartao h2{font-family:var(--sans);font-size:var(--fs-500);margin:0 0 2px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .cartao h2 .nota{color:var(--muted);font-weight:400;font-size:var(--fs-300)}
+  .cartao .sub{font-family:var(--sans);font-size:var(--fs-200);color:var(--muted);margin:0 0 14px;max-width:68ch}
+  .metodo p,.hab .desc{max-width:68ch}
+  main a,footer a{color:var(--accent-deep);text-decoration:underline;text-underline-offset:2px}
+  main a:hover,footer a:hover{color:var(--accent-fill);text-decoration-thickness:2px}
+  .hab{display:grid;grid-template-columns:38px 1fr;gap:10px;padding:9px 0;border-top:1px solid var(--border)}
+  .hab .pos{font-family:var(--sans);font-weight:700;color:var(--accent-deep);font-size:var(--fs-200);text-align:right;padding-top:2px}
+  .hab .desc{font-size:var(--fs-300);line-height:1.45}
+  .hab .meta{font-family:var(--sans);font-size:var(--fs-200);color:var(--muted);margin-top:3px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .hab .meta b{font-size:var(--fs-300);color:var(--accent-deep)}
+  .cod{font-family:var(--sans);font-size:var(--fs-100);font-weight:700;color:var(--accent-deep);
+       background:var(--accent-soft);padding:1px 7px;border-radius:var(--r-chip);margin-right:6px}
+  .badge{font-family:var(--sans);font-size:var(--fs-100);font-weight:700;padding:1px 8px;border-radius:var(--r-pill);background:var(--chip);color:var(--muted)}
+  .badge.fragil{background:var(--chip);color:var(--muted);border:1px solid var(--border)}
+  .badge.comp{background:var(--accent-soft);color:var(--accent-deep)}
+  .barra{height:5px;border-radius:3px;background:var(--chip);margin-top:7px;overflow:hidden}
+  .barra i{display:block;height:100%;background:var(--accent);border-radius:3px}
+  .nao-med{font-family:var(--sans);font-size:var(--fs-200);color:var(--muted);border-top:1px dashed var(--border);padding-top:10px;margin-top:6px}
+  .grupo-titulo{font-family:var(--sans);font-size:var(--fs-100);font-weight:700;
+       letter-spacing:.05em;text-transform:uppercase;color:var(--accent-deep);
+       margin:18px 0 6px}
+  details.compbloco{border:1px solid var(--border);border-radius:var(--r-ctrl);margin:10px 0;background:var(--bg)}
+  details.compbloco summary{cursor:pointer;list-style:none;padding:12px 14px;display:flex;gap:10px;
+       align-items:baseline;flex-wrap:wrap;font-family:var(--sans)}
+  details.compbloco summary::-webkit-details-marker{display:none}
+  details.compbloco summary .ctit{font-weight:600;font-size:var(--fs-300);flex:1 1 12ch;
+       min-width:0;overflow-wrap:anywhere;line-height:1.35}
+  details.compbloco summary .seta{color:var(--muted);font-size:var(--fs-100);transition:transform .15s}
+  details.compbloco[open] summary .seta{transform:rotate(90deg)}
+  details.compbloco .cmeta{font-family:var(--sans);font-size:var(--fs-200);color:var(--muted);padding:0 14px 6px}
+  details.compbloco .cmeta b{font-size:var(--fs-400);font-weight:700;color:var(--text)}
+  /* o valor tambem no summary: fechado, o bloco precisa justificar a fila */
+  details.compbloco summary .cval{font-family:var(--sans);font-weight:700;font-size:var(--fs-300);
+       color:var(--text);white-space:nowrap;margin-left:auto;font-variant-numeric:tabular-nums}
+  details.compbloco .cbarra{margin:0 14px 6px}
+  details.compbloco .hab{margin:0 14px;grid-template-columns:34px 1fr}
+  /* a regra generica .hab .pos perde aqui por especificidade: a cor
+     corrigida por contraste so vale se declarada tambem neste seletor */
+  details.compbloco .hab .pos{font-size:var(--fs-100);color:var(--accent-deep)}
+  details.compbloco .hab>div{min-width:0}
+  .comp-selo{font-family:var(--sans);font-size:var(--fs-100);font-weight:700;padding:1px 8px;border-radius:var(--r-pill);
+       background:var(--chip);color:var(--muted);white-space:nowrap}
+  .comp-selo.ouro{background:var(--accent-fill);color:var(--sobre-accent)}
+  .percentil{font-family:var(--sans);font-size:var(--fs-200);background:var(--accent-soft);color:var(--accent-deep);
+             border-radius:var(--r-ctrl);padding:9px 14px;margin:0 0 12px}
+  .percentil.atencao{background:var(--alert-soft);color:var(--alert)}
+  /* comparativo */
+  .comp-areas{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;font-family:var(--sans)}
+  .comp-areas .item{border:1px solid var(--border);border-radius:var(--r-ctrl);padding:12px 14px;
+       cursor:pointer;transition:border-color .15s, transform .05s;
+       font:inherit;color:inherit;background:var(--surface);text-align:left;width:100%;display:block}
+  .comp-areas .item:hover{border-color:var(--accent)}
+  .comp-areas .item:active{transform:scale(.985)}
+  .comp-areas .item.sel{border-color:var(--accent);background:var(--accent-soft);
+       box-shadow:0 0 0 1px var(--accent)}
+  .comp-areas .rot{font-size:var(--fs-100);font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--accent-deep);
+       display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .comp-areas .selo{font-size:var(--fs-100);font-weight:700;padding:2px 8px;border-radius:var(--r-pill);
+       background:var(--chip);color:var(--muted);letter-spacing:0;white-space:nowrap;flex:0 0 auto}
+  .comp-areas .selo.ouro{background:var(--accent-fill);color:var(--sobre-accent)}
+  .comp-areas .val{font-size:var(--fs-200);color:var(--muted);margin-top:3px}
+  /* nivel 3: o cartao de respostas, no formulario */
+  .dica{font-family:var(--sans);font-size:var(--fs-200);color:var(--muted);margin:10px 0 14px;max-width:640px}
+  .dica b{color:var(--accent-deep)}
+  .dia{border:1px solid var(--border);border-radius:var(--r-ctrl);padding:12px 14px;margin-bottom:12px;background:var(--bg)}
+  .dia .cab-dia{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+  .dia .cab-dia .tit{font-family:var(--sans);font-weight:700;font-size:var(--fs-200);color:var(--accent-deep)}
+  .dia .cab-dia .qual{font-family:var(--sans);font-size:var(--fs-200);color:var(--muted);margin-right:auto}
+  .dia .cab-dia .grupo-cor{display:flex;align-items:center;gap:8px}
+  .dia .cab-dia label{font-family:var(--sans);font-size:var(--fs-200);color:var(--muted)}
+  .dia .cab-dia select{padding:7px 10px;font-size:var(--fs-200);font-family:var(--sans);
+       border:1px solid var(--border);border-radius:var(--r-ctrl);background:var(--surface);color:var(--text)}
+  .linha-gab{display:grid;grid-template-columns:118px 1fr 92px;gap:10px;align-items:end;
+       margin-bottom:8px;font-family:var(--sans)}
+  .linha-gab .rot{font-size:var(--fs-200);font-weight:700;color:var(--accent-deep);padding-bottom:11px}
+  .linha-gab .rot small{display:block;font-weight:400;color:var(--muted);font-size:var(--fs-100)}
+  .linha-gab select,.linha-gab input{width:100%;padding:9px 11px;font-size:var(--fs-300);font-family:var(--sans);
+       border:1px solid var(--border);border-radius:var(--r-ctrl);background:var(--surface);color:var(--text)}
+  .linha-gab .msg-gab{grid-column:2/-1}
+  .linha-gab .erro{grid-column:2/-1;font-size:var(--fs-200);color:var(--alert);margin-top:-4px}
+  .linha-gab .ok{grid-column:2/-1;font-size:var(--fs-200);color:var(--tip);margin-top:-4px}
+  @media(max-width:700px){
+    .linha-gab{grid-template-columns:1fr 1fr;}
+    .linha-gab .rot{grid-column:1/-1;padding-bottom:0}
+    .linha-gab .campo-resp{grid-column:1/-1}
+    .linha-gab .msg-gab,.linha-gab .erro,.linha-gab .ok{grid-column:1/-1}
+    /* abaixo de 16px o Safari do iOS aplica zoom ao focar e nao desfaz */
+    .linha-gab select,.linha-gab input,.dia .cab-dia select,textarea.resp{font-size:16px}
+    .linha-gab select,.linha-gab input{padding:12px 11px}
+    .dia .cab-dia select{padding:11px 10px}
+    textarea.resp{letter-spacing:0}
+    /* 106px de recuo antes do texto e 27% de uma tela de 390px */
+    main{padding:24px 14px 60px}
+    .cartao,.painel{padding:16px 14px}
+    details.compbloco .hab{margin:0 8px}
+    .hab{grid-template-columns:1fr;gap:2px}
+    .hab .pos{text-align:left}
+  }
+  /* input de uma linha mostrava 26 das 45 respostas e escondia o resto
+     num scroll sem indicacao -- justamente o campo que existe para
+     conferir. textarea quebra linha e mostra tudo */
+  textarea.resp{width:100%;min-height:3.2em;resize:vertical;padding:9px 11px;line-height:1.7;
+       border:1px solid var(--border);border-radius:var(--r-ctrl);background:var(--surface);color:var(--text);
+       font-family:var(--mono);letter-spacing:1px;text-transform:uppercase;font-size:var(--fs-300);
+       overflow-wrap:anywhere}
+  .qlista{font-family:var(--sans);font-size:var(--fs-100);color:var(--muted);margin-top:6px;line-height:2}
+  .qtag{display:inline-block;white-space:nowrap;font-family:var(--mono);font-size:var(--fs-100);padding:1px 7px;border-radius:var(--r-chip);
+        background:var(--chip);border:1px solid var(--border);margin-right:4px;cursor:default}
+  .qtag.ok{background:var(--tip-soft);color:var(--tip);border-color:transparent}
+  .qtag.err{background:var(--chip);color:var(--muted)}
+  .qtag.chance{background:var(--warn-soft);color:var(--warn);font-weight:700;border-color:transparent}
+  .destaque-oportunidade{font-family:var(--sans);font-size:var(--fs-200);background:var(--warn-soft);color:var(--warn);
+       border-radius:var(--r-ctrl);padding:10px 14px;margin:0 0 12px}
+  .destaque-conquista{font-family:var(--sans);font-size:var(--fs-200);background:var(--tip-soft);color:var(--tip);
+       border-radius:var(--r-ctrl);padding:10px 14px;margin:0 0 12px}
+  .metodo{font-size:var(--fs-200);color:var(--muted)}
+  .metodo summary{font-family:var(--sans);font-weight:600;color:var(--accent-deep);cursor:pointer}
+  footer{border-top:1px solid var(--border);margin-top:40px;padding-top:18px;
+         font-family:var(--sans);font-size:var(--fs-200);color:var(--muted)}
+  .oculto{display:none}
+</style>
+</head>
+<body>
+<header>
+  <nav class="nav">
+    <span class="brand">ENEM em foco</span>
+    <a class="on" href="#">Para o estudante</a>
+    <a href="metodo.html">Como funciona</a>
+    <span class="breve" title="em construção">Para escolas e redes</span>
+    <span class="breve" title="em construção">Apoie</span>
+  </nav>
+</header>
+<main>
+  <h1>Onde estudar para ganhar mais pontos no ENEM?</h1>
+  <p class="lede">Coloque suas notas e veja o que estudar primeiro — calculado com os dados oficiais de cada questão da prova.</p>
+  <p class="privacidade"><b>Suas notas não saem do seu celular ou computador.</b> Aqui não tem cadastro e nada é enviado ou guardado.</p>
+
+  <div class="painel" id="form">
+    <div class="grid-notas">
+      <div class="campo"><label for="n-lc">Linguagens <small>LC</small></label><input id="n-lc" inputmode="decimal" placeholder="ex.: 560"></div>
+      <div class="campo"><label for="n-ch">Humanas <small>CH</small></label><input id="n-ch" inputmode="decimal" placeholder="ex.: 540"></div>
+      <div class="campo"><label for="n-cn">Natureza <small>CN</small></label><input id="n-cn" inputmode="decimal" placeholder="ex.: 505"></div>
+      <div class="campo"><label for="n-mt">Matemática <small>MT</small></label><input id="n-mt" inputmode="decimal" placeholder="ex.: 610"></div>
+      <div class="campo"><label for="lingua">Língua estrangeira</label>
+        <select id="lingua"><option value="0">Inglês</option><option value="1">Espanhol</option></select>
+      </div>
+    </div>
+    <details class="opcional" id="det-gabarito">
+      <summary>Opcional: já conferiu seu gabarito? Preencha aqui — o mapa fica muito mais preciso</summary>
+      <p class="dica">Com as suas respostas, o mapa passa a falar de <b>você</b>: quais questões ainda podem virar ponto, quais estão mais ao seu alcance e quanto isso vale em nota. <b>A correção acontece no seu próprio aparelho — nada é enviado.</b> Suas respostas estão na Vista Pedagógica da Prova, na Página do Participante do INEP. Se preferir, preencha só o total de acertos.</p>
+      <div id="linhas-gabarito"></div>
+    </details>
+    <div class="acao">
+      <button class="analisar" id="btn">Ver meu mapa de estudo</button>
+      <button class="analisar secundaria" id="btn-exemplo" type="button">Testar com um exemplo</button>
+      <span class="aviso-form oculto" id="erro-form"></span>
+    </div>
+  </div>
+
+  <div id="resultado" class="oculto">
+    <div class="cartao" id="card-comparativo">
+      <h2 id="titulo-comparativo">Se você só tiver tempo para uma área, comece por:</h2>
+      <p class="sub" id="sub-comparativo">Avançando o mesmo tanto em cada área, é aqui que a nota sobe mais. <b>Toque ou clique em uma área para ver os detalhes.</b></p>
+      <div class="comp-areas" id="comp-areas"></div>
+    </div>
+    <div id="cards-areas"></div>
+    <div class="cartao">
+      <details class="metodo"><summary>Como o cálculo é feito — e o que ele não promete</summary>
+        <p>Em resumo: cada questão do ENEM tem uma "ficha técnica" pública — o quão difícil ela é e o quanto ela distingue níveis de preparo. Sua nota diz em que ponto da escada você está, e a partir daí calculamos onde estão as questões <b>no degrau logo acima do seu</b> — nem as fáceis demais, nem as impossíveis: as que dão ponto. É a mesma matemática que o INEP usa para corrigir a prova (Teoria de Resposta ao Item).</p>
+        <p><b>O número e os grupos.</b> Cada conteúdo mostra um único número: <b>quanto dá para ganhar, no máximo, se você o fechar</b>. O valor de cada habilidade é a fatia dela dentro da competência — por isso as somas fecham. Já a <b>posição nos grupos</b> responde outra pergunta: onde o mesmo esforço rende mais rápido <i>no seu nível</i>. Um conteúdo de prêmio grande pode aparecer em "mais distante por enquanto": há muito a ganhar ali, mas converte devagar até você avançar nos primeiros. Ordenar pelo prêmio seria dizer "estude o que você mais erra" — o conselho que este site existe para corrigir.</p>
+        <p>Em ambos os casos a conversão para pontos é a mesma e é <b>medida</b>: se você passa a acertar mais questões, olhamos para os mais de 1,2 milhão de participantes de cada área em 2025 e vemos qual nota, na prática, corresponde a esse novo total de acertos. Nenhum dos dois é promessa — são cenários, e a nota real depende de quais questões caem.</p>
+<p><b>O que isso não é:</b> sem as suas respostas, não sabemos o que <i>você</i> deixou passar — mostramos onde, no seu nível, o estudo tende a render mais. É um mapa do terreno, não uma bola de cristal. E onde só uma questão mede uma habilidade, avisamos: leve como pista.</p>
+<p><b>A não ser que você preencha suas respostas.</b> Aí a correção acontece no seu próprio aparelho — elas não são enviadas a lugar nenhum — e o mapa passa a ser <i>seu</i>: sabemos quais questões ainda podem virar ponto, quais estão mais ao seu alcance, e o valor em nota passa a contar o seu caso, não uma média.</p>
+<p><b>E se não sobrar sugestão?</b> Quem acerta tudo em uma área não recebe fila de prioridade — não há o que corrigir, e ordenar conteúdos todos empatados em zero inventaria uma urgência que não existe. No lugar dela você recebe o <b>inventário</b>: os mesmos conteúdos, sem numeração, como a lista do que sustenta a sua nota. O ganho, aí, vem de <b>lapidar o que você já domina</b> — manter em dia, treinar precisão e blindar o tempo, para que o mesmo desempenho se repita no dia da prova.</p>
+<p><b>Quer entrar no mérito?</b> A trilha completa — de onde vem cada número, o que cada um promete e o que não promete, e as verificações que sustentam o motor — está em <a href="metodo.html">Como funciona</a>.</p>
+      </details>
+    </div>
+  </div>
+
+  <footer>
+    ENEM em foco · feito com os dados públicos do INEP — microdados do ENEM 2020 a 2025,
+    Censo Escolar e a <a href="https://download.inep.gov.br/download/enem/matriz_referencia.pdf"
+    target="_blank" rel="noopener">Matriz de Referência</a> ·
+    nada do que você digita é enviado ou armazenado.
+  </footer>
+</main>
+
+<script>
+const AREAS = [["LC","Linguagens e Códigos"],["CH","Ciências Humanas"],["CN","Ciências da Natureza"],["MT","Matemática"]];
+// nome curto UNICO por area -- "Ciências" sozinho serve para CH e CN, e duas
+// linhas iguais no gabarito fazem colar as respostas na area errada
+const CURTO = {LC:"Linguagens", CH:"Humanas", CN:"Natureza", MT:"Matemática"};
+const plural = (n, s, p) => `${n} ${n===1 ? s : p}`;
+// A Matriz oficial do INEP: e de onde vem cada codigo C/H que a tela mostra, e
+// e onde o estudante confere o texto completo da habilidade. Link para a fonte
+// do CONTEUDO -- coisa diferente de expor o funcionamento do site
+// Por que uma questao pode nao valer ponto. Sao duas coisas diferentes, e
+// chamar as duas de "anulada" seria impreciso -- a segunda tem gabarito certo
+const MOTIVO_FORA = {
+  anulada: "Questão anulada: o INEP a retirou por já ter sido usada antes. Ela não tem resposta correta e não vale ponto para ninguém.",
+  sem_calibracao: "O INEP tirou esta questão da correção: o cálculo da nota não fechou nela (a estatística do item não convergiu). Ela tem gabarito, mas não valeu ponto para ninguém — nem para quem acertou.",
+};
+const MOTIVO_CURTO = {anulada: "anulada", sem_calibracao: "sem calibração"};
+const MATRIZ_URL = "https://download.inep.gov.br/download/enem/matriz_referencia.pdf";
+const linkMatriz = txt =>
+  `<a href="${MATRIZ_URL}" target="_blank" rel="noopener">${txt}</a>`;
+let M = null;
+let ULTIMA = [];
+
+// limites da grade de theta, derivados dos dados no boot (regra da casa:
+// derivar, nunca transcrever -- um clamp fixo ja escondeu ganhos reais)
+let TH_MIN = -3, TH_MAX = 3, PASSO_GRADE = 0.05;
+fetch("dados/motor.json").then(r=>r.json()).then(j=>{
+  M=j;
+  const ths = Object.keys(M.perfil).map(c=>Number(c.split("|")[2]));
+  TH_MIN = Math.min(...ths); TH_MAX = Math.max(...ths);
+  // o passo da grade tambem sai dos dados: e o menor intervalo entre niveis
+  // vizinhos. Ele decide o ENCAIXE ao integrar sobre a incerteza, e chutar
+  // 0,05 aqui seria transcrever um numero que o proprio arquivo carrega
+  const ord = [...new Set(ths)].sort((x,y)=>x-y);
+  let menor = Infinity;
+  for(let i=1;i<ord.length;i++) menor = Math.min(menor, ord[i]-ord[i-1]);
+  if(isFinite(menor) && menor > 0) PASSO_GRADE = Number(menor.toFixed(4));
+  montaLinhasGabarito();
+}).catch(()=>{
+  document.getElementById("erro-form").textContent="não consegui carregar os dados da prova — verifique sua conexão e recarregue a página";
+  document.getElementById("erro-form").classList.remove("oculto");
+});
+
+const $ = id => document.getElementById(id);
+const k = (...p) => p.map(x => x===null? "_" : String(x)).join("|");
+
+// Faixa de totais de acertos observada em 2025 para aquela nota. Serve de
+// guarda de sanidade: a nota do ENEM e comparavel entre edicoes (a TRI
+// equaliza para a mesma escala), mas o TOTAL DE ACERTOS nao -- cada ano tem
+// uma prova diferente. Entao acerto fora da faixa quase sempre significa cor
+// de prova errada, area trocada, ou dado de outra edicao.
+function faixaAcertos(sig, lin, nota){
+  const faixa = faixaDisponivel(sig, lin, nota);
+  const d = M.distribuicao[k(sig, lin, faixa)];
+  if(!d || !d.acertos.length) return null;
+  return {min: d.acertos[0], max: d.acertos[d.acertos.length-1], n: d.n};
+}
+
+function faixaDisponivel(area, lingua, nota){
+  // faixa de 10 em 10; se a exata nao existir (caudas), usa a mais proxima
+  const alvo = Math.floor(nota/10)*10;
+  let melhor=null, dist=1e9;
+  for(const chave in M.calibracao){
+    const [a,l,f] = chave.split("|");
+    if(a!==area || l!==(area==="LC"? String(lingua):"_")) continue;
+    const d = Math.abs(Number(f)-alvo);
+    if(d<dist){ dist=d; melhor=Number(f); }
+  }
+  return melhor;
+}
+
+function analisar(){
+  if(!M){ return; }
+  const lingua = Number($("lingua").value);
+  const erroEl = $("erro-form"); erroEl.classList.add("oculto");
+  const entradas = {};
+  for(const [sig,nome] of AREAS){
+    const v = $("n-"+sig.toLowerCase()).value.replace(",",".").trim();
+    if(v==="") continue;
+    const n = Number(v);
+    if(!isFinite(n) || n<0 || n>1000){
+      erroEl.textContent = `Confira a nota de ${nome} (${sig}): digite um número de 0 a 1000.`;
+      erroEl.classList.remove("oculto"); return;
+    }
+    entradas[sig]=n;
+  }
+  if(Object.keys(entradas).length===0){ erroEl.textContent="Digite ao menos uma nota."; erroEl.classList.remove("oculto"); return; }
+
+  // revalida o gabarito antes de calcular: a lingua pode ter mudado depois
+  // de digitado, e em LC isso troca o conjunto de itens
+  for(const [sig] of AREAS) if(($("v-resp-"+sig).value||"").trim()!=="") leVetor(sig);
+
+  const porArea = [];
+  for(const [sig,nome] of AREAS){
+    if(!(sig in entradas)) continue;
+    const nota = entradas[sig];
+    const lin = sig==="LC" ? lingua : null;
+    const faixa = faixaDisponivel(sig, lin, nota);
+    const cal = M.calibracao[k(sig, sig==="LC"?lin:null, faixa)];
+    if(!cal) continue;
+    const theta = cal[0].toFixed(2);
+    const chaveP = k(sig, sig==="LC"?lin:null, theta);
+    porArea.push({sig, nome, nota, faixa, theta,
+                  nFaixa: cal[1],
+                  perfil: M.perfil[chaveP]||[],
+                  infoArea: M.info_area[chaveP]||0,
+                  acertos: $("a-"+sig.toLowerCase()).value.trim()});
+  }
+
+  // comparativo entre areas — mesma regra dos blocos: ordena pelo ganho do
+  // proximo passo, que e o numero mostrado. E tambem a NAVEGACAO
+  ULTIMA = porArea.slice();
+  for(const a of ULTIMA){
+    const mot = motorArea(a);
+    let dE = 0;
+    for(const h of a.perfil) if(h[4]>0) dE += mot.agoraHab(h[0], h[4], h[1]);
+    a.ptsAgora = mot.ganho(dE).pts;
+    a.piso = mot.piso;
+  }
+  // area no piso da calibracao nao disputa o "comece aqui": naquela regiao a
+  // relacao acertos-nota de 2025 nao distingue faixas, e um ranking fingiria
+  // precisao que nao existe (auditoria adversarial)
+  ULTIMA.sort((x,y)=>(x.piso?1:0)-(y.piso?1:0) || y.ptsAgora-x.ptsAgora);
+  const topPts = ULTIMA.length ? Math.max(ULTIMA[0].ptsAgora, 1) : 1;
+  const rank = {}; ULTIMA.forEach((a,i)=>rank[a.sig]=i+1);
+
+  // Sem ponto a recuperar em area nenhuma: nao existe "comece por". Ordenar
+  // quatro zeros daria o selo de ouro a quem estivesse primeiro no array --
+  // uma colocacao inventada. O cartao vira orientacao de manutencao
+  const tudoZero = ULTIMA.length>0 && ULTIMA.every(x=>x.ptsAgora===0);
+  $("titulo-comparativo").textContent = tudoZero
+    ? "Você não deixou pontos na mesa" : "Se você só tiver tempo para uma área, comece por:";
+  $("sub-comparativo").innerHTML = tudoZero
+    ? `Em todas as áreas você converteu o que estava ao seu alcance — nenhuma devolve ponto novo com um passo de estudo. Daqui em diante o ganho é de <b>lapidação</b>: revisão espaçada para não perder o que já está pronto, simulados cronometrados para blindar o tempo, e leitura atenta do enunciado. <b>Toque ou clique em uma área para ver o que manter em dia nela.</b>`
+    : `Avançando o mesmo tanto em cada área, é aqui que a nota sobe mais. <b>Toque ou clique em uma área para ver os detalhes.</b>`;
+
+  // cards em posicao fixa, na ordem da prova; a ordem de estudo vai no selo
+  // <button> e nao <div>: e a navegacao principal do resultado, e como div
+  // nao entrava na ordem de Tab nem respondia a Enter -- quem usa teclado
+  // nao conseguia trocar de area
+  $("comp-areas").innerHTML = porArea.map(a=>`
+    <button type="button" class="item" data-sig="${a.sig}" aria-pressed="false">
+      <div class="rot">${a.nome} ${!tudoZero && !a.piso && rank[a.sig]===1 ? `<span class="selo ouro">comece aqui</span>` : ""}</div>
+      <div class="val">sua nota: ${a.nota}</div>
+      ${tudoZero || a.piso ? "" : `<div class="barra" style="margin-top:8px"><i style="width:${Math.max(8, Math.round(100*a.ptsAgora/topPts))}%"></i></div>`}
+      <div class="val">${a.piso
+        ? "nesta faixa a prova de 2025 não separa níveis — veja o cartão da área"
+        : a.ptsAgora>=1
+          ? `seu próximo passo vale <b>~+${plural(a.ptsAgora,"ponto","pontos")}</b>`
+          : "sem pontos a recuperar — modo manutenção"}</div>
+    </button>`).join("");
+  $("card-comparativo").style.display = ULTIMA.length>1 ? "" : "none";
+  document.querySelectorAll("#comp-areas .item").forEach(el=>
+    el.addEventListener("click", ()=>mostraArea(el.dataset.sig)));
+
+  mostraArea(ULTIMA[0].sig);
+  $("resultado").classList.remove("oculto");
+  // no celular o painel do formulario passa de 1.500px com o gabarito aberto:
+  // sem isto a pessoa toca em "ver meu mapa" e a tela nao muda, porque o
+  // resultado nasce abaixo da dobra
+  const suave = !matchMedia("(prefers-reduced-motion: reduce)").matches;
+  $("resultado").scrollIntoView({block:"start", behavior: suave ? "smooth" : "auto"});
+}
+
+function mostraArea(sig){
+  const a = ULTIMA.find(x=>x.sig===sig);
+  if(!a) return;
+  document.querySelectorAll("#comp-areas .item").forEach(el=>{
+    const ativo = el.dataset.sig===sig;
+    el.classList.toggle("sel", ativo);
+    el.setAttribute("aria-pressed", ativo ? "true" : "false");
+  });
+  // Dois cartoes, duas perguntas: o que aconteceu na prova de 2025 (itens
+  // daquela edicao) e o que estudar para a proxima (banco de seis edicoes).
+  // O diagnostico vem primeiro so quando ha respostas para diagnosticar
+  $("cards-areas").innerHTML = cartaoArea(a) + cartaoEstudo(a);
+}
+
+// gera um cartao de respostas SINTETICO, sorteando questao a questao pela
+// propria curva do item naquele nivel -- por isso sai coerente com a nota.
+// Nunca a linha de um participante real: nenhum dado individual viaja neste
+// site, nem para dar exemplo.
+function simulaVetor(sig, lin, theta, cor){
+  const cp = cadernoDe(sig, cor);
+  const p = cp && M.provas[cp];
+  if(!p) return null;
+  let its = p.itens;
+  if(sig==="LC") its = its.filter(it=>it[1]===null || it[1]===lin);
+  its = [...its].sort((x,y)=>x[0]-y[0]);
+  if(its.length!==45) return null;
+  const LET = "ABCDE";
+  const txt = its.map(it=>{
+    const gab=it[2], pa=it[4], pb=it[5], pc=it[6];
+    if(pa==null) return LET[Math.floor(Math.random()*5)];   // anulada: tanto faz
+    const P = pc + (1-pc)/(1+Math.exp(-1.7*pa*(theta-pb)));
+    if(Math.random() < P) return gab;
+    if(Math.random() < 0.06) return ".";                    // alguns em branco
+    const errados = LET.split("").filter(x=>x!==gab);
+    return errados[Math.floor(Math.random()*errados.length)];
+  }).join("");
+  return {cp, txt};
+}
+
+function exemplo(){
+  if(!M) return;   // dados ainda carregando
+  V = {};          // o exemplo e sintetico: respostas coladas antes nao valem para ele
+  // um nivel geral sorteado, notas correlacionadas em torno dele (como notas
+  // reais se comportam) e um cartao de respostas simulado nesse nivel
+  const base = 430 + Math.random()*300;
+  const lingua = Math.random() < 0.5 ? 0 : 1;
+  $("lingua").value = String(lingua);
+  // uma cor por DIA, como na vida real -- nao uma por area
+  for(const dia of DIAS){
+    const cores = coresDoDia(dia);
+    const cor = cores[Math.floor(Math.random()*cores.length)] || "";
+    $("v-cor-dia"+dia.n).value = cor;
+    for(const sig of dia.areas){
+      const nota = Math.max(350, Math.min(850, Math.round(base + (Math.random()*2-1)*55)));
+      $("n-"+sig.toLowerCase()).value = nota;
+      const lin = sig==="LC" ? lingua : null;
+      const faixa = faixaDisponivel(sig, lin, nota);
+      const cal = M.calibracao[k(sig, lin, faixa)];
+      const sim = (cor && cal) ? simulaVetor(sig, lin, cal[0], cor) : null;
+      $("v-resp-"+sig).value = sim ? sim.txt : "";
+      $("a-"+sig.toLowerCase()).value = "";
+      if(sim) leVetor(sig);      // o total de acertos vem das respostas
+    }
+  }
+  $("det-gabarito").open = true;
+  analisar();
+}
+
+// nota <-> acertos esperados, pela CALIBRACAO EMPIRICA (nao por formula):
+// para cada faixa de nota, o total esperado no nivel efetivo daquela faixa.
+// E o caminho de volta que permite dizer "vale ate +X pontos".
+function curvaAcertos(sig, lin){
+  // A serie invertida e o acertos_medio OBSERVADO de cada faixa (terceiro
+  // elemento da calibracao) -- NAO o esperado da TCC no theta da faixa.
+  // Motivo (auditoria adversarial): as faixas 310-360 saturam todas em
+  // theta = -3,00, entao a curva via TCC e PLANA ali, e inverter curva plana
+  // transformava milesimos de acerto em "+40 pontos" fantasma. A serie
+  // observada e estritamente crescente (4,11 -> 7,28 no piso de MT) e devolve
+  // o gradiente real, ~15-18 pontos por acerto.
+  const pts = [];
+  for(const chave in M.calibracao){
+    const [a,l,f] = chave.split("|");
+    if(a!==sig || l!==(sig==="LC"?String(lin):"_")) continue;
+    pts.push({nota:Number(f)+5, E: M.calibracao[chave][2]});
+  }
+  pts.sort((x,y)=>x.nota-y.nota);
+  // guarda estrutural: se algum trecho ainda vier plano ou invertido (faixa
+  // rara no topo), colapsa mantendo o ponto de MAIOR nota -- e a inversa a
+  // direita, que nunca fabrica ganho onde a curva nao sobe
+  const dedup = [];
+  for(const p of pts){
+    if(dedup.length && p.E - dedup[dedup.length-1].E < 1e-9) dedup[dedup.length-1] = p;
+    else dedup.push(p);
+  }
+  // o teto FISICO da escala (maior nota real da area em 2025) viaja com a
+  // curva: a calibracao termina onde acaba a amostra (n>=100 por faixa), mas
+  // a escala vai alem -- CH calibra ate ~770 e a maior nota real foi 856,4.
+  // Um usuario conferiu no noticiario; o site nao pode dizer menos que o real
+  dedup.teto = (M.maxNota||{})[k(sig, sig==="LC"?lin:null)]
+             || (dedup.length ? dedup[dedup.length-1].nota + 10 : 0);
+  return dedup;
+}
+function notaPorAcertos(curva, E){
+  if(!curva.length) return null;
+  if(E<=curva[0].E) return {nota:curva[0].nota, alem:false};
+  for(let i=1;i<curva.length;i++){
+    if(E<=curva[i].E){
+      const a=curva[i-1], b=curva[i];
+      const t=(E-a.E)/Math.max(b.E-a.E,1e-6);
+      return {nota:a.nota+t*(b.nota-a.nota), alem:false};
+    }
+  }
+  // Acima do topo CALIBRAVEL a amostra acaba -- e a escala, nao. Estende
+  // pela inclinacao dos ultimos trechos (janela de 4 pontos), marcado (alem),
+  // e limita no TETO FISICO da area (a maior nota real de 2025, que viaja na
+  // curva): nunca prometer acima do que a escala paga, nem abaixo do que ela
+  // realmente pagou
+  const n = curva.length;
+  const a = curva[Math.max(n-4, 0)], b = curva[n-1];
+  const incl = (b.nota - a.nota) / Math.max(b.E - a.E, 1e-6);
+  const teto = curva.teto || (b.nota + 10);
+  return {nota: Math.min(b.nota + (E - b.E) * incl, teto), alem: true};
+}
+
+// ---------------------------------------------------------------- nivel 3
+// o caderno desce ate o participante; as respostas dele nunca sobem.
+// numeracao real do caderno: dia 1 = LC 1-45 e CH 46-90; dia 2 = CN 91-135
+// e MT 136-180
+const OFFSET = {LC:0, CH:45, CN:90, MT:135};
+let V = {};   // por area: {cp (caderno), txt (respostas), erro}
+
+function corrigeCaderno(sig, cp, lin, txt, theta){
+  const p = (M.provas||{})[cp]; if(!p) return null;
+  let its = p.itens;
+  // em LC o caderno tem 50 itens (as duas linguas); o cartao da pessoa tem
+  // 45 -- filtra pela lingua dela e renumera, a mesma regra do pipeline
+  if(sig==="LC") its = its.filter(it=>it[1]===null || it[1]===lin);
+  its = [...its].sort((x,y)=>x[0]-y[0]);
+  if(its.length!==45) return null;
+  return its.map((it,i)=>{
+    const gab=it[2], hab=it[3], pa=it[4], pb=it[5], pc=it[6], fora=it[7];
+    const o = {q: i+1+(OFFSET[sig]||0), hab, valido: pa!=null, pa, pb, pc, fora};
+    if(o.valido && theta!=null)
+      o.P = pc + (1-pc)/(1+Math.exp(-1.7*pa*(theta-pb)));
+    if(txt){
+      o.resp = txt[i];
+      o.branco = o.resp==="." || o.resp==="*";
+      o.acertou = o.valido ? o.resp===gab : null;
+    }
+    return o;
+  });
+}
+
+function tagQ(o){
+  const nivel = o.P==null ? "" :
+    o.P>=0.6 ? "muito ao seu alcance" : o.P>=0.35 ? "no limite do seu alcance" : "conteúdo mais avançado";
+  const t = o.P!=null ? `title="questão ${o.q} — ${nivel} (taxa de acerto típica no seu nível: ~${Math.round(o.P*100)}%)"` : "";
+  if(o.resp==null) return `<span class="qtag" ${t}>Q${o.q}</span>`;
+  // sem parametro de TRI: nao vale ponto para ninguem. Os dois motivos sao
+  // diferentes e a pessoa respondeu a questao -- tem direito de saber qual
+  if(!o.valido)    return `<span class="qtag" title="${MOTIVO_FORA[o.fora]||"não entrou na correção"}">Q${o.q} ${o.fora==="anulada"?"anulada":"sem nota"}</span>`;
+  if(o.branco)     return `<span class="qtag err" ${t}>Q${o.q} em branco</span>`;
+  if(o.acertou)    return `<span class="qtag ok" ${t}>Q${o.q} ✓</span>`;
+  return `<span class="qtag ${o.P>=0.6?"chance":"err"}" ${t}>Q${o.q} ✗</span>`;
+}
+
+// A COR E DO CADERNO, E O CADERNO E DO DIA. O ENEM aplica LC+CH no primeiro
+// dia e CN+MT no segundo, e cada dia tem UM caderno -- por isso "Branca" so
+// existe no dia 1 e "Cinza" so no dia 2 (verificado no proprio dado). Pedir
+// quatro cores convidava a uma combinacao que nao existe na vida real.
+const DIAS = [
+  {n: 1, areas: ["LC", "CH"], sub: "Linguagens e Humanas"},
+  {n: 2, areas: ["CN", "MT"], sub: "Natureza e Matemática"},
+];
+
+function coresDoDia(dia){
+  // a cor vale para as duas areas do dia: interseccao, nao uniao
+  const conjuntos = dia.areas.map(sig => new Set(
+    Object.values(M.provas || {}).filter(p => p.area === sig).map(p => p.cor)));
+  return [...conjuntos[0]].filter(c => conjuntos.every(s => s.has(c))).sort();
+}
+
+function cadernoDe(sig, cor){
+  for(const cp in (M.provas || {})){
+    const p = M.provas[cp];
+    if(p.area === sig && p.cor === cor) return cp;
+  }
+  return null;
+}
+
+// as linhas do gabarito vivem no FORMULARIO, junto das notas -- e um dado de
+// entrada como qualquer outro, nao um apendice do resultado
+function montaLinhasGabarito(){
+  const nomeArea = Object.fromEntries(AREAS);
+  $("linhas-gabarito").innerHTML = DIAS.map(dia=>{
+    const ops = ['<option value="">escolha…</option>']
+      .concat(coresDoDia(dia).map(c=>`<option value="${c}">${c}</option>`)).join("");
+    const linhas = dia.areas.map(sig=>`
+      <div class="linha-gab" id="lg-${sig}">
+        <div class="rot">${CURTO[sig]}<small>${sig} · 45 questões</small></div>
+        <div class="campo-resp"><textarea class="resp" id="v-resp-${sig}" rows="2"
+             placeholder="suas respostas: ABD.CEEBA…" spellcheck="false" autocomplete="off"></textarea></div>
+        <div><input id="a-${sig.toLowerCase()}" inputmode="numeric" placeholder="total"></div>
+        <div class="msg-gab" id="msg-${sig}"></div>
+      </div>`).join("");
+    return `<div class="dia">
+      <div class="cab-dia">
+        <span class="tit">${dia.n}º dia</span>
+        <span class="qual">${dia.sub}</span>
+        <span class="grupo-cor">
+          <label for="v-cor-dia${dia.n}">Cor do caderno</label>
+          <select id="v-cor-dia${dia.n}">${ops}</select>
+        </span>
+      </div>
+      ${linhas}
+    </div>`;
+  }).join("");
+
+  DIAS.forEach(dia=>{
+    $("v-cor-dia"+dia.n).addEventListener("change",
+      ()=>dia.areas.forEach(sig=>leVetor(sig)));
+    dia.areas.forEach(sig=>
+      $("v-resp-"+sig).addEventListener("input", e=>{
+        // Normaliza NO CAMPO, nao so na leitura. Quem cola "1-A 2-B 3-C" ou
+        // "A B D . C" tinha as respostas truncadas em silencio pelo limite
+        // do campo, porque o limite se aplicava ao texto COM os separadores
+        const limpo = e.target.value.toUpperCase().replace(/[^A-Z.*]/g,"").slice(0,45);
+        if(limpo !== e.target.value) e.target.value = limpo;
+        leVetor(sig);
+      }));
+  });
+}
+
+// a cor escolhida para o dia daquela area
+function corDaArea(sig){
+  const dia = DIAS.find(d=>d.areas.includes(sig));
+  return dia ? ($("v-cor-dia"+dia.n)||{}).value || "" : "";
+}
+
+// le e valida a linha de uma area; devolve o total de acertos quando o
+// caderno fecha. Roda a cada tecla: o retorno imediato evita que a pessoa
+// so descubra o erro depois de clicar em analisar
+function leVetor(sig){
+  const cor = corDaArea(sig);
+  const cp  = cor ? cadernoDe(sig, cor) : "";
+  const txt = ($("v-resp-"+sig).value||"").toUpperCase().replace(/[^A-Z.*]/g,"");
+  const msg = $("msg-"+sig);
+  const v = {cp, txt, erro:null};
+  V[sig] = v;
+  if(txt===""){ msg.className="msg-gab"; msg.textContent=""; return; }
+  const dia = DIAS.find(d=>d.areas.includes(sig));
+  if(!cor)                     v.erro = `escolha a cor do caderno do ${dia.n}º dia`;
+  else if(!cp)                 v.erro = `não achei a prova ${cor} de ${sig}`;
+  else if(/[F-Z]/.test(txt))   v.erro = "use só A, B, C, D, E (e ponto para em branco)";
+  else if(txt.length!==45)     v.erro = `são 45 respostas — você digitou ${txt.length}`;
+  if(!v.erro){
+    const lin = sig==="LC" ? Number($("lingua").value) : null;
+    const notaTxt = ($("n-"+sig.toLowerCase()).value||"").replace(",",".").trim();
+    const nota = notaTxt==="" ? null : Number(notaTxt);
+    const faixa = (nota!=null && isFinite(nota)) ? faixaDisponivel(sig, lin, nota) : null;
+    const cal = faixa!=null ? M.calibracao[k(sig, sig==="LC"?lin:null, faixa)] : null;
+    const corr = corrigeCaderno(sig, cp, lin, txt, cal ? cal[0] : null);
+    if(!corr) v.erro = "não encontrei essa cor de prova — confira a cor no seu cartão de respostas";
+    else{
+      const ac = corr.filter(o=>o.valido && o.acertou).length;
+      // DUAS guardas contra gabarito errado (cor trocada, outra edicao):
+      // 1) total abaixo do minimo observado para a nota -- so funciona em
+      //    nota alta, porque na metade de baixo da escala o minimo observado
+      //    e <= 9 (nivel do acaso) e o vetor errado passa;
+      // 2) por isso a guarda de PADRAO: quem tem a nota acerta as questoes
+      //    FACEIS muito mais que as dificeis; vetor corrigido contra o
+      //    gabarito errado e plano (~20%) nos dois grupos. Um vetor real,
+      //    mesmo incoerente, nao e plano no nivel do acaso
+      const r = (nota!=null && isFinite(nota)) ? faixaAcertos(sig, lin, nota) : null;
+      const suspeito = padraoSuspeito(corr, nota);
+      if(r && ac < r.min){
+        // sem marcacao HTML: esta string vai para textContent
+        v.erro = `com o caderno ${cor} sairiam ${plural(ac,"acerto","acertos")}, fora do esperado para ${nota} em ${sig} (${r.min} a ${r.max}). Confira a cor — ou, se for de outra edição, seguimos só com a nota.`;
+        $("a-"+sig.toLowerCase()).value = "";
+      } else if(suspeito){
+        v.erro = `essas respostas não parecem ser do caderno ${cor} de 2025: os acertos nas questões mais fáceis ficaram no nível do chute. Confira a cor e a edição — se for outra prova, seguimos só com a nota.`;
+        $("a-"+sig.toLowerCase()).value = "";
+      } else {
+        $("a-"+sig.toLowerCase()).value = ac;   // o total vem das respostas
+        msg.className = "ok"; msg.textContent = `✓ ${plural(ac, "acerto", "acertos")}`;
+        return ac;
+      }
+    }
+  }
+  msg.className = "erro"; msg.textContent = v.erro;
+}
+
+// Vetor de gabarito errado e PLANO: taxa ~20% (acaso) tanto nas questoes
+// faceis quanto nas dificeis para o nivel da pessoa. Vetor real tem gradiente
+// (faceis >> dificeis), mesmo quando incoerente. So dispara com sinal forte e
+// nota que sustente a expectativa -- na duvida, deixa passar
+function padraoSuspeito(corr, nota){
+  if(nota==null || !isFinite(nota) || nota < 480) return false;
+  const comP = corr.filter(o=>o.valido && o.P!=null && o.resp!=null);
+  // 5 faceis bastam: em MT nota ~520 a prova tem SO 5 itens com P>=0,6 --
+  // exigir mais desligava a guarda exatamente na regiao que ela existe para
+  // cobrir. Com 5 itens: vetor de gabarito errado e pego ~74% das vezes
+  // (0-1 acertos em 5 ao acaso); pessoa real espera ~3,5 e cai aqui <3% --
+  // e o aviso e recuperavel. Deteccao parcial declarada, nunca garantia
+  const faceis = comP.filter(o=>o.P>=0.6), dificeis = comP.filter(o=>o.P<0.35);
+  if(faceis.length < 5 || dificeis.length < 5) return false;
+  const tF = faceis.filter(o=>o.acertou).length/faceis.length;
+  const tD = dificeis.filter(o=>o.acertou).length/dificeis.length;
+  return tF < 0.40 && (tF - tD) < 0.08;
+}
+
+function montaPercentil(a){
+  let percentilHtml = "";
+  if(a.acertos!==""){
+    const acer = Number(a.acertos);
+    const d = M.distribuicao[k(a.sig, a.sig==="LC"?Number($("lingua").value):null, a.faixa)];
+    if(d && isFinite(acer)){
+      const min=d.acertos[0], max=d.acertos[d.acertos.length-1];
+      const nTxt = d.n.toLocaleString("pt-BR");
+      if(acer>max){
+        // acima do topo observado NAO e erro de digitacao: e desempenho no
+        // extremo. Acusar quem foi excepcional seria o pior falso positivo
+        percentilHtml = `<div class="percentil">Seu total de acertos está <b>acima de tudo o que foi observado nesta faixa de nota em 2025</b> (o máximo foi ${max}). Você aproveitou ao máximo o que estava ao seu alcance — daqui o ganho vem de conteúdo mais avançado.</div>`;
+      } else if(acer<min){
+        // abaixo do minimo observado: quase sempre area trocada, cor errada
+        // ou dado de outra edicao -- e a nota sozinha ja monta o mapa
+        percentilHtml = `<div class="percentil atencao">⚠ Esse total de acertos não combina com essa nota em ${a.sig} — para uma nota assim, os totais em 2025 ficaram entre ${min} e ${max}. Vale conferir a área e a contagem. Se a nota e os acertos forem de <b>outra edição</b>, é esperado: cada ano tem uma prova diferente. Seguimos com a nota, que é comparável entre anos — e ela sozinha já monta o seu mapa.</div>`;
+      } else {
+        // convencao do ponto medio (estritamente abaixo + metade dos
+        // empatados), traduzida para "a cada 100 pessoas" — sem jargao
+        const iEx = d.acertos.indexOf(acer);
+        let abaixo, empatados;
+        if(iEx >= 0){
+          abaixo = iEx > 0 ? d.pct[iEx-1] : 0;
+          empatados = d.pct[iEx] - abaixo;
+        } else {
+          let j = -1;
+          for(let t=0; t<d.acertos.length && d.acertos[t]<acer; t++) j = t;
+          abaixo = j >= 0 ? d.pct[j] : 0;
+          empatados = 0;
+        }
+        const pr = abaixo + empatados/2;
+        // SO O FATO EMPIRICO, sem causa individual. A versao anterior dizia
+        // "seus acertos foram em questoes que pesam mais" / "voce converte
+        // bem" -- inferencias que o PLANO.md proibe no nivel 2 (chute,
+        // discriminacao e perfil de conteudo produzem a MESMA evidencia), e a
+        // zona neutra tem largura de UM acerto nas faixas altas: o veredito
+        // mudava com a mesma margem de erro de quem conta os proprios
+        // acertos. Regra do Passo 0: percentil empirico sim, diagnostico nao
+        let frase;
+        if(pr < 30){
+          frase = `Seu total ficou <b>abaixo do típico da sua faixa de nota</b> —
+            costuma haver ganho rápido nas questões mais acessíveis.`;
+        } else if(pr > 70){
+          frase = `Seu total ficou <b>acima do típico da sua faixa de nota</b> —
+            os próximos pontos tendem a estar no conteúdo mais avançado.`;
+        } else {
+          frase = `Seu total de acertos está <b>dentro do típico da sua faixa de nota</b>.`;
+        }
+        percentilHtml = `<div class="percentil">${frase}
+          <span style="opacity:.75;display:block;margin-top:3px">Leitura por comparação de
+          totais (${nTxt} participantes da faixa) — 1 ou 2 acertos de diferença mudam essa
+          posição. Para uma leitura sua, preencha as respostas.</span></div>`;
+      }
+    }
+  }
+  return percentilHtml;
+}
+
+// Um passo de estudo: o quanto o nivel avanca no cenario que a tela promete.
+// Nao e arbitrario no que importa -- o passo e o MESMO em todo conteudo, entao
+// o que a ordem compara e onde esse mesmo esforco rende mais ponto.
+const PASSO = 0.5;
+
+// ---------------------------------------------- a folga da propria medida
+// A prova nao mede todos os niveis com a mesma precisao. Medido nos itens de
+// 2025: SE(theta) vai de ~0,15 no miolo da escala a ~0,8 na base -- em pontos,
+// de +-15 a +-82. A causa e estrutural: quase toda questao esta ACIMA do nivel
+// de quem tira nota baixa, e questao muito acima quase nao informa (o acerto
+// vira chute). Ver .claude/skills/psicometria/.
+//
+// Calcular o conselho num ponto so promete uma precisao que a prova nao
+// entrega. Medido: 11,7% das competencias abaixo de 500 pulavam de "comece por
+// aqui" para "mais distante" dentro de 1 SE -- a tela mostrava as duas com a
+// mesma cara de certeza. A correcao e integrar o ganho sobre a faixa plausivel
+// da nota em vez de um ponto.
+//
+// O QUE ELA MUDA, medido no codigo real: o passo total da area muda ate 24%
+// onde o SE e grande (CH 400) e 0-5% no miolo. Ou seja, ela NAO e neutra na
+// tela -- os numeros exibidos mudam onde a medida e ruim, que e o ponto. Nas
+// faixas de nota mais comuns o efeito e pequeno porque o SE e pequeno.
+// Acompanha um texto novo (a ressalva de folga), que so aparece quando ha
+// fila agrupada para ressalvar.
+//
+// A tese sobrevive: 12 de 20 trocas de 1o lugar entre notas vizinhas, e MT em
+// theta ~2,0 continua dando H28 dominante (o caso registrado no CLAUDE.md).
+// Isso e verificacao contra alisamento excessivo, nao enfeite.
+//
+// Duas alternativas foram medidas e REPROVADAS: fundir os grupos em dois piora
+// (38,3%) porque o grupo do meio amortece os deslocamentos, e reatribuir grupo
+// por estabilidade piora (26,1%) porque a propria reatribuicao depende de
+// theta, que e justamente o que esta incerto.
+
+// Gauss-Hermite de 7 nos, ja normalizado para a normal padrao
+const NOS_QUAD = [[-2.0,.0540],[-1.33,.1550],[-0.67,.2440],[0,.2930],
+                  [0.67,.2440],[1.33,.1550],[2.0,.0540]];
+
+// Itens validos da area. As quatro cores sao os MESMOS itens reordenados,
+// entao qualquer prova regular da area serve; em LC o conjunto muda com a
+// lingua (5 da lingua + 40 comuns)
+const _itensArea = {};
+function itensDaArea(sig, lin){
+  const ch = k(sig, sig==="LC" ? lin : null);
+  if(_itensArea[ch]) return _itensArea[ch];
+  let achou = [];
+  for(const cod in M.provas){
+    const pv = M.provas[cod];
+    if(pv.area !== sig) continue;
+    achou = pv.itens.filter(it => it[4] != null
+              && (sig !== "LC" || it[1] == null || it[1] === lin))
+             .map(it => ({pa: it[4], pb: it[5], pc: it[6]}));
+    if(achou.length) break;
+  }
+  return (_itensArea[ch] = achou);
+}
+
+// SE(theta) = 1/sqrt(I + 1). O I e a informacao de Fisher do 3PL (Baker
+// eq. 6-5, p. 111); o "+1" e o priori N(0,1) do EAP, que encolhe a estimativa
+// -- sem ele estariamos usando o SE da maxima verossimilhanca e exagerando a
+// incerteza justamente onde ela ja e grande (Baker eq. 5-2, p. 88)
+function erroPadrao(sig, lin, th){
+  const itens = itensDaArea(sig, lin);
+  if(!itens.length) return 0;
+  let I = 0;
+  for(const o of itens){
+    const p = o.pc + (1-o.pc)/(1+Math.exp(-1.7*o.pa*(th-o.pb)));
+    if(p <= o.pc || p >= 1) continue;
+    const z = (p-o.pc)/(1-o.pc);
+    I += 1.7*1.7*o.pa*o.pa*z*z*(1-p)/p;
+  }
+  return 1/Math.sqrt(I + 1);
+}
+
+// Quantos PONTOS valem +-1 erro-padrao, NA ESCALA DO PROPRIO SITE.
+// Nao usar 100. A relacao nota<->theta aqui e a calibracao empirica, e a
+// inclinacao dela varia de ~57 a ~200 pontos por unidade de theta conforme a
+// faixa (medido na tabela do motor.json). Multiplicar o SE por 100 seria
+// transcrever a constante da escala OFICIAL numa curva que nao e ela -- o
+// mesmo erro de categoria que o projeto ja documentou entre theta e
+// theta_efetivo. Aqui a conversao sai da propria tabela, por interpolacao.
+function pontosDoSE(sig, lin, th, se){
+  const pares = [];
+  for(const ch in M.calibracao){
+    const [a, l, f] = ch.split("|");
+    if(a !== sig || l !== (sig === "LC" ? String(lin) : "_")) continue;
+    pares.push([M.calibracao[ch][0], Number(f) + 5]);
+  }
+  if(pares.length < 2) return null;
+  pares.sort((x, y) => x[0] - y[0] || x[1] - y[1]);
+  const nota = t => {
+    if(t <= pares[0][0]) return pares[0][1];
+    if(t >= pares[pares.length-1][0]) return pares[pares.length-1][1];
+    for(let i = 1; i < pares.length; i++){
+      if(t <= pares[i][0]){
+        const [t0, n0] = pares[i-1], [t1, n1] = pares[i];
+        return t1 === t0 ? n1 : n0 + (n1-n0)*(t-t0)/(t1-t0);
+      }
+    }
+    return pares[pares.length-1][1];
+  };
+  // metade da largura do intervalo; a curva nao e simetrica, entao medir os
+  // dois lados e dividir e mais honesto que aplicar uma inclinacao so
+  const larg = (nota(th + se) - nota(th - se))/2;
+  return larg > 0 ? larg : null;
+}
+
+// O motor de uma area. Duas medidas, com papeis distintos:
+//   AGORA = ganho do proximo passo (ordena a tela)
+//   TETO  = ganho de dominar o conteudo inteiro (o premio total)
+// Elas divergem de proposito: o teto e maior no conteudo DISTANTE (ha mais
+// questao na mesa), e ordenar por ele traria de volta o "estude o que voce
+// mais erra" -- o conselho que este produto existe para corrigir.
+function motorArea(a){
+  const lin = a.sig==="LC" ? Number($("lingua").value) : null;
+  const th  = Number(a.theta);
+  // Os limites da grade vem DOS DADOS, nao de constante escrita a mao. O bug
+  // que isto corrige: o clamp fixo em 3,00 contra uma grade que vai a 5,00
+  // zerava todos os ganhos de MT 900-950 -- a tela dizia "voce nao deixou
+  // pontos na mesa" a quem deixou ~36 (auditoria adversarial)
+  // A grade e discreta (passo de 0,05): valor fora dela devolve undefined. Ao
+  // integrar sobre a incerteza os nos caem em qualquer lugar, entao ENCAIXAR e
+  // obrigatorio -- sem isso os nos sao descartados em silencio, sobra so o
+  // central, e a media vira o valor pontual outra vez (a conta roda, os testes
+  // passam, e a correcao nao acontece)
+  const grade = v => {
+    const t = Math.max(TH_MIN, Math.min(TH_MAX, v));
+    return M.perfil[k(a.sig, a.sig==="LC"?lin:null,
+                      (Math.round(t/PASSO_GRADE)*PASSO_GRADE).toFixed(2))];
+  };
+
+  // par de niveis para a diferenca; no topo REAL da grade, mede para tras
+  const thUp = Math.min(th + PASSO, TH_MAX);
+  const recua = (thUp === th);
+
+  // a folga da medida nesta area e neste nivel (ver NOS_QUAD, acima)
+  const se = erroPadrao(a.sig, lin, th);
+  // media ponderada de f(theta) sobre a faixa plausivel da nota
+  const sobreIncerteza = f => {
+    let acc = 0, tot = 0;
+    for(const [z, w] of NOS_QUAD){
+      const v = f(Math.max(TH_MIN, Math.min(TH_MAX, th + z*se)));
+      if(v == null) continue;
+      acc += w*v; tot += w;
+    }
+    return tot > 0 ? acc/tot : null;
+  };
+
+  // esperado por habilidade nos dois niveis, ja integrado sobre a incerteza.
+  // Os pares (baixo, alto) sao montados DENTRO de cada no da quadratura, para
+  // que a diferenca seja sempre entre dois niveis separados por um PASSO
+  const espRef = {}, espUp = {};
+  {
+    let tot = 0;
+    for(const [z, w] of NOS_QUAD){
+      const c  = Math.max(TH_MIN, Math.min(TH_MAX, th + z*se));
+      const lo = recua ? Math.max(TH_MIN, c - PASSO) : c;
+      const hi = recua ? c : Math.min(TH_MAX, c + PASSO);
+      const pl = grade(lo), ph = grade(hi);
+      if(!pl || !ph || !pl.length || !ph.length) continue;
+      for(const h of pl) espRef[h[0]] = (espRef[h[0]] || 0) + w*h[1];
+      for(const h of ph) espUp[h[0]]  = (espUp[h[0]]  || 0) + w*h[1];
+      tot += w;
+    }
+    if(tot > 0){
+      for(const h in espRef) espRef[h] /= tot;
+      for(const h in espUp)  espUp[h]  /= tot;
+    } else {                                   // salvaguarda: cai no ponto
+      for(const h of (grade(th) || a.perfil)) espRef[h[0]] = h[1];
+      for(const h of (grade(thUp) || a.perfil)) espUp[h[0]] = h[1];
+    }
+  }
+
+  // O esperado NO NIVEL DA PESSOA. Nao e sempre o espRef: quando 'recua' (topo
+  // real da grade, MT >= 955), o par e montado para tras, entao quem carrega o
+  // nivel dela e o espUp. Confundir os dois media o "quanto ainda cabe" meio
+  // passo ABAIXO da pessoa e inflava o teto da area em ~4x -- o cartao de quem
+  // ja acerta as 43 questoes validas oferecia +14 pontos de conteudo a fechar
+  const espAqui = recua ? espUp : espRef;
+
+  const curvaE = curvaAcertos(a.sig, lin);
+  // E0 na MESMA serie observada que a curva inverte (acertos_medio da faixa),
+  // e a base ancorada na nota que a pessoa DIGITOU -- o site a tem; deriva-la
+  // de E0 numa regiao mal invertivel foi o que colapsava 340 em 315
+  const cal0 = M.calibracao[k(a.sig, a.sig==="LC"?lin:null, a.faixa)];
+  const E0 = cal0 ? cal0[2] : 0;
+  const invBase = notaPorAcertos(curvaE, E0);
+  const base = Math.max(Number(a.nota)||0, invBase ? invBase.nota : 0);
+  const ganho = dA => {
+    if(!invBase || !(dA>0)) return {pts:0, alem:false};
+    const r = notaPorAcertos(curvaE, E0 + dA);
+    if(!r) return {pts:0, alem:false};
+    return {pts: Math.max(Math.round(r.nota - base), 0), alem: r.alem};
+  };
+  // regiao do piso: a faixa satura em theta = TH_MIN (prova majoritariamente
+  // em branco). A calibracao nao distingue niveis ali, e o cartao avisa
+  const piso = !!(cal0 && cal0[0] <= TH_MIN);
+
+  // nivel 3: com o caderno (e talvez as respostas), as contas sao DELE
+  const v = V[a.sig]||{};
+  const caderno = v.cp && !v.erro
+    ? corrigeCaderno(a.sig, v.cp, lin, v.txt||"", th) : null;
+  const temResp = !!(caderno && v.txt);
+  const porHab = {};
+  if(caderno) for(const o of caderno) (porHab[o.hab] = porHab[o.hab]||[]).push(o);
+  const probEm = (o,t) => o.pc + (1-o.pc)/(1+Math.exp(-1.7*o.pa*(t-o.pb)));
+
+  // AGORA e TETO por habilidade. Com respostas, so as questoes que a pessoa
+  // errou entram: nao ha ponto a recuperar no que ela ja acertou
+  // o par (baixo, alto) separado por um PASSO, em torno de um nivel qualquer
+  const parDe = t => recua ? [Math.max(TH_MIN, t - PASSO), t]
+                           : [t, Math.min(TH_MAX, t + PASSO)];
+
+  const agoraHab = (hab, nItens, esp) => {
+    // com respostas o calculo e por QUESTAO, direto dos parametros do item --
+    // caminho diferente do de baixo, e por isso integrado aqui tambem: deixar
+    // so um dos dois na media faria o nivel 3 discordar do nivel 1
+    if(temResp) return (porHab[hab]||[]).filter(o=>o.valido && !o.acertou)
+                   .reduce((s,o)=>{
+                     const g = sobreIncerteza(t => {
+                       const [lo, hi] = parDe(t);
+                       return Math.max(probEm(o,hi) - probEm(o,lo), 0);
+                     });
+                     return s + (g || 0);
+                   }, 0);
+    const e1 = espRef[hab], e2 = espUp[hab];
+    return (e1==null || e2==null) ? 0 : nItens*Math.max(e2-e1,0)/100;
+  };
+  // o esperado tambem sai da media, nao do ponto: se a ordem passou a valer
+  // para a faixa, o "quanto ainda cabe" precisa valer para a mesma faixa.
+  //
+  // O corte por RESOLUCAO nao e detalhe. A fonte grava acerto_esperado com
+  // round(avg(prob_acerto)*100, 1), entao meia casa vale 0,05 pp = 0,0005
+  // questao. A media sobre a faixa quase nunca da 100,0 exato mesmo quando o
+  // nivel da pessoa da -- e o residuo de milesimo, somado ao piso de +1 da
+  // partilha, virava "até +1 ponto" ao lado de "acerto típico ~100%" na MESMA
+  // linha, tirando o ponto da habilidade que de fato rende. Abaixo da
+  // resolucao da fonte nao ha folga: ha ruido de arredondamento
+  const RESOL = 0.0005;
+  const tetoHab = (hab, nItens, esp) => {
+    if(temResp) return (porHab[hab]||[]).filter(o=>o.valido && !o.acertou).length;
+    const v = nItens*(1-((espAqui[hab] ?? esp) ?? 0)/100);
+    return v < nItens*RESOL ? 0 : v;
+  };
+
+  // Quando avisar que a medida e larga. NAO e mais sobre instabilidade: depois
+  // da integracao os grupos ficaram estaveis em TODA a escala (medido dentro
+  // de 1 SE, por faixa de erro-padrao: 0,0% de competencias pulando dois
+  // grupos em todas as faixas, exceto 0,5% numa delas). Afirmar aqui que a
+  // ordem oscila seria descrever o bug que a integracao ja consertou.
+  //
+  // O que sobra e verdadeiro e util: naquela regiao a prova tem poucas
+  // questoes no nivel da pessoa, entao sabemos MENOS sobre onde ela esta. O
+  // limiar sai da unidade do proprio produto -- meio passo. Acima disso, a
+  // incerteza sobre onde a pessoa esta supera metade do avanco que a tela
+  // recomenda, e vale dizer que a leitura ali e mais grossa
+  const medidaLarga = !piso && se > PASSO/2;
+  const seEmPontos = pontosDoSE(a.sig, lin, th, se);
+
+  return {lin, temResp, porHab, ganho, agoraHab, tetoHab, caderno, piso,
+          se, seEmPontos, medidaLarga};
+}
+
+// ---------------------------------------------- cartao 2: RECOMENDACOES
+// Fonte diferente e PERGUNTA diferente: aqui e o banco de seis edicoes
+// (2020-2025), que responde "o que costuma render no seu nivel". O cartao de
+// 2025 responde "o que rendeu na sua prova". Nao sao versoes da mesma coisa --
+// as tres primeiras competencias coincidem em media 1,5 de 3.
+//
+// Por que a historia manda na recomendacao: a ordem tirada de metade dos itens
+// de 2025 se correlaciona +0,19 com a da outra metade; as cinco edicoes
+// REGULARES anteriores preveem 2025 com +0,27 (a configuracao embarcada; o
+// +0,44 que ja circulou aqui era com TODAS as aplicacoes, descartada).
+// Uma prova so e, em boa parte, sorteio -- e seis ainda sao poucas.
+function cartaoEstudo(a){
+  const lin = a.sig==="LC" ? Number($("lingua").value) : null;
+  const linhas = M.estudo[k(a.sig, a.sig==="LC"?lin:null, a.theta)];
+  if(!linhas) return "";
+  const mot = motorArea(a);
+
+  // topo de 2025, para marcar onde as duas fontes concordam
+  const top25 = (()=>{
+    const s = {};
+    for(const h of a.perfil){
+      if(h[4]===0) continue;
+      const c = (M.matriz[k(a.sig,h[0])]||{}).comp ?? 0;
+      s[c] = (s[c]||0) + mot.agoraHab(h[0], h[4], h[1]);
+    }
+    return new Set(Object.keys(s).sort((x,y)=>s[y]-s[x]).slice(0,3).map(Number));
+  })();
+
+  const comps = {};
+  for(const [hab, esp, ganho, pri, ipp, nbanco] of linhas){
+    const mtz = M.matriz[k(a.sig,hab)]||{};
+    const c = mtz.comp ?? 0;
+    if(!comps[c]) comps[c] = {c, desc: mtz.compdesc||("Competência "+c),
+                              habs:[], ganho:0, itens:0, espPond:0, banco:0};
+    comps[c].habs.push({hab, esp, ganho, ipp, nbanco, desc: mtz.hab});
+    comps[c].ganho += ganho;
+    comps[c].itens += ipp;
+    comps[c].espPond += (esp??0)*ipp;
+    comps[c].banco += nbanco;
+  }
+  const lista = Object.values(comps).sort((x,y)=>y.ganho-x.ganho);
+
+  // A MOEDA DESTE CARTAO E QUESTAO, NAO PONTO -- decisao do dono do produto,
+  // e correta: pontos aqui mirariam uma prova que ainda nao existe, com a
+  // escala de conversao de 2025 e uma transferencia de ordem que MEDIMOS ser
+  // fraca (rho +0,27; CH -0,01). Precisao fabricada. O que o banco de seis
+  // edicoes mede BEM e o peso tipico de cada conteudo numa prova -- e ele
+  // tambem soma certinho: as 45 questoes. Pontos moram no diagnostico, onde a
+  // prova existe e a escala e a dela.
+  const maxG = Math.max(...lista.map(c=>c.ganho), 1e-9);
+  const grupoE = c => c.ganho >= 0.55*maxG ? 0 : c.ganho >= 0.22*maxG ? 1 : 2;
+  const TITULO_E = {
+    0: "Comece por aqui — é onde o estudo rende mais rápido no seu nível",
+    1: "Na sequência",
+    2: "Mais distante por enquanto — rende depois de avançar nos primeiros",
+  };
+  // dentro do grupo, ordena pelo numero exibido (peso em questoes) -- ordem e
+  // numero nunca se contradizem
+  const ordenadaE = lista.map(c=>({c, g:grupoE(c)}))
+    .sort((x,y)=> x.g-y.g || y.c.itens-x.c.itens);
+
+  const qTxt = v => "~" + v.toFixed(1).replace(".", ",");
+
+  let gAnt = null, prim = true;
+  const blocos = ordenadaE.map(({c, g})=>{
+    const espC = c.itens ? Math.round(c.espPond/c.itens) : null;
+    const habRows = [...c.habs].sort((x,y)=>y.ipp-x.ipp);
+
+    const habs = habRows.map(h=>`
+      <div class="hab">
+        <div class="pos" title="habilidade ${h.hab} da Matriz de Referência">H${h.hab}</div>
+        <div>
+          <div class="desc">${h.desc||("Habilidade "+h.hab)}</div>
+          <div class="meta">
+            <span title="média nas seis edições, a partir de ${h.nbanco} questões do banco"><b>${qTxt(h.ipp)} ${h.ipp>=1.05?"questões":"questão"} por prova</b></span>
+            <span>acerto típico no seu nível: ~${h.esp==null?"—":Math.round(h.esp)+"%"}</span>
+          </div>
+        </div>
+      </div>`).join("");
+
+    const cab = g!==gAnt ? `<div class="grupo-titulo">${TITULO_E[g]}</div>` : "";
+    gAnt = g;
+    const abre = prim; prim = false;
+    return `${cab}<details class="compbloco" ${abre?"open":""}>
+      <summary>
+        <span class="ctit"><span class="cod" title="competência ${c.c} de ${a.sig}">C${c.c}</span>${c.desc}</span>
+        ${top25.has(c.c) ? '<span class="badge comp" title="também rendia na prova de 2025 — as duas leituras concordam">✓ também em 2025</span>' : ''}
+        <span class="cval">${qTxt(c.itens)} questões</span>
+        <span class="seta">▶</span>
+      </summary>
+      <div class="cmeta">das 45 da prova · acerto típico no seu nível: ~${espC==null?"—":espC+"%"}</div>
+      ${habs}
+      <div style="height:12px"></div>
+    </details>`;
+  }).join("");
+
+  // Confianca medida, nao adjetivo -- e com o tamanho da medida declarado:
+  // rho(2020-24 -> 2025) por area sobre APENAS 6-9 competencias, entao os
+  // intervalos se sobrepoem; a leitura honesta e tendencia, nunca ranking
+  const notaConf = {
+    LC: "Em Linguagens esta ordem <b>tendeu a se repetir</b> entre as edições — ainda assim, trate as primeiras como um grupo, não como fila exata.",
+    CN: "Em Ciências da Natureza a ordem <b>tendeu a se repetir em parte</b>: use as primeiras posições como grupo de boas apostas.",
+    MT: "Em Matemática a ordem <b>varia bastante</b> de uma edição para outra. Aqui o mais confiável é o conteúdo em si, não a posição na lista.",
+    CH: "Em Humanas a ordem <b>quase não se repete</b> entre edições — o que cai muda muito de ano para ano. Use esta lista como panorama do que costuma ser cobrado, não como fila de prioridade."
+  }[a.sig];
+
+  return `<div class="cartao">
+    <h2>O que estudar para a próxima <span class="nota">${a.nome}</span></h2>
+    <p class="sub">O <b>peso típico</b> de cada conteúdo — quantas das 45 questões ele costuma valer, na média das <b>seis edições de 2020 a 2025</b> (as fatias somam as 45). Pontos ficam no cartão de cima: a escala de pontos é a da prova que já existe. ${notaConf} <span title="a repetição da ordem entre edições foi medida sobre poucas competências por área — leia como tendência">A ordem aqui é tendência, não ranking.</span></p>
+    ${blocos}
+  </div>`;
+}
+
+function cartaoArea(a){
+  const mediveis = a.perfil.filter(h=>h[4]>0);
+  const naoMed  = a.perfil.filter(h=>h[4]===0);
+  const mot = motorArea(a);
+  const {lin, temResp, porHab, ganho, agoraHab, tetoHab, caderno, piso,
+         se, seEmPontos, medidaLarga} = mot;
+
+  // agrupa pela COMPETENCIA da Matriz: a competencia e a medida com lastro
+  // (4-11 questoes); a habilidade, o que se estuda -- uma dentro da outra
+  const comps = {};
+  for(const h of mediveis){
+    const [hab,esp,info,pri,nItens] = h;
+    const mtz = M.matriz[k(a.sig,hab)]||{};
+    const c = mtz.comp ?? 0;
+    if(!comps[c]) comps[c] = {c, desc: mtz.compdesc||("Competência "+c),
+                              habs:[], itens:0, espPond:0, agora:0, teto:0};
+    comps[c].habs.push(h);
+    comps[c].itens += nItens;
+    comps[c].espPond += (esp??0)*nItens;
+    comps[c].agora += agoraHab(hab, nItens, esp);
+    comps[c].teto  += tetoHab(hab, nItens, esp);
+  }
+  const lista = Object.values(comps);
+
+  let insightHtml = "";
+  if(temResp){
+    const perdidas = caderno.filter(o=>o.valido && !o.acertou);
+    const baratas  = perdidas.filter(o=>o.P>=0.6).sort((x,y)=>y.P-x.P);
+    const brancos  = perdidas.filter(o=>o.branco).length;
+    if(baratas.length){
+      const um = baratas.length===1;
+      const brancoTxt = brancos ? ` · ${plural(brancos,"ficou em branco","ficaram em branco")}` : "";
+      // GUARDA BINOMIAL (auditoria): mesmo quem responde exatamente como o
+      // modelo preve erra algumas faceis -- em theta=2,35 o proprio 3PL
+      // espera ~3,5 erros nas questoes de P>=0,6. Ate a media + 1 desvio,
+      // isso e ruido de prova, nao lacuna pessoal; apresentar como deficit
+      // seria diagnostico fabricado. Acima disso, e sinal de verdade
+      const comFacil = caderno.filter(o=>o.valido && o.P>=0.6);
+      const eEsp = comFacil.reduce((s,o)=>s+(1-o.P), 0);
+      const vEsp = comFacil.reduce((s,o)=>s+o.P*(1-o.P), 0);
+      // DOIS conselhos, DOIS verbos -- e a tela nomeia cada um. REVISAR e
+      // sobre questoes especificas (refazer, conferir descuido, ganho
+      // imediato); ESTUDAR e sobre conteudo (os grupos abaixo). A versao
+      // anterior dizia "revise-as primeiro" aqui e "comece por aqui" logo
+      // abaixo -- duas ordens de "primeiro" sobre coisas diferentes, sem
+      // dizer que eram coisas diferentes.
+      // A ordem das questoes (mais acessivel -> menos) nao e so didatica:
+      // na propria TRI, o erro numa questao facil pesa mais na estimativa
+      // do nivel do que numa dificil (que o modelo desconta como esperado)
+      const dentroDoEsperado = baratas.length <= eEsp + Math.sqrt(vEsp);
+      const qsTxt = baratas.map(o=>"Q"+o.q).join(", ");
+      if(dentroDoEsperado){
+        insightHtml = `<div class="percentil"><b>Para conferir:</b> ${um?"1 questão acessível escapou":baratas.length+" questões acessíveis escaparam"} (${qsTxt}) — errar ~${Math.max(1,Math.round(eEsp))} assim é <b>normal no seu nível</b>: provavelmente descuido, não falta de conteúdo. Vale refazê-las para tirar a dúvida${brancoTxt}. O plano de <b>estudo</b> são os grupos abaixo.</div>`;
+      } else {
+        insightHtml = `<div class="destaque-oportunidade">💡 <b>Para revisar primeiro:</b> ${qsTxt}, nessa ordem (da mais acessível para a menos). ${um?"Escapou":"Escaparam"} além do esperado para o seu nível (~${Math.max(1,Math.round(eEsp))}) — refazê-las é o ganho mais imediato${brancoTxt}. Para <b>estudar conteúdo</b>, siga os grupos abaixo.</div>`;
+      }
+    } else if(perdidas.length){
+      insightHtml = `<div class="percentil">Você acertou tudo o que já estava ao seu alcance. O que faltou é conteúdo mais avançado — siga a lista.</div>`;
+    } else {
+      insightHtml = `<div class="destaque-conquista">🏆 <b>Você acertou tudo nesta área.</b> Daqui o ganho é manter em dia e treinar tempo e precisão.</div>`;
+    }
+  }
+
+  // sem respostas, mas ja no alto da area: a lista fica de numeros pequenos e
+  // sem explicacao. Dizer o que fazer daqui vale mais que uma lista muda
+  let noAlto = false;
+  if(!temResp){
+    const totalPts = ganho(lista.reduce((s,c)=>s+c.agora, 0)).pts;
+    if(totalPts < 12 && lista.length && !piso){
+      noAlto = true;
+      insightHtml = `<div class="destaque-conquista">🏆 <b>Você já está no alto desta área</b> — sobrou pouco terreno novo a conquistar. Daqui o ganho vem de <b>lapidar o que você já domina</b>: manter o conteúdo em dia e treinar precisão e tempo, para que o desempenho se repita no dia da prova. A lista abaixo mostra o que ainda tem alguma folga.</div>`;
+    }
+  }
+
+  // MODO MANUTENCAO: acertou tudo o que valia ponto nesta area. A lista deixa
+  // de ser fila de prioridade -- ordenar 30 habilidades empatadas em zero
+  // inventaria uma urgencia que nao existe. Vira inventario, sem numeracao,
+  // sem selo de colocacao e sem leitura de coerencia (que diria o oposto)
+  const manutencao = temResp && caderno.filter(o=>o.valido && !o.acertou).length===0;
+
+  const percentilHtml = manutencao ? "" : montaPercentil(a);
+
+  // O MAPA E O CAMINHO ATE O TOPO, repartido. "Fechar tudo" e convertido UMA
+  // unica vez (com o teto fisico da escala) e o total e dividido entre as
+  // competencias na proporcao das questoes recuperaveis; dentro de cada
+  // competencia, dividido de novo entre as habilidades. Consequencia que o
+  // leitor confere: competencias somam o total, habilidades somam a
+  // competencia, e nada passa da nota maxima real. O desenho anterior
+  // convertia cada competencia como cenario separado partindo de hoje, e a
+  // soma estourava a escala (achado de usuario). A ORDEM segue como
+  // linguagem: grupos pelo rendimento do passo -- o que a medicao de
+  // estabilidade sustenta, grupos e nao ranking
+  const dAtotArea = lista.reduce((s,c)=>s+c.teto, 0);
+  const gTotal = ganho(dAtotArea);
+  let sharesC = lista.map(c=> dAtotArea>1e-9 ? Math.round(gTotal.pts*c.teto/dAtotArea) : 0);
+  sharesC = sharesC.map((v,i)=> lista[i].teto>1e-9 ? Math.max(v,1) : 0);
+  if(dAtotArea>1e-9){
+    const excC = sharesC.reduce((s,v)=>s+v,0) - gTotal.pts;
+    if(excC !== 0){
+      const imC = sharesC.indexOf(Math.max(...sharesC));
+      sharesC[imC] = Math.max(1, sharesC[imC] - excC);
+    }
+  }
+
+  const maxAgora = Math.max(...lista.map(c=>c.agora), 1e-9);
+  const grupoDe = c => (temResp && Math.round(c.teto)===0) ? 3
+    : c.agora >= 0.55*maxAgora ? 0
+    : c.agora >= 0.22*maxAgora ? 1 : 2;
+  const TITULO_GRUPO = {
+    0: "Comece por aqui — é onde o estudo rende mais rápido no seu nível",
+    1: "Na sequência",
+    2: "Mais distante por enquanto — rende depois de avançar nos primeiros",
+    3: "Você já fechou — mantenha em dia",
+  };
+  const ordenada = manutencao
+    ? lista.map(c=>({c, g:null, t:{pts:0,alem:false}}))
+    : lista.map((c,i)=>({c, g:grupoDe(c), t:{pts:sharesC[i], alem:false}}))
+        .sort((x,y)=> x.g-y.g || y.t.pts-x.t.pts);
+
+  // a linha que responde "e se eu fizer tudo?": o total unico, conferivel
+  const chegada = Math.round(Number(a.nota) + gTotal.pts);
+  const totalHtml = (!manutencao && gTotal.pts>=1)
+    ? `<div class="percentil" style="font-variant-numeric:tabular-nums"><b>Fechando tudo: até +${gTotal.pts} pontos</b> — da sua nota ${a.nota} para ~${chegada}${gTotal.alem?", o topo da área":""}. As partes abaixo somam esse total.</div>`
+    : "";
+
+  let grupoAnterior = null, primeiro = true;
+  const blocos = ordenada.map(({c, g, t})=>{
+    const espC = c.itens ? Math.round(c.espPond/c.itens) : null;
+
+    // partilha do teto da competencia entre as habilidades, proporcional as
+    // questoes recuperaveis -- com o ajuste de arredondamento no maior, para
+    // que a soma FECHE no numero do cabecalho (e o que o leitor confere)
+    const habRows = [...c.habs]
+      .map(h=>({h, dA: tetoHab(h[0],h[4],h[1])}))
+      .sort((x,y)=>y.dA-x.dA);
+    const dAtot = habRows.reduce((s,x)=>s+x.dA, 0);
+    let shares = habRows.map(x=> dAtot>1e-9 ? Math.round(t.pts*x.dA/dAtot) : 0);
+    // piso de 1 nas recuperaveis SEM quebrar a soma: os zeros sobem para 1 e
+    // o excesso sai da maior fatia (nunca abaixo de 1). Sem isto, "+1" de
+    // cortesia fazia as habilidades somarem mais que o teto do cabecalho
+    shares = shares.map((v,ix)=> habRows[ix].dA>1e-9 ? Math.max(v,1) : 0);
+    if(shares.length && dAtot>1e-9){
+      const excesso = shares.reduce((s,v)=>s+v,0) - t.pts;
+      if(excesso !== 0){
+        const imax = shares.indexOf(Math.max(...shares));
+        shares[imax] = Math.max(1, shares[imax] - excesso);
+      }
+    }
+
+    const habs = habRows.map(({h, dA}, j)=>{
+      const [hab,e,info,pri,nItens] = h;
+      const mtz = M.matriz[k(a.sig,hab)]||{};
+      const qs = porHab[hab]||[];
+      const valor = dA<=1e-9
+        ? (temResp ? "✓ você acertou todas" : "✓ nível já dominado")
+        : `até +${plural(shares[j],"ponto","pontos")}`;
+      const situacao = temResp
+        ? `você: ${qs.filter(o=>o.valido&&o.acertou).length} de ${qs.filter(o=>o.valido).length}`
+        : `acerto típico no seu nível: ~${e==null?"—":Math.round(e)+"%"}`;
+      const qHtml = qs.length ? `<div class="qlista">${qs.map(tagQ).join("")}</div>` : "";
+      return `<div class="hab">
+        <div class="pos" title="habilidade ${hab} da Matriz de Referência">H${hab}</div>
+        <div>
+          <div class="desc">${mtz.hab||("Habilidade "+hab)}</div>
+          <div class="meta">
+            <span><b>${valor}</b></span>
+            <span>${situacao}</span>
+            ${nItens===1?'<span class="badge fragil" title="Só uma questão mede isso na prova de 2025 — leve como pista, não como certeza.">⚠ 1 questão só</span>':""}
+          </div>
+          ${qHtml}
+        </div>
+      </div>`;
+    }).join("");
+
+    const cmeta = temResp
+      ? (Math.round(c.teto)===0
+          ? `✓ tudo certo aqui`
+          : `você acertou ${c.habs.reduce((s,h)=>s+((porHab[h[0]]||[]).filter(o=>o.valido&&o.acertou).length),0)} de ${c.habs.reduce((s,h)=>s+((porHab[h[0]]||[]).filter(o=>o.valido).length),0)}`)
+      : `${plural(c.itens,"questão","questões")} na prova · acerto típico no seu nível: ~${espC==null?"—":espC+"%"}`;
+    const cval = manutencao ? "" :
+      `<span class="cval">${g===3 ? "✓" : t.pts>=1 ? `até +${t.pts} pontos${t.alem?" ou mais":""}` : "—"}</span>`;
+
+    const cabecalho = (!manutencao && g!==grupoAnterior)
+      ? `<div class="grupo-titulo">${TITULO_GRUPO[g]}</div>` : "";
+    grupoAnterior = g;
+    const abre = primeiro && !manutencao; primeiro = false;
+
+    return `${cabecalho}<details class="compbloco" ${abre?"open":""}>
+      <summary>
+        <span class="ctit"><span class="cod" title="competência ${c.c} de ${a.sig}">C${c.c}</span>${c.desc}</span>
+        ${cval}
+        <span class="seta">▶</span>
+      </summary>
+      <div class="cmeta">${cmeta}</div>
+      ${habs}
+      <div style="height:12px"></div>
+    </details>`;
+  }).join("");
+
+  // A questao de uma habilidade sem item valido nao entra em bloco nenhum --
+  // e some da tela. Quem conferia MT contava 44 das 45 e nao achava a outra.
+  // Declarar a habilidade sem dizer QUAL questao era continua sendo omissao:
+  // a pessoa respondeu aquela questao e tem direito de saber onde ela foi
+  const naoMedHtml = naoMed.length ? `<div class="nao-med">${naoMed.length===1?"Conteúdo que não dá para medir neste ano":"Conteúdos que não dão para medir neste ano"}: ${
+    naoMed.map(h=>{
+      const motivo = (a.sig==="MT"&&h[0]===21) ? "a única questão dela em 2025 foi anulada"
+                   : (a.sig==="LC"&&h[0]===8)  ? "só aparece em questões de espanhol, e você fez inglês"
+                   : "sem questões válidas para você";
+      const nome = (M.matriz[k(a.sig,h[0])]||{}).hab || ("Habilidade "+h[0]);
+      const qs = (porHab[h[0]]||[]).map(o=>"Q"+o.q).join(", ");
+      return `<b>H${h[0]}</b> ${nome} — ${motivo}${qs?` (${qs})`:""}`;
+    }).join(" · ")}.</div>` : "";
+
+  const sub = manutencao
+    ? `Você acertou todas as questões desta área — não há fila de prioridade, só o <b>inventário do que sustenta a sua nota</b>.`
+    : `${temResp ? "Questão por questão, o que aconteceu na <b>sua prova</b>." : "O que rendia <b>na prova de 2025</b>, no seu nível."} Cada conteúdo mostra <b>quanto dá para ganhar</b> se você o fechar; os grupos dizem <b>por onde começar</b>; os valores são as fatias do caminho até o topo, e <b>somam o total</b>. <b>C</b> = competência, <b>H</b> = habilidade — os códigos oficiais da ${linkMatriz("Matriz de Referência do ENEM")}.`;
+
+  // A CONTA TEM DE FECHAR NA TELA. Antes o cabecalho mostrava "45 questões ·
+  // 43 valem ponto · 1 anulada" -- e 43+1 da 44. Faltava a questao cuja
+  // habilidade nao e mediavel, que nao aparece em bloco nenhum. Agora as
+  // questoes de fora sao TODAS as sem parametro, cada uma nomeada com o seu
+  // motivo: quem confere consegue conferir
+  const nCaderno = 45;   // o que a pessoa responde em qualquer area (LC: 5 da lingua + 40 comuns)
+  const nValidas = mediveis.reduce((s,h)=>s+h[4], 0);
+  const foraLista = caderno ? caderno.filter(o=>!o.valido) : [];
+  const nFora = nCaderno - nValidas;
+  const detalhe = foraLista.length
+    ? ` (${foraLista.map(o=>`Q${o.q} ${MOTIVO_CURTO[o.fora]||"fora"}`).join(", ")})`
+    : "";
+  const contagem = `${nCaderno} questões · <b>${nValidas} valem ponto</b>`
+    + (nFora>0 ? ` · ${nFora} fora da correção${detalhe}` : "");
+
+  return `<div class="cartao">
+    <h2>${temResp ? "Diagnóstico da sua prova de 2025" : "Como foi a prova de 2025"} <span class="nota">${a.nome} · sua nota: ${a.nota}</span></h2>
+    <p class="sub">${contagem}. ${sub}</p>
+    ${piso ? `<div class="percentil atencao">Sua nota está na faixa em que a prova de 2025 <b>não separa níveis</b> — é a região com muitas provas entregues em branco, onde notas de 310 a 360 correspondem a poucos acertos parecidos. O mapa abaixo vale para a faixa toda, e os pontos indicados são aproximações grosseiras. O maior ganho aqui está fora do que o modelo mede: <b>responder todas as questões</b>, mesmo sem certeza.</div>` : ""}
+    ${medidaLarga && !manutencao && !noAlto ? `<div class="percentil">Nesta parte da escala a prova de 2025 traz <b>poucas questões no seu nível</b>, então ela mede com uma folga maior${seEmPontos ? ` — da ordem de ${Math.round(seEmPontos)} pontos para mais ou para menos` : ""}. O mapa já leva essa folga em conta: ele foi calculado para a faixa inteira, não para um ponto. O que isso muda na leitura: trate os conteúdos do primeiro grupo como um <b>conjunto de boas apostas</b> — todos rendem bem agora — em vez de uma fila exata. Os grupos são firmes; a ordem dentro de cada um, menos.</div>` : ""}
+    ${insightHtml}
+    ${percentilHtml}
+    ${totalHtml}
+    ${blocos}
+    ${naoMedHtml}
+  </div>`;
+}
+
+$("btn").addEventListener("click", analisar);
+$("btn-exemplo").addEventListener("click", exemplo);
+// delegado: as linhas do gabarito so existem depois que os dados carregam
+$("form").addEventListener("keydown", e=>{
+  if(e.key==="Enter" && e.target.tagName==="INPUT") analisar();
+});
+</script>
+</body>
+</html>

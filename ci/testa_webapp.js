@@ -1,0 +1,488 @@
+/*
+ * Testes de regressao do webapp -- a unica camada do projeto que nao tinha
+ * verificacao automatizada, e (nao por coincidencia) a unica onde a auditoria
+ * adversarial achou erro de conta de verdade (2026-07-27).
+ *
+ * Carrega o CODIGO REAL de webapp/index.html num sandbox com DOM falso --
+ * nada de replica que deriva em silencio. Requer webapp/dados/motor.json
+ * gerado (python -m export.export_site).
+ *
+ * Cada caso daqui e um bug que JA EXISTIU:
+ *  1. curva nota<->acertos com trecho plano -> "+40 pontos" fantasma no piso
+ *  2. clamp de theta em 3,00 contra grade que vai a 5,00 -> MT 905 com +0
+ *  3. extrapolacao sem teto -> "+654 pontos" para aluno de nota 340
+ *  4. gabarito de outra edicao aceito em nota media -> diagnostico falso
+ *
+ * Uso:  node ci/testa_webapp.js
+ */
+"use strict";
+const fs = require("fs");
+const vm = require("vm");
+const path = require("path");
+
+const RAIZ = path.join(__dirname, "..");
+const html = fs.readFileSync(path.join(RAIZ, "webapp", "index.html"), "utf8");
+const motor = JSON.parse(fs.readFileSync(path.join(RAIZ, "webapp", "dados", "motor.json"), "utf8"));
+
+// ---- DOM falso: o minimo que o script toca no boot -------------------------
+function elemento() {
+  return {
+    value: "", textContent: "", innerHTML: "", className: "", open: false,
+    style: {}, dataset: {},
+    classList: { add() {}, remove() {}, toggle() {} },
+    addEventListener() {}, setAttribute() {}, scrollIntoView() {},
+  };
+}
+const els = {};
+const documento = {
+  getElementById: id => (els[id] = els[id] || elemento()),
+  querySelectorAll: () => [],
+  addEventListener() {},
+};
+
+const sandbox = {
+  document: documento,
+  fetch: () => Promise.resolve({ json: () => Promise.resolve(motor) }),
+  matchMedia: () => ({ matches: false }),
+  console, Math, JSON, Number, String, Object, Array, Promise, Set, Map,
+  isFinite, parseFloat, parseInt,
+};
+vm.createContext(sandbox);
+
+const script = html.split("<script>")[1].split("</script>")[0];
+// let/const do topo do script nao viram propriedades do contexto do vm; o
+// epilogo exporta o que os testes precisam (getters, porque M e TH_MAX so
+// sao atribuidos quando o fetch falso resolve)
+const epilogo = `
+;globalThis.X = {
+  get M(){ return M }, get TH_MAX(){ return TH_MAX },
+  get TH_MIN(){ return TH_MIN }, get PASSO_GRADE(){ return PASSO_GRADE }, k,
+  faixaDisponivel, curvaAcertos, notaPorAcertos, motorArea,
+  corrigeCaderno, padraoSuspeito, cartaoArea, cartaoEstudo,
+  erroPadrao, itensDaArea, get NOS_QUAD(){ return NOS_QUAD },
+};`;
+vm.runInContext(script + epilogo, sandbox);
+const X = sandbox.X;
+
+// ---- execucao dos testes ---------------------------------------------------
+const falhas = [];
+function caso(nome, fn) {
+  try { fn(); console.log(`  ok  ${nome}`); }
+  catch (e) { falhas.push(nome); console.log(`  XX  ${nome}: ${e.message}`); }
+}
+function espera(cond, msg) { if (!cond) throw new Error(msg); }
+
+function areaDe(sig, nota, lin) {
+  const faixa = X.faixaDisponivel(sig, lin, nota);
+  const cal = X.M.calibracao[X.k(sig, sig === "LC" ? lin : null, faixa)];
+  const theta = cal[0].toFixed(2);
+  return { sig, nota, faixa, theta,
+           perfil: X.M.perfil[X.k(sig, sig === "LC" ? lin : null, theta)] || [] };
+}
+function passoDaArea(a) {
+  const mot = X.motorArea(a);
+  let dE = 0;
+  for (const h of a.perfil) if (h[4] > 0) dE += mot.agoraHab(h[0], h[4], h[1]);
+  return { mot, pts: mot.ganho(dE).pts };
+}
+
+(async () => {
+  // o boot do script resolve o fetch em microtarefas
+  await new Promise(r => setTimeout(r, 0));
+  espera(X.M, "motor.json nao carregou no sandbox");
+
+  console.log("\n== grade derivada dos dados ==");
+  caso("TH_MAX vem da grade (>= 5), nao de constante", () =>
+    espera(X.TH_MAX >= 5, `TH_MAX = ${X.TH_MAX}`));
+
+  console.log("\n== curva nota<->acertos ==");
+  for (const [sig, lin] of [["MT", null], ["CH", null], ["CN", null], ["LC", 0], ["LC", 1]]) {
+    caso(`curva ${sig}${lin !== null ? "/" + lin : ""} estritamente crescente apos dedup`, () => {
+      const c = X.curvaAcertos(sig, lin);
+      espera(c.length > 10, `curva curta demais (${c.length})`);
+      for (let i = 1; i < c.length; i++)
+        espera(c[i].E > c[i - 1].E, `E nao cresce em ${c[i - 1].nota}->${c[i].nota}`);
+    });
+  }
+  caso("extrapolacao limitada ao teto FISICO da escala (maior nota real)", () => {
+    const c = X.curvaAcertos("MT", null);
+    espera(c.teto && Math.abs(c.teto - X.M.maxNota["MT|_"]) < 1e-9,
+      `curva sem teto fisico (teto=${c.teto})`);
+    const r = X.notaPorAcertos(c, c[c.length - 1].E + 50);
+    espera(r.alem, "deveria marcar alem");
+    espera(r.nota <= c.teto + 1e-9, `nota extrapolada ${r.nota} > teto ${c.teto}`);
+    espera(r.nota >= c[c.length - 1].nota, "extrapolacao abaixo da propria curva");
+  });
+  caso("CH: o teto fisico (856,4) fica ACIMA do fim da curva calibravel (~775)", () => {
+    // a calibracao corta faixas com n<100, mas a escala vai alem -- o site
+    // nao pode dizer menos que a maior nota real (um usuario conferiu)
+    const c = X.curvaAcertos("CH", null);
+    espera(c.teto > c[c.length - 1].nota + 20,
+      `teto ${c.teto} vs fim da curva ${c[c.length - 1].nota}`);
+  });
+
+  console.log("\n== piso da calibracao (regiao de prova em branco) ==");
+  caso("MT 340: area marcada como piso", () =>
+    espera(passoDaArea(areaDe("MT", 340, null)).mot.piso === true, "piso nao marcado"));
+  caso("MT 340: ganho de milesimo NAO vira pontos fantasma", () => {
+    const { mot } = passoDaArea(areaDe("MT", 340, null));
+    espera(mot.ganho(0.002).pts <= 1, `dA=0,002 rendeu +${mot.ganho(0.002).pts}`);
+  });
+  caso("MT 340: um acerto vale o gradiente real (5 a 40 pts), nao 0 nem 200", () => {
+    const { mot } = passoDaArea(areaDe("MT", 340, null));
+    const p = mot.ganho(1).pts;
+    espera(p >= 5 && p <= 40, `1 acerto rendeu +${p}`);
+  });
+
+  console.log("\n== topo da escala (o clamp que zerava MT 900+) ==");
+  caso("MT 905: passo de estudo rende > 0 pontos", () => {
+    const { pts } = passoDaArea(areaDe("MT", 905, null));
+    espera(pts > 0, `ptsAgora = ${pts}`);
+  });
+  caso("MT 613: passo da area inteira na faixa sa (20 a 150 pts)", () => {
+    // meio desvio GLOBAL de theta vale ~68-90 pontos pela reta de
+    // equalizacao (135 x 0,5); o teste guarda contra 0 e contra absurdo,
+    // nao contra o valor legitimo
+    const { pts } = passoDaArea(areaDe("MT", 613, null));
+    espera(pts >= 20 && pts <= 150, `ptsAgora = ${pts}`);
+  });
+
+  console.log("\n== guarda de padrao (gabarito de outra edicao/cor) ==");
+  const cpMT = Object.keys(X.M.provas)
+    .find(c => X.M.provas[c].area === "MT" && X.M.provas[c].cor === "Azul");
+  const thetaMT520 = X.M.calibracao["MT|_|520"][0];
+  caso("vetor aleatorio plano com nota 520 e recusado", () => {
+    const txt = Array.from({ length: 45 }, (_, i) => "ABCDE"[i % 5]).join("");
+    const corr = X.corrigeCaderno("MT", cpMT, null, txt, thetaMT520);
+    espera(X.padraoSuspeito(corr, 520) === true, "vetor plano passou");
+  });
+  caso("vetor coerente com nota 520 passa", () => {
+    const its = [...X.M.provas[cpMT].itens].sort((x, y) => x[0] - y[0]);
+    const txt = its.map(it => {
+      const gab = it[2], pa = it[4], pb = it[5], pc = it[6];
+      if (pa == null) return "A";
+      const P = pc + (1 - pc) / (1 + Math.exp(-1.7 * pa * (thetaMT520 - pb)));
+      return P >= 0.5 ? gab : (gab === "A" ? "B" : "A");   // deterministico
+    }).join("");
+    const corr = X.corrigeCaderno("MT", cpMT, null, txt, thetaMT520);
+    espera(X.padraoSuspeito(corr, 520) === false, "vetor coerente recusado");
+  });
+
+  console.log("\n== as somas fecham na tela (o que o leitor confere) ==");
+  // dentro de cada bloco de competencia, os "ate +N" das habilidades tem de
+  // somar o "ate +N" do cabecalho -- foi exatamente a conferencia que o dono
+  // do produto fez a mao e nao fechava no desenho anterior
+  function confereSomas(html, rotulo) {
+    const blocos = html.split('<details class="compbloco"').slice(1);
+    let conferidos = 0;
+    for (const b of blocos) {
+      const cab = b.match(/class="cval">até \+(\d+) ponto/);
+      if (!cab) continue;                       // bloco fechado/dominado
+      const total = Number(cab[1]);
+      const corpo = b.split("</summary>")[1] || "";
+      const partes = [...corpo.matchAll(/<b>até \+(\d+) ponto/g)].map(m => Number(m[1]));
+      if (!partes.length) continue;
+      const soma = partes.reduce((s, v) => s + v, 0);
+      // depois do conserto (piso de +1 descontado da maior fatia), a soma
+      // fecha exata salvo o caso raro em que a maior fatia nao absorve
+      espera(Math.abs(soma - total) <= 1,
+        `${rotulo}: habilidades somam +${soma}, cabecalho diz +${total}`);
+      conferidos++;
+    }
+    espera(conferidos >= 3, `${rotulo}: so ${conferidos} blocos conferiveis`);
+  }
+  caso("diagnostico MT 613: fatias das habilidades somam o teto da competencia", () =>
+    confereSomas(X.cartaoArea(areaDe("MT", 613, null)), "diagnostico MT 613"));
+
+  // e um andar acima: as competencias somam o "Fechando tudo", que nunca
+  // passa da maior nota real da area -- o achado do usuario que somou tudo
+  function confereTotal(html, rotulo, nota, maxArea) {
+    const m = html.match(/Fechando tudo: até \+(\d+) pontos/);
+    espera(m, `${rotulo}: linha "Fechando tudo" ausente`);
+    const total = Number(m[1]);
+    const comps = [...html.matchAll(/class="cval">até \+(\d+) ponto/g)].map(x => Number(x[1]));
+    espera(comps.length >= 3, `${rotulo}: poucas competencias (${comps.length})`);
+    const soma = comps.reduce((s, v) => s + v, 0);
+    espera(Math.abs(soma - total) <= 1,
+      `${rotulo}: competencias somam +${soma}, total diz +${total}`);
+    espera(nota + total <= maxArea + 1,
+      `${rotulo}: ${nota}+${total} passa do maximo real ${maxArea}`);
+  }
+  caso("CH 565: competencias somam o total, e nada passa de 856,4", () =>
+    confereTotal(X.cartaoArea(areaDe("CH", 565, null)), "diagnostico CH 565",
+      565, X.M.maxNota["CH|_"]));
+  caso("MT 613: competencias somam o total, e nada passa de 980,3", () =>
+    confereTotal(X.cartaoArea(areaDe("MT", 613, null)), "diagnostico MT 613",
+      613, X.M.maxNota["MT|_"]));
+
+  // o cartao da PROXIMA usa outra moeda: QUESTOES (peso tipico), nunca pontos
+  // -- pontos ali mirariam uma prova que nao existe, com escala de 2025 e
+  // transferencia de ordem fraca (rho +0,27). Decisao do dono do produto
+  function confereEstudo(html, rotulo) {
+    espera(!/Fechando tudo/.test(html), `${rotulo}: "Fechando tudo" nao pertence a este cartao`);
+    espera(!/até \+\d+ ponto/.test(html), `${rotulo}: pontos nao pertencem a este cartao`);
+    const comps = [...html.matchAll(/class="cval">~([\d,]+) questões/g)]
+      .map(m => Number(m[1].replace(",", ".")));
+    espera(comps.length >= 5, `${rotulo}: poucas competencias (${comps.length})`);
+    const soma = comps.reduce((s, v) => s + v, 0);
+    espera(Math.abs(soma - 45) <= 0.5,
+      `${rotulo}: pesos somam ${soma.toFixed(1)}, esperado ~45`);
+  }
+  caso("estudo MT 613: moeda e QUESTAO, e os pesos somam as 45 da prova", () =>
+    confereEstudo(X.cartaoEstudo(areaDe("MT", 613, null)), "estudo MT 613"));
+  caso("estudo CH 565: moeda e QUESTAO, e os pesos somam as 45 da prova", () =>
+    confereEstudo(X.cartaoEstudo(areaDe("CH", 565, null)), "estudo CH 565"));
+
+  // ---------------------------------------------------------------------
+  // A FOLGA DA MEDIDA. A prova nao mede todos os niveis com a mesma precisao,
+  // e o conselho passou a ser integrado sobre a faixa plausivel da nota em vez
+  // de calculado num ponto. O que estes casos travam e a consequencia visivel:
+  // a mesma pessoa nao pode ver uma competencia em "comece por aqui" e, um
+  // erro-padrao adiante, a mesma competencia em "mais distante"
+  console.log("\n== a folga da medida (SE) e a estabilidade do conselho ==");
+
+  const N_ITENS = { MT: 43, CH: 45, CN: 42 };
+  for (const sig in N_ITENS) {
+    caso(`itensDaArea ${sig}: ${N_ITENS[sig]} itens validos, com os 3 parametros`, () => {
+      const it = X.itensDaArea(sig, null);
+      espera(it.length === N_ITENS[sig], `${sig}: ${it.length} itens, esperado ${N_ITENS[sig]}`);
+      espera(it.every(o => o.pa > 0 && o.pc >= 0 && o.pc < 1),
+        `${sig}: item com parametro invalido`);
+    });
+  }
+  // em LC o conjunto muda com a lingua: 5 da lingua + 40 comuns
+  for (const lin of [0, 1]) {
+    caso(`itensDaArea LC/${lin}: 45 itens (5 da lingua + 40 comuns)`, () => {
+      const it = X.itensDaArea("LC", lin);
+      espera(it.length === 45, `LC/${lin}: ${it.length} itens, esperado 45`);
+    });
+  }
+
+  caso("SE cai do piso ao miolo e sobe de novo no topo (a prova mede melhor no meio)", () => {
+    for (const sig of ["MT", "CH", "CN"]) {
+      const baixo = X.erroPadrao(sig, null, -1.0);   // ~nota 400
+      const meio  = X.erroPadrao(sig, null,  1.5);   // ~nota 650
+      espera(baixo > meio, `${sig}: SE embaixo (${baixo.toFixed(3)}) <= no meio (${meio.toFixed(3)})`);
+      espera(meio > 0.05 && baixo < 2.0,
+        `${sig}: SE fora de faixa plausivel (${meio.toFixed(3)} / ${baixo.toFixed(3)})`);
+    }
+  });
+
+  // grupos da tela, a partir do motor real: >=55% e >=22% do maior passo
+  function gruposEm(sig, nota, lin, desloca) {
+    const base = areaDe(sig, nota, lin);
+    const se = X.erroPadrao(sig, lin, Number(base.theta));
+    const th = Math.max(X.TH_MIN, Math.min(X.TH_MAX, Number(base.theta) + desloca * se));
+    // encaixa na grade, igual ao motor -- sem isso a chave nao existe e o caso
+    // e descartado em silencio (foi assim que a primeira versao deste teste
+    // avaliou 47 competencias achando que avaliava 140)
+    const t = (Math.round(th / X.PASSO_GRADE) * X.PASSO_GRADE).toFixed(2);
+    const a = { sig, nota, faixa: base.faixa, theta: t,
+                perfil: X.M.perfil[X.k(sig, sig === "LC" ? lin : null, t)] || [] };
+    if (!a.perfil.length) return null;
+    const mot = X.motorArea(a);
+    const por = {};
+    for (const h of a.perfil) {
+      if (!(h[4] > 0)) continue;
+      const c = (X.M.matriz[X.k(sig, h[0])] || {}).comp;
+      if (c) por[c] = (por[c] || 0) + mot.agoraHab(h[0], h[4], h[1]);
+    }
+    const top = Math.max(...Object.values(por)) || 1e-9;
+    const g = {};
+    for (const c in por) g[c] = por[c] >= 0.55 * top ? 1 : por[c] >= 0.22 * top ? 2 : 3;
+    return g;
+  }
+  // conta quantas competencias pulam DOIS grupos ("comece aqui" <-> "mais
+  // distante") dentro de um erro-padrao. Medido antes da correcao: 0,3% no
+  // miolo e 11,7% abaixo de 500; depois, 0,0% e 5,6%
+  function pulos(casos) {
+    let pula = 0, total = 0;
+    for (const [sig, nota, lin] of casos) {
+      const g0 = gruposEm(sig, nota, lin, 0);
+      const gm = gruposEm(sig, nota, lin, -1);
+      const gp = gruposEm(sig, nota, lin, +1);
+      if (!g0 || !gm || !gp) continue;
+      for (const c in g0) {
+        if (gm[c] == null || gp[c] == null) continue;
+        total++;
+        if (Math.max(g0[c], gm[c], gp[c]) - Math.min(g0[c], gm[c], gp[c]) >= 2) pula++;
+      }
+    }
+    return { pula, total };
+  }
+
+  // ESTE e o caso que trava a mudanca. Os de estabilidade abaixo NAO travam:
+  // a estabilidade e alta com e sem a integracao, entao eles passam verdes com
+  // o bug de volta (verificado removendo o encaixe na grade: 32/32 verde).
+  // O que so vale com a integracao ativa e a DIFERENCA contra o calculo
+  // pontual, e ela tem de ser grande onde o SE e grande
+  // ESTE e o caso que trava a mudanca, e ele precisou de duas tentativas.
+  //
+  // A 1a versao so exigia que o resultado DIFERISSE do calculo pontual. Nao
+  // servia: o modo de falha real nao e "a integracao some", e "a integracao
+  // perde nos em silencio". Sem o encaixe na grade, `toFixed(2)` arredonda
+  // para 0,01 contra uma grade de 0,05, entao ~1 em cada 5 nos sobrevive por
+  // coincidencia -- o resultado muda, so que com pesos errados. Verificado:
+  // com o bug de volta, a suite inteira (32 casos) ficava VERDE.
+  //
+  // A versao que trava refaz a quadratura por fora e exige IGUALDADE. Se
+  // qualquer no for descartado, os numeros divergem.
+  caso("a integracao usa os 7 nos: bate com a quadratura refeita por fora", () => {
+    const snap = v => (Math.round(Math.max(X.TH_MIN, Math.min(X.TH_MAX, v))
+                       / X.PASSO_GRADE) * X.PASSO_GRADE).toFixed(2);
+    for (const [sig, lin, nota] of
+         [["MT", null, 400], ["CH", null, 400], ["CN", null, 430],
+          ["MT", null, 620], ["LC", 0, 450]]) {
+      const a = areaDe(sig, nota, lin);
+      const th = Number(a.theta);
+      const se = X.erroPadrao(sig, lin, th);
+      const thUp = Math.min(th + 0.5, X.TH_MAX);
+      const recua = thUp === th;
+      const g = v => X.M.perfil[X.k(sig, sig === "LC" ? lin : null, snap(v))];
+
+      // a mesma media que o motor deve estar fazendo, refeita aqui
+      const eR = {}, eU = {};
+      let tot = 0, usados = 0;
+      for (const [z, w] of X.NOS_QUAD) {
+        const c = Math.max(X.TH_MIN, Math.min(X.TH_MAX, th + z * se));
+        const lo = recua ? Math.max(X.TH_MIN, c - 0.5) : c;
+        const hi = recua ? c : Math.min(X.TH_MAX, c + 0.5);
+        const pl = g(lo), ph = g(hi);
+        espera(pl && ph, `${sig} ${nota}: no z=${z} caiu fora da grade — `
+          + "toda a serie tem de existir apos o encaixe");
+        for (const h of pl) eR[h[0]] = (eR[h[0]] || 0) + w * h[1];
+        for (const h of ph) eU[h[0]] = (eU[h[0]] || 0) + w * h[1];
+        tot += w; usados++;
+      }
+      espera(usados === X.NOS_QUAD.length,
+        `${sig} ${nota}: so ${usados} de ${X.NOS_QUAD.length} nos usados`);
+      for (const h in eR) { eR[h] /= tot; eU[h] /= tot; }
+
+      let esperado = 0;
+      for (const h of a.perfil)
+        if (h[4] > 0 && eR[h[0]] != null && eU[h[0]] != null)
+          esperado += h[4] * Math.max(eU[h[0]] - eR[h[0]], 0) / 100;
+
+      const mot = X.motorArea(a);
+      let obtido = 0;
+      for (const h of a.perfil) if (h[4] > 0) obtido += mot.agoraHab(h[0], h[4], h[1]);
+
+      espera(esperado > 0, `${sig} ${nota}: quadratura de referencia deu zero`);
+      espera(Math.abs(obtido - esperado) <= 1e-9 * Math.max(1, esperado),
+        `${sig} ${nota}: motor deu ${obtido.toFixed(6)}, quadratura completa `
+        + `da ${esperado.toFixed(6)} — algum no esta sendo descartado`);
+    }
+  });
+
+  caso("miolo da escala (520-700): NENHUMA competencia pula de 'comece aqui' a 'mais distante'", () => {
+    const casos = [];
+    for (const sig of ["MT", "CH", "CN"]) for (const n of [520, 560, 600, 640, 680])
+      casos.push([sig, n, null]);
+    for (const n of [520, 560, 600, 640, 680]) casos.push(["LC", n, 0]);
+    const { pula, total } = pulos(casos);
+    espera(total >= 100, `poucos casos avaliados (${total})`);
+    espera(pula === 0, `${pula} de ${total} competencias pulam 2 grupos no miolo`);
+  });
+
+  caso("faixa baixa (400-500): instabilidade contida (era 11,7% sem a integracao)", () => {
+    const casos = [];
+    for (const sig of ["MT", "CH", "CN"]) for (const n of [400, 430, 460, 500])
+      casos.push([sig, n, null]);
+    for (const n of [400, 430, 460, 500]) casos.push(["LC", n, 0]);
+    const { pula, total } = pulos(casos);
+    espera(total >= 80, `poucos casos avaliados (${total})`);
+    espera(pula / total <= 0.08,
+      `${pula} de ${total} (${(100 * pula / total).toFixed(1)}%) pulam 2 grupos; teto do teste 8%`);
+  });
+
+  // a ressalva da folga aparece SO onde a medida e larga -- no miolo ela seria
+  // ruido, e no piso ja existe um aviso mais forte que a substitui
+  const RESSALVA = /conjunto de boas apostas/;
+  // CN 400 tem SE ~49 pontos; CH 450 (~23) NAO dispara, e esta certo -- e uma
+  // precisao proxima da do miolo. O limiar e meio passo, nao "nota baixa"
+  caso("CN 400: a ressalva da folga aparece (SE ~49 pontos)", () =>
+    espera(RESSALVA.test(X.cartaoArea(areaDe("CN", 400, null))),
+      "faixa larga sem a ressalva"));
+  caso("CH 450: NAO dispara — SE ~23 pontos e comparavel ao miolo", () =>
+    espera(!RESSALVA.test(X.cartaoArea(areaDe("CH", 450, null))),
+      "ressalva disparando onde a medida e razoavel"));
+  // achados da revisao adversarial de 28/07: a ressalva falava de "primeiro
+  // grupo" em telas que nao renderizam grupo nenhum, e o "+-X pontos" era
+  // 100*SE -- constante da escala OFICIAL aplicada a curva empirica do site,
+  // cuja inclinacao vai de ~57 a ~200 pontos por unidade de theta
+  caso("a ressalva nao promete grupo onde a tela nao tem fila (modo 'no alto')", () => {
+    // nota alta sem vetor: cai no cartao de manutencao/lapidacao
+    for (const [sig, nota] of [["MT", 940], ["CH", 800]]) {
+      const h = X.cartaoArea(areaDe(sig, nota, null));
+      if (!/já está no alto|sem pontos a recuperar/.test(h)) continue;
+      espera(!RESSALVA.test(h),
+        `${sig} ${nota}: ressalva fala de grupos num cartao sem fila`);
+    }
+  });
+  caso("o '+-X pontos' sai da curva do site, nao de 100*SE", () => {
+    const a = areaDe("CN", 400, null);
+    const mot = X.motorArea(a);
+    espera(mot.seEmPontos != null, "seEmPontos nao foi calculado");
+    const ingenuo = 100 * mot.se;
+    espera(Math.abs(mot.seEmPontos - ingenuo) > 1,
+      `seEmPontos (${mot.seEmPontos.toFixed(1)}) igual a 100*SE (${ingenuo.toFixed(1)}) — `
+      + "a conversao pela curva empirica nao esta sendo usada");
+    const h = X.cartaoArea(a);
+    const m = h.match(/da ordem de (\d+) pontos/);
+    espera(m, "ressalva sem o numero de pontos");
+    espera(Math.abs(Number(m[1]) - mot.seEmPontos) <= 1,
+      `tela mostra ${m[1]}, motor calcula ${mot.seEmPontos.toFixed(1)}`);
+  });
+  // o corte por resolucao da fonte: acerto_esperado vem com round(...,1), entao
+  // residuo abaixo de meia casa e ruido -- sem o corte ele virava "+1 ponto"
+  // colado a "acerto tipico ~100%", tirando o ponto de quem de fato rende
+  caso("habilidade que a faixa da como 100% nao vira 'ate +1 ponto'", () => {
+    let achou = 0;
+    for (const [sig, nota] of [["MT", 880], ["CH", 760], ["CN", 800], ["MT", 920]]) {
+      const a = areaDe(sig, nota, null);
+      if (!a.perfil.length) continue;
+      const mot = X.motorArea(a);
+      for (const h of a.perfil) {
+        if (!(h[4] > 0) || h[1] < 99.95) continue;
+        achou++;
+        espera(mot.tetoHab(h[0], h[4], h[1]) === 0,
+          `${sig} ${nota} H${h[0]}: esperado ${h[1]}% e teto ${mot.tetoHab(h[0], h[4], h[1])}`);
+      }
+    }
+    espera(achou >= 3, `so ${achou} habilidades em 100% encontradas para testar`);
+  });
+
+  // dois bugs ANTERIORES a integracao, achados pela revisao adversarial de
+  // 28/07 e corrigidos junto
+  caso("piso: nao existe trofeu de 'ja esta no alto' no fundo da escala", () => {
+    for (const [sig, nota] of [["MT", 340], ["CH", 330], ["CN", 350]]) {
+      const h = X.cartaoArea(areaDe(sig, nota, null));
+      espera(!/já está no alto/.test(h),
+        `${sig} ${nota}: trofeu de topo numa nota de piso — diz o oposto da realidade`);
+      espera(/não separa níveis/.test(h), `${sig} ${nota}: sumiu o aviso de piso`);
+    }
+  });
+  caso("topo da grade (MT 960): o teto mede no nivel da pessoa, nao meio passo abaixo", () => {
+    // ali 'recua' inverte quem carrega o nivel: e o espUp, nao o espRef.
+    // Confundir os dois inflava o teto ~4x (a faixa acerta 43 de 43 validas)
+    const h = X.cartaoArea(areaDe("MT", 960, null));
+    const m = h.match(/Fechando tudo: até \+(\d+) ponto/);
+    if (m) espera(Number(m[1]) <= 10,
+      `MT 960 oferece +${m[1]} pontos a quem ja acerta tudo o que vale ponto`);
+    espera(/já está no alto/.test(h), "MT 960 sem o cartao de topo");
+  });
+
+  caso("MT 613: a ressalva NAO aparece no miolo da escala", () =>
+    espera(!RESSALVA.test(X.cartaoArea(areaDe("MT", 613, null))),
+      "ressalva vazando para o miolo, onde a medida e firme"));
+  caso("MT 340: no piso vale o aviso forte, sem a ressalva branda junto", () => {
+    const h = X.cartaoArea(areaDe("MT", 340, null));
+    espera(/não separa níveis/.test(h), "piso sem o aviso forte");
+    espera(!RESSALVA.test(h), "piso com os dois avisos empilhados");
+  });
+
+  console.log(falhas.length
+    ? `\n${falhas.length} FALHA(S): ${falhas.join(" | ")}`
+    : "\ntodos os casos passaram");
+  process.exit(falhas.length ? 1 : 0);
+})();

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Como cada número é calculado — ENEM em foco</title>
+<style>
+  :root{
+    --bg:#fbfaf7; --surface:#ffffff; --text:#20211f; --muted:#5f625d;
+    --accent:#0d9488; --accent-deep:#115e59; --accent-soft:#e6f4f1;
+    --accent-fill:#0f766e; --sobre-accent:#ffffff;
+    --border:#e6e4dc; --chip:#f5f7f6;
+    --warn:#b45309; --warn-soft:#fdf3e3; --tip:#3b6d11; --tip-soft:#eef6e2;
+    --alert:#b91c1c; --alert-soft:#fdeeee;
+    --fs-100:12px; --fs-200:13px; --fs-300:15px; --fs-400:17px;
+    --fs-500:20px; --fs-600:clamp(26px,4vw,36px);
+    --r-card:14px; --r-ctrl:10px; --r-chip:6px; --r-pill:999px;
+    --serif:Georgia,'Iowan Old Style','Times New Roman',serif;
+    --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    --mono:'SFMono-Regular',Consolas,Menlo,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#17181a; --surface:#1f2123; --text:#e7e6e1; --muted:#a3a29b;
+      --accent:#2dd4bf; --accent-deep:#5eead4; --accent-soft:#123330;
+      --accent-fill:#2dd4bf; --sobre-accent:#17181a;
+      --border:#31343a; --chip:#26292c;
+      --warn:#f0a952; --warn-soft:#2c2413; --tip:#a3d160; --tip-soft:#1a250f;
+      --alert:#f87171; --alert-soft:#2e1616;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--serif);
+       line-height:1.7;font-size:var(--fs-400);-webkit-font-smoothing:antialiased}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:.01ms !important;transition-duration:.01ms !important;scroll-behavior:auto !important}
+  }
+  header{border-bottom:1px solid var(--border);background:var(--surface)}
+  .nav{max-width:820px;margin:0 auto;padding:14px 24px;display:flex;gap:18px;align-items:baseline;
+       font-family:var(--sans);font-size:var(--fs-200)}
+  .nav .brand{font-weight:700;font-size:var(--fs-300);margin-right:auto}
+  main{max-width:820px;margin:0 auto;padding:36px 24px 90px}
+  main a,footer a,.nav a{color:var(--accent-deep);text-decoration:underline;text-underline-offset:2px}
+  main a:hover,footer a:hover,.nav a:hover{color:var(--accent-fill);text-decoration-thickness:2px}
+  h1{font-family:var(--sans);font-weight:700;font-size:var(--fs-600);line-height:1.15;margin:0 0 10px;text-wrap:balance}
+  h2{font-family:var(--sans);font-weight:700;font-size:var(--fs-500);margin:44px 0 8px;text-wrap:balance}
+  h2 .num{color:var(--accent);margin-right:8px}
+  p,li{max-width:68ch}
+  .lede{font-size:19px;color:var(--muted);margin:0 0 6px;max-width:640px}
+  .aviso{font-family:var(--sans);font-size:var(--fs-200);color:var(--muted);margin:0 0 26px}
+  .caixa{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-card);
+         padding:14px 18px;margin:14px 0;font-family:var(--sans);font-size:var(--fs-300)}
+  .caixa.atencao{background:var(--warn-soft);border-color:transparent;color:var(--warn)}
+  .caixa.chave{background:var(--accent-soft);border-color:transparent;color:var(--accent-deep)}
+  table{border-collapse:collapse;font-family:var(--sans);font-size:var(--fs-200);
+        font-variant-numeric:tabular-nums;margin:12px 0}
+  th,td{border:1px solid var(--border);padding:6px 12px;text-align:left}
+  th{background:var(--chip);font-weight:700}
+  code{font-family:var(--mono);font-size:0.85em;background:var(--chip);
+       padding:1px 6px;border-radius:var(--r-chip)}
+  footer{border-top:1px solid var(--border);margin-top:48px;padding-top:18px;
+         font-family:var(--sans);font-size:var(--fs-200);color:var(--muted)}
+</style>
+</head>
+<body>
+<header>
+  <nav class="nav">
+    <span class="brand">ENEM em foco</span>
+    <a href="index.html">← Voltar ao mapa</a>
+  </nav>
+</header>
+<main>
+  <h1>Como funciona, do começo ao fim</h1>
+  <p class="lede">Uma escada, uma pessoa, doze passos. Se você entende o que é um degrau, entende o site inteiro.</p>
+  <p class="aviso">Vamos acompanhar a <b>Ana</b> — nome inventado, números reais dos microdados públicos do INEP. Ela tirou <b>613 em Matemática</b> no ENEM 2025. Nada do que você digita no mapa é enviado ou guardado: as contas rodam no seu aparelho.</p>
+
+  <h2><span class="num">1.</span> A escada, e onde a Ana está nela</h2>
+  <p>Imagine a Matemática do ENEM como uma <b>escada muito alta</b>. Cada pessoa está parada num degrau: quanto mais alto, mais a prova mostrou que ela sabe. <b>A sua nota é o número do seu degrau.</b> A Ana está no 613.</p>
+  <p>A nota não conta acertos — ela sai do <i>padrão</i> de respostas, pela Teoria de Resposta ao Item (TRI). Em vez de somar pontos, o modelo pergunta: <b>"este padrão de respostas é típico de quem está em qual degrau?"</b> É por isso que duas pessoas com o mesmo número de acertos podem terminar em degraus diferentes.</p>
+  <p class="caixa">E o que mais move essa conta talvez surpreenda: <b>errar uma questão que estava abaixo do seu degrau é o que mais puxa para baixo</b> — o modelo não esperava esse erro. Já acertar uma questão bem acima do seu degrau empurra pouco: o modelo considera que pode ter sido chute. E pesam mais as questões que <i>separam bem</i> degraus vizinhos — uma delas vale várias das que quase todo mundo acerta ou quase ninguém acerta.</p>
+  <p class="caixa"><b>Duas réguas, a mesma escada.</b> Você vê a escada numerada de ~300 a ~980 (a "nota"). Os técnicos usam outra numeração, centrada no zero (o "nível", ou θ) — e é nela que vem escrita a ficha técnica de cada questão. É metro e pé medindo a mesma parede. O INEP define a conversão: <b>nota = 100 × nível + 500</b>. A Ana, no 613, cai na faixa 610–620 — nível <b>1,15</b>. (O site trabalha em faixas de dez pontos; o passo 3 mostra por quê.)</p>
+
+  <h2><span class="num">2.</span> As questões também moram em degraus</h2>
+  <p>Cada questão da prova tem uma <b>altura</b> na escada — é o que o INEP publica junto dos microdados (dificuldade, poder de separar níveis, e a chance de acertar no chute). Comparar a altura da questão com o degrau da pessoa dá a probabilidade de acerto:</p>
+  <ul>
+    <li>Questão <b>bem abaixo</b> do degrau da Ana: ela acerta ~88% das vezes.</li>
+    <li>Questão <b>bem acima</b>: ~15% — perto do piso do chute.</li>
+    <li>Questão <b>na altura dela</b>: perto de <b>60%</b>, não 50% — porque mesmo quem não sabe ainda tem a chance do chute. É aqui que o resultado é genuinamente incerto.</li>
+  </ul>
+  <p class="caixa">Esses números são do <b>degrau</b>, não da pessoa. Com 45 questões, o degrau de alguém é estimado com margem de erro. Por isso a tela diz "acerto <i>típico</i> no seu nível" — e só as suas respostas (passo 8) trocam o típico pelo seu.</p>
+
+  <h2><span class="num">3.</span> Quantas questões alguém no degrau da Ana acerta?</h2>
+  <p>Essa é a ponte que o site precisa e que ninguém publica — então nós medimos. Pegamos todos os que tiraram entre 610 e 620 em Matemática em 2025 <b>e estavam concluindo o ensino médio numa escola identificada</b> (23.458 pessoas) e contamos: em média, <b>17 acertos e meio</b> das 43 questões que valiam ponto.</p>
+  <p>Essa turma — os concluintes com escola — é a régua de comparação do site inteiro. É um recorte de propósito: comparar quem está terminando o ensino médio agora com quem terminou há dez anos, ou com treineiros, seria menos justo, não mais.</p>
+  <p>Repetimos isso faixa a faixa, em mais de 1,2 milhão de provas por área. Vira uma tabela: degrau 615 → 17,5 acertos; degrau 715 → 25 acertos; e assim por diante. É a tabela que o site lê nos dois sentidos.</p>
+  <p class="caixa"><b>Isso corrige o INEP?</b> Não — e é importante dizer. A conversão do INEP é exata por definição. O que medimos é <i>outra</i> coisa: quantas questões cada degrau costuma acertar. As duas batem no miolo da escada (entre 450 e 700 a diferença média é ~0,2 de nível; para a Ana, ambas dão 1,15) — o modelo funcionando. Elas se afastam nas pontas: lá em cima porque a nota vem do padrão e não da contagem; lá embaixo porque muita gente entrega a prova em branco, e quem deixa em branco não chuta.</p>
+
+  <h2><span class="num">4.</span> Cada questão levanta quantos degraus?</h2>
+  <p>Antes de responder, um acerto de contas: <b>cada ponto da nota é um degrauzinho</b> — de 613 para 614 é um degrau. Então a pergunta vira: se a Ana passasse a acertar uma questão a mais, quantos degraus ela venceria de uma vez?</p>
+  <p>E aqui vem o detalhe que quase ninguém sabe: <b>uma questão não vale o mesmo em toda a escada.</b> Em Matemática, uma questão a mais levanta:</p>
+  <table>
+    <tr><th>perto do degrau</th><th>uma questão a mais levanta</th></tr>
+    <tr><td>420</td><td>~36 pontos</td></tr>
+    <tr><td>500</td><td>~26 pontos</td></tr>
+    <tr><td>615 (a Ana)</td><td>~16 pontos</td></tr>
+    <tr><td>700</td><td>~11 pontos</td></tr>
+    <tr><td>900</td><td>~19 pontos</td></tr>
+  </table>
+  <p><b>Por que essa diferença?</b> Porque a prova não espalha as questões por igual: ela concentra a maioria numa faixa. Em Matemática, <b>31 das 43 questões</b> têm dificuldade equivalente a algo entre 600 e 799 — e quase nenhuma abaixo de 500 ou acima de 800.</p>
+  <p>Onde há <i>muita</i> questão daquele tamanho, a prova mede você com precisão, e um acerto a mais é só mais uma confirmação: mexe pouco na nota. Onde há <i>pouca</i>, cada acerto é informação nova e rara — e levanta você bastante. Por isso o site nunca usa uma taxa fixa: consulta a tabela na <i>sua</i> região da escada.</p>
+  <p class="caixa">Repare que isso não tem a ver com concorrência. A faixa com mais gente em Matemática é a dos 400 — justamente onde cada questão levanta mais. O que manda é onde estão as <b>questões</b>, não onde estão as pessoas.</p>
+
+  <h2><span class="num">5.</span> Até onde dá para subir</h2>
+  <p>Se a Ana passasse a acertar <b>todas</b> as 43 questões que valiam ponto, ela chegaria ao alto da escada. Pela tabela, isso vale <b>+348 pontos: de 613 para ~961</b>. É esse número que aparece na tela como "Fechando tudo".</p>
+  <p class="caixa chave"><b>O alto da escada não é 1000.</b> A escala do ENEM termina onde termina — e o fim é diferente em cada área. As maiores notas de 2025, em prova regular, foram: <b>MT 980,3 · CN 858,7 · CH 856,4 · LC 794,5</b>. O mapa nunca sugere acima disso. (Só a redação chega a 1000, e ela está fora deste mapa.)</p>
+
+  <h2><span class="num">6.</span> A subida, dividida por matéria</h2>
+  <p>Subir 349 degraus é a meta; o mapa mostra <b>de onde vem cada trecho</b>. As questões da prova são agrupadas por assunto (as <b>competências</b> da Matriz de Referência do ENEM), e cada assunto fica com a parte da subida proporcional às questões que a Ana ainda perde nele. Dentro do assunto, cada <b>habilidade</b> fica com a sua parte.</p>
+  <p>Resultado: <b>as partes somam o todo</b>. As habilidades somam a competência; as competências somam os 349. Some e confira — o mapa foi feito para ser conferido.</p>
+  <p class="caixa"><b>Por que dividir, em vez de calcular cada assunto sozinho?</b> Porque os degraus têm alturas diferentes (passo 4). Se eu calculasse "quanto geometria me levanta" e "quanto álgebra me levanta" <i>separadamente</i>, as duas contas começariam do degrau 613 — e a segunda ignoraria que, depois da primeira, a Ana já não está mais ali. Somar as duas daria mais que a subida real. Calculando a subida inteira uma vez e repartindo, o que você vê já soma certo.</p>
+
+  <h2><span class="num">7.</span> Por onde começar a subir</h2>
+  <p>Você não pula do degrau 613 para o 900. Sobe pelos degraus que estão <b>ao alcance do pé</b>. É essa a pergunta que ordena a lista — e ela é <i>diferente</i> de "onde tem mais pontos".</p>
+  <p>Um assunto muito acima do seu degrau tem muitas questões na mesa (prêmio grande), mas cada uma delas é improvável agora: estudar ali demora a virar ponto. Um assunto na sua altura converte rápido. Se a lista fosse ordenada pelo prêmio, ela mandaria você direto para o alto da escada — que é exatamente o conselho ruim que este site existe para evitar.</p>
+  <p>Para ordenar, o site imagina <b>o mesmo esforço de estudo aplicado a cada assunto</b> — o mesmo tanto de subida — e mede quantos pontos esse esforço vira em cada um, partindo do degrau em que você está. É isso que chamamos aqui de <b>rendimento</b>: não é o tamanho do prêmio, é a velocidade com que ele chega.</p>
+  <p>Comparando os rendimentos, os conteúdos caem em <b>três grupos</b> (um quarto aparece quando você preenche as respostas — passo 8):</p>
+  <ul>
+    <li><b>Comece por aqui</b> — rende pelo menos 55% do melhor rendimento no seu degrau.</li>
+    <li><b>Na sequência</b> — pelo menos 22%.</li>
+    <li><b>Mais distante por enquanto</b> — rende depois que você subir os primeiros.</li>
+  </ul>
+  <p>No mapa da Ana isso fica visível: um assunto com fatia de <b>+41</b> aparece em "Na sequência", enquanto outro de <b>+21</b> abre em "Comece por aqui". Prêmio maior, degrau mais alto.</p>
+  <p class="caixa">Os grupos são grupos <i>de propósito</i>, e não uma fila de 1º a 7º: medimos o quanto essa ordem é estável, e os dados sustentam faixas, não posições exatas.</p>
+
+  <h2><span class="num">8.</span> Com as suas respostas: onde você tropeçou</h2>
+  <p>Até aqui, tudo é sobre "quem está no degrau 613". Se você preencher as 45 respostas, o mapa para de estimar e passa a saber. A correção acontece <b>no seu aparelho</b>: o gabarito desce até você, e as suas respostas não sobem para lugar nenhum.</p>
+  <ul>
+    <li><b>Tropeço não é o mesmo que degrau faltando.</b> Errar uma questão que estava abaixo do seu degrau é um tropeço — refazer aquela questão é conserto rápido. Estudar um conteúdo é subir. O destaque de questões cuida do primeiro; os grupos, do segundo. Eles podem apontar lugares diferentes, e está certo assim.</li>
+    <li><b>Todo mundo tropeça um pouco.</b> Mesmo quem domina o conteúdo erra algumas das questões acessíveis — e o modelo prevê <i>quantas</i>, número que muda com o seu degrau e com a área (para a Ana, cerca de 2 ou 3). O mapa mostra esse valor esperado ao lado do seu, e só chama de oportunidade quando os tropeços passam dele; até ali, diz que é normal.</li>
+    <li><b>A ordem do destaque é da questão mais acessível para a menos.</b> Não é só didática: na TRI, errar uma questão abaixo do seu degrau pesa mais do que errar uma bem acima (essa o modelo já esperava que você errasse).</li>
+    <li><b>Se as respostas não combinarem com a nota</b>, o mapa desconfia — cor de prova trocada? prova de outro ano? — e segue só com a nota, avisando. Ele desconfia quando os acertos ficam <i>abaixo</i> do mínimo que aquela nota teve em 2025, ou quando o padrão fica no nível do chute. Acertos <i>acima</i> do topo observado ele não questiona: acusar quem foi excepcional seria o pior engano possível. É uma checagem parcial e num sentido só, não uma garantia.</li>
+    <li><b>Assunto que você fechou sai da fila.</b> Onde não sobrou questão a recuperar, o conteúdo vai para um quarto grupo — "Você já fechou — mantenha em dia" — e quem acerta a área inteira não recebe fila nenhuma, só o inventário do que sustenta a nota.</li>
+    <li>Questões que <b>não valeram ponto para ninguém</b> aparecem com o motivo: <i>anulada</i> (sem resposta correta) ou <i>sem calibração</i> (a estatística da questão não fechou e o INEP a tirou da correção — nem quem acertou pontuou).</li>
+  </ul>
+
+  <h2><span class="num">9.</span> A escada do ano que vem</h2>
+  <p>A prova de 2026 ainda não existe — vai ser uma <b>escada nova</b>, com questões novas. Mas ela é construída com a mesma planta: a Matriz de Referência do ENEM, que descreve <b>30 habilidades por área</b>, reunidas em poucos assuntos — as competências: 6 em Humanas, 7 em Matemática, 8 em Natureza e 9 em Linguagens. São esses assuntos que o cartão mostra. Olhando as <b>seis últimas escadas</b> (2020 a 2025), dá para saber quantas questões de cada assunto a próxima costuma ter.</p>
+  <p>É isso que o segundo cartão mostra: <b>"~7 das 45 questões costumam ser deste assunto"</b>, na mesma ordem de grupos do passo 7 — o que costuma cair, cruzado com o que rende no seu degrau.</p>
+  <p class="caixa"><b>Por que esse cartão não fala em pontos?</b> Porque a altura dos degraus da escada nova ninguém conhece ainda. Usar a tabela de 2025 para prometer pontos em 2026 seria inventar precisão. Cada cartão fala na moeda que a sua fonte mede bem: <b>o diagnóstico, em pontos</b> (a escada de 2025 existe e foi medida); <b>a próxima, em questões</b> (o que se repete de escada para escada).</p>
+  <p>O selo <b>"✓ também em 2025"</b> marca os assuntos que <i>também</i> estavam entre os três que mais rendiam na prova passada — é concordância entre duas fontes, não uma nova posição na fila. Ele pode aparecer em qualquer grupo; a ordem de estudo continua sendo a dos grupos.</p>
+
+  <h2><span class="num">10.</span> Onde a escada não ajuda</h2>
+  <p>Um mapa honesto precisa dizer onde ele para de funcionar:</p>
+  <ul>
+    <li><b>No pé da escada (notas ~310 a 360)</b>, os degraus somem: é a faixa em que muita gente entregou a prova em branco, e a prova não consegue separar níveis ali. O site avisa na tela. O maior ganho de quem está nessa faixa — <b>responder todas as questões, mesmo sem certeza</b> — está fora do que o modelo mede.</li>
+    <li><b>Metade das habilidades tem uma única questão na prova</b> (62 de 120). Uma questão não mede uma habilidade: mede aquela questão. Onde é o caso, o mapa marca "⚠ 1 questão só" — leve como pista. A competência, com 4 a 11 questões, é a medida firme.</li>
+    <li><b>O modelo do ENEM tem um degrau só por área.</b> "Fechar um assunto mantendo o resto" é um cenário útil para planejar, não uma previsão do modelo — mais um motivo para os valores serem sempre "até".</li>
+    <li><b>Em 2025, a habilidade 21 de Matemática não pôde ser medida</b>: a única questão dela foi anulada. O mapa diz isso, em vez de fingir que a habilidade não existe.</li>
+    <li><b>"Até" é teto, não promessa.</b> Cada valor supõe fechar o conteúdo por inteiro no dia da prova, e a régua tem folga: refazer o caminho respostas → nível → nota, como fazemos aqui, já erra ~±13 pontos. (A fórmula do INEP é exata; quem erra é a nossa reconstrução.) Por isso os <b>pontos</b> nunca vêm com casa decimal — o peso em questões do outro cartão vem com uma, porque é média de seis provas e não valor de uma só.</li>
+  </ul>
+
+  <h2><span class="num">11.</span> Para quem quiser conferir</h2>
+  <p>O método oficial está no documento <b>"ENEM — Procedimentos de Análise"</b>, publicado pelo INEP junto dos microdados: calibração das questões pelo modelo de 3 parâmetros, estimação da proficiência por EAP, equalização à escala de 2009 por questões comuns pré-testadas, e a escala de divulgação <code>nota = 100·θ + 500</code>. Este site <b>consome</b> esses parâmetros — não recalibra nada.</p>
+  <p>As verificações que sustentam o motor, todas reproduzíveis a partir dos dados públicos:</p>
+  <ul>
+    <li>A dificuldade oficial de cada questão e a taxa de acerto que calculamos do zero, a partir dos vetores de resposta, correlacionam <b>−0,80 a −0,91</b> por área — dois caminhos independentes concordando sobre quais questões são difíceis.</li>
+    <li>Recalcular a nota de 4.000 participantes a partir do padrão de respostas dá correlação <b>0,9907</b> com a nota oficial.</li>
+    <li>A tabela degrau↔acertos é invertida a partir da série <b>observada</b> (que sempre cresce), e a extrapolação acima da última faixa medida é limitada à maior nota real da área.</li>
+    <li>Quando você informa o total de acertos, o site compara com o de quem tirou nota parecida em 2025 e diz apenas se ficou abaixo, dentro ou acima do comum — nunca o porquê. Motivo: chutar com sorte, calhar de cair mais do que você estudou, ou dominar bem os assuntos certos produzem exatamente a mesma evidência.</li>
+    <li>A repetição da ordem de estudo entre edições foi medida por área, e é fraca o bastante para justificar grupos em vez de ranking, e questões em vez de pontos no cartão da próxima.</li>
+  </ul>
+
+  <h2><span class="num">12.</span> Fontes</h2>
+  <p>Microdados do ENEM 2020–2025, gabaritos, parâmetros das questões e a <a href="https://download.inep.gov.br/download/enem/matriz_referencia.pdf" target="_blank" rel="noopener">Matriz de Referência</a> — tudo publicado pelo <a href="https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/microdados/enem" target="_blank" rel="noopener">INEP</a>. Os códigos <b>C</b> (competência) e <b>H</b> (habilidade) que aparecem no mapa são os oficiais da Matriz.</p>
+
+  <footer>
+    ENEM em foco · <a href="index.html">voltar ao mapa</a> · nada do que você digita é enviado ou armazenado.
+  </footer>
+</main>
+</body>
+</html>
