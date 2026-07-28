@@ -125,15 +125,27 @@ models:
 
   - name: mart_calibracao_nota
     description: >
-      Calibracao empirica nota -> theta_efetivo, medida em 1,27 mi de
-      participantes por area. Substitui o mapeamento ingenuo (nota-500)/100,
-      que falha nas caudas (Passo 0 do PLANO.md - em branco quebra o piso de
-      chute na base; no topo o real fica ~5 acertos abaixo do teorico).
+      Calibracao empirica nota -> theta_efetivo, medida em 1,27 a 1,33 mi
+      de participantes por area. NAO substitui nem corrige a escala do INEP
+      (nota = 100*theta + 500 e definicao, exata): mede outra ponte, a de
+      "quantas questoes espera acertar quem tem esta nota", que o INEP nao
+      publica. As duas coincidem no miolo (diferenca media ~0,2 entre 450 e
+      700) e se afastam nas caudas - no topo porque a nota vem do padrao e
+      nao da contagem, no piso porque prova em branco nao chuta e o
+      observado cai abaixo do piso de acerto casual do 3PL.
     tests:
       - dbt_utils.unique_combination_of_columns:
           combination_of_columns: [area, cod_lingua, nota_faixa]
     columns:
       - name: theta_efetivo
+        tests: [not_null]
+      - name: nota_maxima_area
+        description: >
+          O teto FISICO da escala na edicao - a maior nota real em prova
+          regular (2025 - MT 980,3 · CN 858,7 · CH 856,4 · LC 794,5). Difere
+          do topo da curva - o having n >= 100 corta faixas raras, entao a
+          curva calibravel termina onde acaba a amostra (~770 em CH), mas a
+          escala vai alem. O site limita o "ou mais" por esta coluna.
         tests: [not_null]
 
   - name: mart_distribuicao_acertos
@@ -164,10 +176,107 @@ models:
           combination_of_columns: [theta, area, cod_lingua, habilidade]
     columns:
       - name: prioridade
-        tests: [not_null]
+        description: >
+          Ordem por informacao de Fisher - onde a prova mais distingue pessoas
+          daquele nivel. Nula quando n_itens = 0 (MT 21 na edicao; LC 8 para
+          ingles). Ver perfil_prioridade_condiz.
+          ATENCAO: o site NAO ordena por esta coluna. Ele ordena pelo GANHO DE
+          UM PASSO (a diferenca de acerto_esperado entre theta e theta+0,5,
+          convertida em pontos), porque e esse o numero que a tela mostra - e
+          ordem e numero nao podem se contradizer. As duas medidas divergem: a
+          informacao ignora quantas questoes a competencia tem, e uma
+          competencia de 3 itens muito discriminantes mede com precisao sem ter
+          ponto para dar. Esta coluna continua valendo como o fato
+          psicometrico; o ganho e a leitura de produto, derivada dela.
       - name: n_itens
         description: O lastro. 62 das 120 habilidades tem um unico item.
         tests: [not_null]
+
+  - name: mart_perfil_estudo
+    description: >
+      Recomendacao de estudo pelo banco de itens de SEIS edicoes (2020-2025).
+      Irmao do mart_perfil_habilidade, e a diferenca e a pergunta - aquele diz
+      "o que rendia na prova de 2025" (diagnostico), este diz "o que costuma
+      render no seu nivel" (preparacao). Nao sao duas versoes da mesma
+      resposta - medido, as tres primeiras competencias coincidem em media
+      1,5 de 3, e por isso as duas vao para o site em cartoes separados.
+      Motivo de existir - a ordem tirada de metade dos itens de 2025 se
+      correlaciona +0,19 com a da outra metade; as cinco edicoes REGULARES
+      anteriores preveem 2025 com +0,27 (LC +0,50 · CN +0,42 · MT +0,16 ·
+      CH -0,01). Melhor que uma edicao sozinha, e so um pouco - seis provas
+      ainda sao poucas, e em CH nao ha transferencia mensuravel.
+      So provas REGULARES, como o mart de 2025 - a recomendacao descreve a
+      prova que a pessoa vai fazer. O preco esta medido: com todas as
+      aplicacoes o lastro ia a ~22 itens por habilidade e o rho a +0,44.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: [theta, area, cod_lingua, habilidade]
+    columns:
+      - name: n_itens_banco
+        description: >
+          Lastro no banco reunido - minimo 10 por habilidade, contra 0 a 2 na
+          prova regular de 2025. E o ganho principal de reunir edicoes.
+        tests: [not_null]
+      - name: itens_por_prova
+        description: >
+          Quantas questoes daquele conteudo uma prova costuma ter, pela
+          PROPORCAO de itens da area x 45. Proporcao e nao contagem por edicao
+          porque o banco tem 12 a 18 versoes de prova por ano - contar cru
+          inflaria tudo ~20x. Somam 45 por (nivel, area, lingua); ver
+          estudo_escala_de_uma_prova.
+        tests: [not_null]
+      - name: ganho_passo
+        description: >
+          Ganho de um passo de estudo (theta -> theta + 0,5) na escala de uma
+          prova - mesma unidade do cartao de 2025, para que os dois sejam
+          comparaveis lado a lado.
+        tests: [not_null]
+      - name: prioridade
+        description: Ordem por ganho_passo - a mesma regra que a tela exibe.
+
+  - name: mart_item_prova
+    description: >
+      O caderno de cada prova regular, questao por questao - posicao,
+      gabarito, parametros TRI e habilidade. Base do nivel 3 da face do
+      aluno: o site corrige o cartao do participante no navegador; as
+      respostas dele nunca sobem, e o caderno que desce. Tudo aqui ja e
+      publico nos artefatos do INEP.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: [co_prova, posicao]
+    columns:
+      - name: area
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['CH', 'CN', 'LC', 'MT']
+      - name: cor
+        description: Da prova, pelo seed co_prova - e como o participante a conhece.
+        tests: [not_null]
+      - name: gabarito
+        description: X quando o item foi anulado (sem resposta correta).
+        tests: [not_null]
+      - name: item_valido
+        description: >
+          Entra na correcao - nem anulado, nem abandonado, com parametros.
+          Validos por area - CH 45, CN 42, LC 50, MT 43; o teste
+          item_prova_completa trava caderno incompleto.
+        tests: [not_null]
+      - name: motivo_fora
+        description: >
+          POR QUE a questao nao vale ponto - nulo quando vale. Sao dois casos
+          diferentes e chamar os dois de "anulada" seria impreciso:
+          anulada (gabarito X, item ja usado antes, sem resposta correta) e
+          sem_calibracao (gabarito valido, mas a TRI nao convergiu e o INEP
+          tirou da escoragem - nem quem acertou ganhou ponto).
+          Em 2025, nas regulares: MT Q172 sem_calibracao e Q174 anulada;
+          CN Q123 e Q132 anuladas, Q125 sem_calibracao.
+          A tela nomeia cada uma - o participante respondeu aquela questao.
+        tests:
+          - accepted_values:
+              values: ['anulada', 'sem_calibracao']
+      - name: motivo_abandono
+        description: Texto oficial do INEP (Previamente exposto, Problema de convergencia).
 
   - name: mart_geografia_area
     description: >

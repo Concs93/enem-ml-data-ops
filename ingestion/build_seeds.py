@@ -163,13 +163,36 @@ def dominios_do_dicionario(pasta):
 # ------------------------------------------------------------ classificacao
 
 def classifica_prova(rotulo):
-    """Regra duravel: e regular quando o rotulo e so a cor, sem qualificador."""
+    """Regra duravel: e regular quando o rotulo e SO a cor, sem qualificador.
+
+    A ordem dos testes nao importa tanto quanto o ULTIMO deles. A versao
+    anterior terminava em `return "regular"`, ou seja, qualificador que ela
+    nao conhecesse virava prova regular em silencio -- e isso mordeu duas
+    vezes ao estender o seed para 2020-2024:
+
+      "Azul (Digital)"               ENEM Digital, 2020 e 2021
+      "Azul (Segunda oportunidade)"  data extra da pandemia, 2021
+
+    Nos dois casos a edicao aparecia com 8 ou 12 provas "regulares" por area
+    em vez de 4, e os itens de outra aplicacao entravam no banco. Agora
+    qualquer parentese desconhecido cai em `outra_aplicacao`: o default
+    passou a errar para o lado seguro, e o nome novo aparece no resumo do
+    script em vez de sumir dentro de "regular".
+
+    Nada disso muda 2025, que so tem regular, reaplicacao, acessibilidade e BAM.
+    """
     if "BAM" in rotulo:
         return "bam"
     if "Reaplica" in rotulo:
         return "reaplicacao"
+    if "Digital" in rotulo:
+        return "digital"
+    if "Segunda oportunidade" in rotulo:
+        return "segunda_oportunidade"
     if " - " in rotulo:
         return "acessibilidade"
+    if "(" in rotulo:
+        return "outra_aplicacao"
     return "regular"
 
 

@@ -2,10 +2,16 @@
 --
 -- Para cada theta, area (e lingua, em LC) e habilidade: quanto se espera
 -- acertar e quanta INFORMACAO os itens daquela habilidade carregam naquele
--- nivel. A prioridade ordena por informacao, nao por taxa de erro -- e esta
--- e a tese do produto: a habilidade que a pessoa mais erra costuma ser a
--- pior escolha de estudo no curto prazo (esta longe demais do nivel dela);
+-- nivel. A tese do produto: a habilidade que a pessoa mais erra costuma ser
+-- a pior escolha de estudo no curto prazo (esta longe demais do nivel dela);
 -- o ganho mora na fronteira, onde o resultado e genuinamente incerto.
+--
+-- NOTA DE SINCRONIA (ver CLAUDE.md, "A ordem da tela"): o SITE nao ordena
+-- pela coluna prioridade deste mart. Ele ordena pelo GANHO DE UM PASSO
+-- (diferenca de acerto_esperado entre theta e theta+0,5, convertida em
+-- pontos), porque e esse o numero exibido -- ordem e numero nao podem se
+-- contradizer. A prioridade por informacao segue aqui como fato
+-- psicometrico; quem consumir este mart direto deve saber das duas.
 --
 -- Limite declarado (PLANO.md): a TRI do ENEM e unidimensional. Isto diz
 -- "onde a prova mais distingue pessoas do seu nivel", e a ponte para
@@ -47,30 +53,56 @@ agregado as (
     from base
     group by 1, 2, 3, 4
 
+),
+
+-- GRID COMPLETO: toda combinacao nivel x area(x lingua) recebe TODAS as 30
+-- habilidades da Matriz. Os dois fantasmas do projeto exigem isto aqui
+-- tambem: MT 21 nao tem item valido na edicao, e LC 8 nao e medivel para
+-- quem fez ingles (so espanhol a ve). Linha ausente e omissao silenciosa --
+-- o perfil declara o vazio com n_itens = 0 e prioridade nula, e o site
+-- mostra "nao mediavel" em vez de fingir que a habilidade nao existe.
+grade as (
+
+    select g.theta, g.area, g.cod_lingua, m.habilidade
+    from (select distinct theta, area, cod_lingua from agregado) g
+    join {{ ref('matriz_referencia') }} m
+      on m.area = g.area
+
 )
 
 select
-    a.theta,
-    a.area,
-    a.cod_lingua,
-    a.habilidade,
+    g.theta,
+    g.area,
+    g.cod_lingua,
+    g.habilidade,
     m.competencia,
     m.descricao_habilidade,
     m.descricao_competencia,
-    a.n_itens,
+    coalesce(a.n_itens, 0)           as n_itens,
     a.acerto_esperado,
-    a.informacao_total,
+    coalesce(a.informacao_total, 0)  as informacao_total,
 
-    -- 1 = onde o esforco mais converte em ponto, neste nivel
-    rank() over (
-        partition by a.theta, a.area, a.cod_lingua
-        order by a.informacao_total desc
-    ) as prioridade
+    -- 1 = onde o esforco mais converte em ponto, neste nivel.
+    -- Habilidade nao mediavel nao entra na fila: prioridade nula, nunca um
+    -- numero fingido no fim da lista (teste perfil_prioridade_condiz)
+    case when coalesce(a.n_itens, 0) > 0 then
+        rank() over (
+            partition by g.theta, g.area, g.cod_lingua
+            order by (coalesce(a.n_itens, 0) = 0),
+                     coalesce(a.informacao_total, 0) desc
+        )
+    end as prioridade
 
-from agregado a
+from grade g
+
+left join agregado a
+  on a.theta = g.theta
+ and a.area  = g.area
+ and a.cod_lingua is not distinct from g.cod_lingua
+ and a.habilidade = g.habilidade
 
 -- left join: habilidade sem correspondencia na Matriz nao pode sumir
 -- (regra da Etapa 5; o teste competencia_cobre_habilidades denuncia)
 left join {{ ref('matriz_referencia') }} m
-  on m.area = a.area
- and m.habilidade = a.habilidade
+  on m.area = g.area
+ and m.habilidade = g.habilidade

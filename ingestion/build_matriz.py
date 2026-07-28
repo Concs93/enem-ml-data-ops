@@ -47,6 +47,17 @@ RE_AREA = re.compile(r"^Matriz de Refer[êe]ncia (?:de )?(.+?)\s*$", re.M)
 RE_COMPETENCIA = re.compile(r"^Compet[êe]ncia de [áa]rea\s+(\d+)\s*" + SEP + r"\s*(.*)$")
 RE_HABILIDADE = re.compile(r"^H\s*(\d+)\s*" + SEP + r"\s*(.*)$")
 
+# Depois da ultima habilidade (CH H30) o PDF emenda o ANEXO com os objetos de
+# conhecimento -- 20 mil caracteres que nao sao habilidade nenhuma. Como
+# nenhuma linha dele casa com H\d ou Competencia, o parser os tratava como
+# continuacao da H30 e o texto ia inteiro para o relatorio.
+RE_FIM = re.compile(r"^\s*ANEXO\b")
+
+# Nenhuma descricao real passa de 250 caracteres (a maior e LC C9, com 341
+# na competencia). O teto abaixo e folgado de proposito: nao existe para
+# medir estilo, e para denunciar emenda de secao.
+MAX_DESCRICAO = 600
+
 
 def extrai_texto(caminho):
     """Le o PDF preservando as palavras inteiras.
@@ -65,7 +76,16 @@ def extrai_texto(caminho):
 
     with pdfplumber.open(caminho) as pdf:
         paginas = [p.extract_text() or "" for p in pdf.pages]
-    return "\n".join(paginas)
+    texto = "\n".join(paginas)
+
+    # corta o ANEXO: a Matriz termina na ultima habilidade
+    linhas = texto.splitlines()
+    for i, linha in enumerate(linhas):
+        if RE_FIM.match(linha):
+            print(f"  ANEXO encontrado na linha {i} - cortado "
+                  f"({len(linhas) - i} linhas descartadas)")
+            return "\n".join(linhas[:i])
+    return texto
 
 
 def limpa(texto):
@@ -177,6 +197,18 @@ def valida(linhas, nao_mapeadas):
     vazias = [(l[0], l[2]) for l in linhas if not l[4] or len(l[4]) < 20]
     if vazias:
         erros.append(f"descricoes vazias ou curtas demais: {vazias[:5]}")
+
+    # Descricao gigante nao e descricao: e outra secao do PDF emendada na
+    # ultima habilidade aberta. Foi exatamente assim que o ANEXO inteiro
+    # (21.710 caracteres) entrou na CH H30 e chegou ao site.
+    longas = [(l[0], f"H{l[2]}", len(l[4])) for l in linhas
+              if len(l[4]) > MAX_DESCRICAO]
+    longas += [(l[0], f"C{l[1]}", len(l[3])) for l in linhas
+               if len(l[3]) > MAX_DESCRICAO]
+    if longas:
+        erros.append(
+            f"descricoes longas demais (>{MAX_DESCRICAO} chars) - o PDF "
+            f"provavelmente emendou outra secao: {sorted(set(longas))[:5]}")
 
     return erros
 
