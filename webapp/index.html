@@ -116,6 +116,8 @@
   details.compbloco summary::-webkit-details-marker{display:none}
   details.compbloco summary .ctit{font-weight:600;font-size:var(--fs-300);flex:1 1 12ch;
        min-width:0;overflow-wrap:anywhere;line-height:1.35}
+  details.compbloco .cdesc{margin:0;padding:0 14px;font-size:var(--fs-200);
+       color:var(--muted);line-height:1.5;max-width:66ch}
   details.compbloco summary .seta{color:var(--muted);font-size:var(--fs-100);transition:transform .15s}
   details.compbloco[open] summary .seta{transform:rotate(90deg)}
   details.compbloco .cmeta{font-family:var(--sans);font-size:var(--fs-200);color:var(--muted);padding:0 14px 6px}
@@ -257,13 +259,20 @@
     <div id="cards-areas"></div>
     <div class="cartao">
       <details class="metodo"><summary>Como o cálculo é feito — e o que ele não promete</summary>
-        <p>Em resumo: cada questão do ENEM tem uma "ficha técnica" pública — o quão difícil ela é e o quanto ela distingue níveis de preparo. Sua nota diz em que ponto da escada você está, e a partir daí calculamos onde estão as questões <b>no degrau logo acima do seu</b> — nem as fáceis demais, nem as impossíveis: as que dão ponto. É a mesma matemática que o INEP usa para corrigir a prova (Teoria de Resposta ao Item).</p>
-        <p><b>O número e os grupos.</b> Cada conteúdo mostra um único número: <b>quanto dá para ganhar, no máximo, se você o fechar</b>. O valor de cada habilidade é a fatia dela dentro da competência — por isso as somas fecham. Já a <b>posição nos grupos</b> responde outra pergunta: onde o mesmo esforço rende mais rápido <i>no seu nível</i>. Um conteúdo de prêmio grande pode aparecer em "mais distante por enquanto": há muito a ganhar ali, mas converte devagar até você avançar nos primeiros. Ordenar pelo prêmio seria dizer "estude o que você mais erra" — o conselho que este site existe para corrigir.</p>
-        <p>Em ambos os casos a conversão para pontos é a mesma e é <b>medida</b>: se você passa a acertar mais questões, olhamos para os mais de 1,2 milhão de participantes de cada área em 2025 e vemos qual nota, na prática, corresponde a esse novo total de acertos. Nenhum dos dois é promessa — são cenários, e a nota real depende de quais questões caem.</p>
-<p><b>O que isso não é:</b> sem as suas respostas, não sabemos o que <i>você</i> deixou passar — mostramos onde, no seu nível, o estudo tende a render mais. É um mapa do terreno, não uma bola de cristal. E onde só uma questão mede uma habilidade, avisamos: leve como pista.</p>
-<p><b>A não ser que você preencha suas respostas.</b> Aí a correção acontece no seu próprio aparelho — elas não são enviadas a lugar nenhum — e o mapa passa a ser <i>seu</i>: sabemos quais questões ainda podem virar ponto, quais estão mais ao seu alcance, e o valor em nota passa a contar o seu caso, não uma média.</p>
-<p><b>E se não sobrar sugestão?</b> Quem acerta tudo em uma área não recebe fila de prioridade — não há o que corrigir, e ordenar conteúdos todos empatados em zero inventaria uma urgência que não existe. No lugar dela você recebe o <b>inventário</b>: os mesmos conteúdos, sem numeração, como a lista do que sustenta a sua nota. O ganho, aí, vem de <b>lapidar o que você já domina</b> — manter em dia, treinar precisão e blindar o tempo, para que o mesmo desempenho se repita no dia da prova.</p>
-<p><b>Quer entrar no mérito?</b> A trilha completa — de onde vem cada número, o que cada um promete e o que não promete, e as verificações que sustentam o motor — está em <a href="metodo.html">Como funciona</a>.</p>
+        <p>Cada questão do ENEM tem uma ficha técnica pública: o quanto é difícil e o
+        quanto separa níveis de preparo. Sua nota diz em que degrau você está, e daí
+        olhamos as questões <b>logo acima dele</b> — nem fáceis demais, nem
+        impossíveis. É a mesma matemática que o INEP usa para corrigir a prova.</p>
+        <p><b>O número</b> é quanto dá para ganhar fechando aquele conteúdo, e é uma
+        fatia do total — por isso as somas fecham. <b>O grupo</b> responde outra coisa:
+        onde o mesmo esforço rende mais rápido no seu nível. Um conteúdo de prêmio
+        grande pode aparecer em “mais distante”: há bastante ali, mas converte devagar
+        até você avançar nos primeiros.</p>
+        <p>Sem as suas respostas, isto é um mapa do terreno, não uma bola de cristal.
+        Com elas, a correção roda no seu próprio aparelho — nada é enviado — e o mapa
+        passa a contar o seu caso.</p>
+        <p><a href="metodo.html">Como funciona</a> — a explicação completa, em dois
+        minutos.</p>
       </details>
     </div>
   </div>
@@ -765,7 +774,7 @@ function montaPercentil(a){
       } else if(acer<min){
         // abaixo do minimo observado: quase sempre area trocada, cor errada
         // ou dado de outra edicao -- e a nota sozinha ja monta o mapa
-        percentilHtml = `<div class="percentil atencao">⚠ Esse total de acertos não combina com essa nota em ${a.sig} — para uma nota assim, os totais em 2025 ficaram entre ${min} e ${max}. Vale conferir a área e a contagem. Se a nota e os acertos forem de <b>outra edição</b>, é esperado: cada ano tem uma prova diferente. Seguimos com a nota, que é comparável entre anos — e ela sozinha já monta o seu mapa.</div>`;
+        percentilHtml = `<div class="percentil atencao">⚠ Esse total não combina com essa nota em ${a.sig}: em 2025 os totais ficaram entre ${min} e ${max}. Confira a área e a contagem. Se for de <b>outra edição</b>, é esperado — seguimos com a nota, que atravessa os anos e já monta o mapa sozinha.</div>`;
       } else {
         // convencao do ponto medio (estritamente abaixo + metade dos
         // empatados), traduzida para "a cada 100 pessoas" — sem jargao
@@ -812,6 +821,28 @@ function montaPercentil(a){
 // Nao e arbitrario no que importa -- o passo e o MESMO em todo conteudo, entao
 // o que a ordem compara e onde esse mesmo esforco rende mais ponto.
 const PASSO = 0.5;
+
+// A descricao da Matriz e uma frase oficial longa (21 a 33 palavras). Fechada,
+// a lista virava um paragrafo por competencia. O cabecalho leva o inicio; o
+// texto integral fica dentro do bloco, entao nada se perde -- so deixa de
+// competir com o numero pela atencao de quem esta so passando o olho
+function resumoDesc(txt, n = 12){
+  const t = String(txt || "").trim();
+  if(t.split(/\s+/).length <= n + 2) return t;
+  // corta na primeira virgula quando ela cai num ponto util; senao no limite
+  // de palavras. Depois tira conectivo pendurado no fim ("...da quimica para"),
+  // que e onde o truncamento fica com cara de erro
+  const virg = t.indexOf(",");
+  let corte = (virg > 0 && t.slice(0, virg).split(/\s+/).length >= 4
+               && t.slice(0, virg).split(/\s+/).length <= n + 2)
+    ? t.slice(0, virg)
+    : t.split(/\s+/).slice(0, n).join(" ");
+  // o espaco exigido antes do conectivo NAO e detalhe: com `*` no lugar de `+`
+  // a regra casa o fim de qualquer palavra e corta no meio dela
+  // ("construcoes humanas" -> "construcoes human")
+  corte = corte.replace(/[\s,;:]+(para|e|a|o|de|da|do|em|com|ou|que|as|os|na|no)$/i, "");
+  return corte + "…";
+}
 
 // ---------------------------------------------- a folga da propria medida
 // A prova nao mede todos os niveis com a mesma precisao. Medido nos itens de
@@ -1156,11 +1187,12 @@ function cartaoEstudo(a){
     const abre = prim; prim = false;
     return `${cab}<details class="compbloco" ${abre?"open":""}>
       <summary>
-        <span class="ctit"><span class="cod" title="competência ${c.c} de ${a.sig}">C${c.c}</span>${c.desc}</span>
+        <span class="ctit"><span class="cod" title="competência ${c.c} de ${a.sig}">C${c.c}</span>${resumoDesc(c.desc)}</span>
         ${top25.has(c.c) ? '<span class="badge comp" title="também rendia na prova de 2025 — as duas leituras concordam">✓ também em 2025</span>' : ''}
         <span class="cval">${qTxt(c.itens)} questões</span>
         <span class="seta">▶</span>
       </summary>
+      <p class="cdesc">${c.desc}</p>
       <div class="cmeta">das 45 da prova · acerto típico no seu nível: ~${espC==null?"—":espC+"%"}</div>
       ${habs}
       <div style="height:12px"></div>
@@ -1236,9 +1268,9 @@ function cartaoArea(a){
       const dentroDoEsperado = baratas.length <= eEsp + Math.sqrt(vEsp);
       const qsTxt = baratas.map(o=>"Q"+o.q).join(", ");
       if(dentroDoEsperado){
-        insightHtml = `<div class="percentil"><b>Para conferir:</b> ${um?"1 questão acessível escapou":baratas.length+" questões acessíveis escaparam"} (${qsTxt}) — errar ~${Math.max(1,Math.round(eEsp))} assim é <b>normal no seu nível</b>: provavelmente descuido, não falta de conteúdo. Vale refazê-las para tirar a dúvida${brancoTxt}. O plano de <b>estudo</b> são os grupos abaixo.</div>`;
+        insightHtml = `<div class="percentil"><b>Para conferir:</b> ${qsTxt} — ${um?"uma questão acessível":"questões acessíveis"} que ${um?"ficou":"ficaram"} para trás. Errar ~${Math.max(1,Math.round(eEsp))} assim é <b>normal no seu nível</b>; vale refazer para tirar a dúvida${brancoTxt}.</div>`;
       } else {
-        insightHtml = `<div class="destaque-oportunidade">💡 <b>Para revisar primeiro:</b> ${qsTxt}, nessa ordem (da mais acessível para a menos). ${um?"Escapou":"Escaparam"} além do esperado para o seu nível (~${Math.max(1,Math.round(eEsp))}) — refazê-las é o ganho mais imediato${brancoTxt}. Para <b>estudar conteúdo</b>, siga os grupos abaixo.</div>`;
+        insightHtml = `<div class="destaque-oportunidade">💡 <b>Revise primeiro:</b> ${qsTxt}, nessa ordem — ${um?"está":"estão"} ao seu alcance e ${um?"é":"são"} o ganho mais imediato${brancoTxt}.</div>`;
       }
     } else if(perdidas.length){
       insightHtml = `<div class="percentil">Você acertou tudo o que já estava ao seu alcance. O que faltou é conteúdo mais avançado — siga a lista.</div>`;
@@ -1254,7 +1286,7 @@ function cartaoArea(a){
     const totalPts = ganho(lista.reduce((s,c)=>s+c.agora, 0)).pts;
     if(totalPts < 12 && lista.length && !piso){
       noAlto = true;
-      insightHtml = `<div class="destaque-conquista">🏆 <b>Você já está no alto desta área</b> — sobrou pouco terreno novo a conquistar. Daqui o ganho vem de <b>lapidar o que você já domina</b>: manter o conteúdo em dia e treinar precisão e tempo, para que o desempenho se repita no dia da prova. A lista abaixo mostra o que ainda tem alguma folga.</div>`;
+      insightHtml = `<div class="destaque-conquista">🏆 <b>Você já está no alto desta área.</b> Daqui o ganho vem de <b>lapidar o que você já domina</b>: manter em dia e treinar precisão e tempo. A lista abaixo mostra o que ainda tem alguma folga.</div>`;
     }
   }
 
@@ -1373,10 +1405,11 @@ function cartaoArea(a){
 
     return `${cabecalho}<details class="compbloco" ${abre?"open":""}>
       <summary>
-        <span class="ctit"><span class="cod" title="competência ${c.c} de ${a.sig}">C${c.c}</span>${c.desc}</span>
+        <span class="ctit"><span class="cod" title="competência ${c.c} de ${a.sig}">C${c.c}</span>${resumoDesc(c.desc)}</span>
         ${cval}
         <span class="seta">▶</span>
       </summary>
+      <p class="cdesc">${c.desc}</p>
       <div class="cmeta">${cmeta}</div>
       ${habs}
       <div style="height:12px"></div>
@@ -1419,8 +1452,8 @@ function cartaoArea(a){
   return `<div class="cartao">
     <h2>${temResp ? "Diagnóstico da sua prova de 2025" : "Como foi a prova de 2025"} <span class="nota">${a.nome} · sua nota: ${a.nota}</span></h2>
     <p class="sub">${contagem}. ${sub}</p>
-    ${piso ? `<div class="percentil atencao">Sua nota está na faixa em que a prova de 2025 <b>não separa níveis</b> — é a região com muitas provas entregues em branco, onde notas de 310 a 360 correspondem a poucos acertos parecidos. O mapa abaixo vale para a faixa toda, e os pontos indicados são aproximações grosseiras. O maior ganho aqui está fora do que o modelo mede: <b>responder todas as questões</b>, mesmo sem certeza.</div>` : ""}
-    ${medidaLarga && !manutencao && !noAlto ? `<div class="percentil">Nesta parte da escala a prova de 2025 traz <b>poucas questões no seu nível</b>, então ela mede com uma folga maior${seEmPontos ? ` — da ordem de ${Math.round(seEmPontos)} pontos para mais ou para menos` : ""}. O mapa já leva essa folga em conta: ele foi calculado para a faixa inteira, não para um ponto. O que isso muda na leitura: trate os conteúdos do primeiro grupo como um <b>conjunto de boas apostas</b> — todos rendem bem agora — em vez de uma fila exata. Os grupos são firmes; a ordem dentro de cada um, menos.</div>` : ""}
+    ${piso ? `<div class="percentil atencao">Nesta faixa a prova de 2025 <b>não separa níveis</b>: de 310 a 360 os acertos são muito parecidos. Os pontos abaixo são aproximados. O maior ganho aqui está fora do que o mapa mede — <b>responder todas as questões</b>, mesmo sem certeza.</div>` : ""}
+    ${medidaLarga && !manutencao && !noAlto ? `<div class="percentil">Aqui a prova de 2025 tem <b>poucas questões no seu nível</b>, então ela mede com folga${seEmPontos ? ` de uns ${Math.round(seEmPontos)} pontos` : ""}. O mapa já considera isso: trate os primeiros conteúdos como um <b>conjunto de boas apostas</b>, não como ordem exata.</div>` : ""}
     ${insightHtml}
     ${percentilHtml}
     ${totalHtml}

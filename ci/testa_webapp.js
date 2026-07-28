@@ -59,7 +59,7 @@ const epilogo = `
   get TH_MIN(){ return TH_MIN }, get PASSO_GRADE(){ return PASSO_GRADE }, k,
   faixaDisponivel, curvaAcertos, notaPorAcertos, motorArea,
   corrigeCaderno, padraoSuspeito, cartaoArea, cartaoEstudo,
-  erroPadrao, itensDaArea, get NOS_QUAD(){ return NOS_QUAD },
+  erroPadrao, itensDaArea, get NOS_QUAD(){ return NOS_QUAD }, resumoDesc,
 };`;
 vm.runInContext(script + epilogo, sandbox);
 const X = sandbox.X;
@@ -428,7 +428,7 @@ function passoDaArea(a) {
       `seEmPontos (${mot.seEmPontos.toFixed(1)}) igual a 100*SE (${ingenuo.toFixed(1)}) — `
       + "a conversao pela curva empirica nao esta sendo usada");
     const h = X.cartaoArea(a);
-    const m = h.match(/da ordem de (\d+) pontos/);
+    const m = h.match(/de uns (\d+) pontos/);
     espera(m, "ressalva sem o numero de pontos");
     espera(Math.abs(Number(m[1]) - mot.seEmPontos) <= 1,
       `tela mostra ${m[1]}, motor calcula ${mot.seEmPontos.toFixed(1)}`);
@@ -450,6 +450,40 @@ function passoDaArea(a) {
       }
     }
     espera(achou >= 3, `so ${achou} habilidades em 100% encontradas para testar`);
+  });
+
+  // O cabecalho fechado leva so o inicio da descricao oficial da Matriz (que
+  // tem 21 a 33 palavras). Dois defeitos ja aconteceram aqui: um caractere de
+  // controle 0x08 dentro da regex, que a fazia nunca casar e passava
+  // despercebido porque o terminal renderiza backspace apagando o vizinho; e
+  // `[\s]*` no lugar de `[\s]+`, que cortava no meio da palavra
+  // ("construcoes humanas" -> "construcoes human"). Nenhum dos dois aparece
+  // sem comparar o resumo com o texto integral.
+  caso("resumo da competencia: prefixo do texto oficial e em palavra inteira", () => {
+    const vistos = new Set();
+    let n = 0;
+    for (const ch in X.M.matriz) {
+      const d = X.M.matriz[ch].compdesc;
+      if (!d || vistos.has(d)) continue;
+      vistos.add(d); n++;
+      const r = X.resumoDesc(d);
+      const corpo = r.endsWith("…") ? r.slice(0, -1) : r;
+      espera(d.startsWith(corpo), `resumo nao e prefixo do original: ${corpo.slice(0, 50)}`);
+      if (r.endsWith("…") && corpo.length < d.length) {
+        const prox = d[corpo.length];
+        espera(!/[\wÀ-ÿ-]/.test(prox),
+          `corte no meio da palavra: "...${corpo.slice(-25)}" seguido de "${d.slice(corpo.length, corpo.length + 12)}"`);
+      }
+      espera(corpo.split(/\s+/).length <= 16, `resumo longo demais (${corpo.split(/\s+/).length} palavras)`);
+    }
+    espera(n >= 30, `so ${n} descricoes de competencia encontradas`);
+  });
+  // nenhum caractere de controle no fonte: foi assim que o 0x08 entrou
+  caso("o fonte do site nao tem caractere de controle invisivel", () => {
+    const bruto = require("fs").readFileSync(path.join(RAIZ, "webapp", "index.html"), "utf8");
+    const achados = [...bruto].filter(c => c.charCodeAt(0) < 32 && !"\n\r\t".includes(c));
+    espera(achados.length === 0,
+      `${achados.length} caractere(s) de controle: ${[...new Set(achados.map(c => "0x" + c.charCodeAt(0).toString(16)))].join(", ")}`);
   });
 
   // dois bugs ANTERIORES a integracao, achados pela revisao adversarial de
