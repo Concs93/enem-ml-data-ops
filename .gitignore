@@ -9,3 +9,9 @@ logs/
 docs/
 dbt/dbt_packages/
 dbt/.user.yml
+# livros de referencia (direito autoral) -- so o indice e versionado.
+# tem que ser `referencias/*`, nao `referencias/`: o git nao entra em
+# diretorio excluido, entao as excecoes abaixo seriam ignoradas em silencio.
+referencias/*
+!referencias/LEIA-ME.md
+!referencias/INDICE.md
