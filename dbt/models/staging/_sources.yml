@@ -11,6 +11,20 @@ sources:
         description: Perfil e questionario socioeconomico.
       - name: itens_prova_2025
         description: Itens de cada versao de prova, com habilidade e parametros de TRI.
+      # Banco de itens multiedicao. Mesmo layout das 14 colunas em todas, e
+      # parametros na mesma escala (equalizacao do INEP sobre banco comum) --
+      # e o que autoriza somar edicoes. So de 2020 em diante: antes disso os
+      # parametros de TRI nao eram publicados.
+      - name: itens_prova_2020
+        description: Itens do ENEM 2020 - banco multiedicao (so os itens; sem resultados).
+      - name: itens_prova_2021
+        description: Itens do ENEM 2021 - banco multiedicao.
+      - name: itens_prova_2022
+        description: Itens do ENEM 2022 - banco multiedicao.
+      - name: itens_prova_2023
+        description: Itens do ENEM 2023 - banco multiedicao.
+      - name: itens_prova_2024
+        description: Itens do ENEM 2024 - banco multiedicao.
       - name: censo_escolar_2024
         description: >
           Cadastro de escolas do Censo Escolar (INEP), carregado pelo

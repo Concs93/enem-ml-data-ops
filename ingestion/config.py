@@ -44,6 +44,24 @@ BASES = {
     "itens_prova": ITENS_PROVA,
 }
 
+# ------------------------------------------------------- banco de itens
+#
+# A edicao que o projeto diagnostica. Os arquivos pesados (resultados,
+# participantes) existem so para ela.
+ANO_CORRENTE = 2025
+
+# Edicoes cujo ITENS_PROVA traz os parametros de TRI. O INEP so passou a
+# publica-los a partir de 2020 -- antes o arquivo existe mas nao serve ao
+# motor psicometrico (baixa_itens.py confere e recusa).
+#
+# Por que reunir edicoes: 62 das 120 habilidades sao medidas por UM item numa
+# prova regular, entao a "dificuldade da habilidade" medida em 2025 e, em boa
+# parte, a dificuldade daquele item. Com seis edicoes sao ~22 itens por
+# habilidade. Somar e legitimo porque todas as edicoes sao equalizadas no
+# mesmo banco de itens: b medio 1,10-1,26 e c medio 0,175-0,181 nas seis --
+# verificado, nao suposto.
+EDICOES_ITENS = [2020, 2021, 2022, 2023, 2024, 2025]
+
 
 # ----------------------------------------------------------------- Censo Escolar
 #

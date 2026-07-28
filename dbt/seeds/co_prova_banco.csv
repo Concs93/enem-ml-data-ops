@@ -1,0 +1,401 @@
+edicao,co_prova,sg_area,cor,rotulo,tipo_aplicacao,is_regular
+2020,567,CH,Azul,Azul,regular,true
+2020,568,CH,Amarela,Amarela,regular,true
+2020,569,CH,Branca,Branca,regular,true
+2020,570,CH,Rosa,Rosa,regular,true
+2020,571,CH,Rosa,Rosa - Ampliada,acessibilidade,false
+2020,572,CH,Rosa,Rosa - Superampliada,acessibilidade,false
+2020,574,CH,Laranja,Laranja - Adaptada Ledor,acessibilidade,false
+2020,575,CH,Verde,Verde - Videoprova - Libras,acessibilidade,false
+2020,647,CH,Azul,Azul (Reaplicação),reaplicacao,false
+2020,648,CH,Amarela,Amarela (Reaplicação),reaplicacao,false
+2020,649,CH,Branca,Branca (Reaplicação),reaplicacao,false
+2020,650,CH,Rosa,Rosa (Reaplicação),reaplicacao,false
+2020,654,CH,Laranja,Laranja - Adaptada Ledor (Reaplicação),reaplicacao,false
+2020,687,CH,Azul,Azul (Digital),digital,false
+2020,688,CH,Amarela,Amarela (Digital),digital,false
+2020,689,CH,Branca,Branca (Digital),digital,false
+2020,690,CH,Rosa,Rosa (Digital),digital,false
+2020,597,CN,Azul,Azul,regular,true
+2020,598,CN,Amarela,Amarela,regular,true
+2020,599,CN,Cinza,Cinza,regular,true
+2020,600,CN,Rosa,Rosa,regular,true
+2020,601,CN,Rosa,Rosa - Ampliada,acessibilidade,false
+2020,602,CN,Rosa,Rosa - Superampliada,acessibilidade,false
+2020,604,CN,Laranja,Laranja - Adaptada Ledor,acessibilidade,false
+2020,605,CN,Verde,Verde - Videoprova - Libras,acessibilidade,false
+2020,677,CN,Azul,Azul (Reaplicação),reaplicacao,false
+2020,678,CN,Amarela,Amarela (Reaplicação),reaplicacao,false
+2020,679,CN,Cinza,Cinza (Reaplicação),reaplicacao,false
+2020,680,CN,Rosa,Rosa (Reaplicação),reaplicacao,false
+2020,684,CN,Laranja,Laranja - Adaptada Ledor (Reaplicação),reaplicacao,false
+2020,699,CN,Azul,Azul (Digital),digital,false
+2020,700,CN,Amarela,Amarela (Digital),digital,false
+2020,701,CN,Rosa,Rosa (Digital),digital,false
+2020,702,CN,Cinza,Cinza (Digital),digital,false
+2020,577,LC,Azul,Azul,regular,true
+2020,578,LC,Amarela,Amarela,regular,true
+2020,579,LC,Rosa,Rosa,regular,true
+2020,580,LC,Branca,Branca,regular,true
+2020,581,LC,Rosa,Rosa - Ampliada,acessibilidade,false
+2020,582,LC,Rosa,Rosa - Superampliada,acessibilidade,false
+2020,584,LC,Laranja,Laranja - Adaptada Ledor,acessibilidade,false
+2020,585,LC,Verde,Verde - Videoprova - Libras,acessibilidade,false
+2020,657,LC,Azul,Azul (Reaplicação),reaplicacao,false
+2020,658,LC,Amarela,Amarela (Reaplicação),reaplicacao,false
+2020,659,LC,Rosa,Rosa (Reaplicação),reaplicacao,false
+2020,660,LC,Branca,Branca (Reaplicação),reaplicacao,false
+2020,664,LC,Laranja,Laranja - Adaptada Ledor (Reaplicação),reaplicacao,false
+2020,691,LC,Azul,Azul (Digital),digital,false
+2020,692,LC,Amarela,Amarela (Digital),digital,false
+2020,693,LC,Branca,Branca (Digital),digital,false
+2020,694,LC,Rosa,Rosa (Digital),digital,false
+2020,587,MT,Azul,Azul,regular,true
+2020,588,MT,Amarela,Amarela,regular,true
+2020,589,MT,Rosa,Rosa,regular,true
+2020,590,MT,Cinza,Cinza,regular,true
+2020,591,MT,Rosa,Rosa - Ampliada,acessibilidade,false
+2020,592,MT,Rosa,Rosa - Superampliada,acessibilidade,false
+2020,594,MT,Laranja,Laranja - Adaptada Ledor,acessibilidade,false
+2020,595,MT,Verde,Verde - Videoprova - Libras,acessibilidade,false
+2020,667,MT,Azul,Azul (Reaplicação),reaplicacao,false
+2020,668,MT,Amarela,Amarela (Reaplicação),reaplicacao,false
+2020,669,MT,Rosa,Rosa (Reaplicação),reaplicacao,false
+2020,670,MT,Cinza,Cinza (Reaplicação),reaplicacao,false
+2020,674,MT,Laranja,Laranja - Adaptada Ledor (Reaplicação),reaplicacao,false
+2020,695,MT,Azul,Azul (Digital),digital,false
+2020,696,MT,Amarela,Amarela (Digital),digital,false
+2020,697,MT,Rosa,Rosa (Digital),digital,false
+2020,698,MT,Cinza,Cinza (Digital),digital,false
+2021,879,CH,Azul,Azul,regular,true
+2021,880,CH,Amarela,Amarela,regular,true
+2021,881,CH,Branca,Branca,regular,true
+2021,882,CH,Rosa,Rosa,regular,true
+2021,885,CH,Laranja,Laranja - Braille,acessibilidade,false
+2021,886,CH,Laranja,Laranja - Adaptada Ledor,acessibilidade,false
+2021,887,CH,Verde,Verde - Videoprova - Libras,acessibilidade,false
+2021,959,CH,Azul,Azul (Reaplicação),reaplicacao,false
+2021,960,CH,Amarela,Amarela (Reaplicação),reaplicacao,false
+2021,961,CH,Branca,Branca (Reaplicação),reaplicacao,false
+2021,962,CH,Rosa,Rosa (Reaplicação),reaplicacao,false
+2021,966,CH,Laranja,Laranja - Adaptada Ledor (Reaplicação),reaplicacao,false
+2021,999,CH,Azul,Azul (Digital),digital,false
+2021,1000,CH,Amarela,Amarela (Digital),digital,false
+2021,1001,CH,Branca,Branca (Digital),digital,false
+2021,1002,CH,Rosa,Rosa (Digital),digital,false
+2021,1015,CH,Azul,Azul (Segunda oportunidade),segunda_oportunidade,false
+2021,1016,CH,Amarela,Amarela (Segunda oportunidade),segunda_oportunidade,false
+2021,1017,CH,Branca,Branca (Segunda oportunidade),segunda_oportunidade,false
+2021,1018,CH,Rosa,Rosa (Segunda oportunidade),segunda_oportunidade,false
+2021,1022,CH,Laranja,Laranja - Adaptada Ledor (Segunda oportunidade),segunda_oportunidade,false
+2021,909,CN,Azul,Azul,regular,true
+2021,910,CN,Amarela,Amarela,regular,true
+2021,911,CN,Cinza,Cinza,regular,true
+2021,912,CN,Rosa,Rosa,regular,true
+2021,915,CN,Laranja,Laranja - Braille,acessibilidade,false
+2021,916,CN,Laranja,Laranja - Adaptada Ledor,acessibilidade,false
+2021,917,CN,Verde,Verde - Videoprova - Libras,acessibilidade,false
+2021,989,CN,Azul,Azul (Reaplicação),reaplicacao,false
+2021,990,CN,Amarela,Amarela (Reaplicação),reaplicacao,false
+2021,991,CN,Cinza,Cinza (Reaplicação),reaplicacao,false
+2021,992,CN,Rosa,Rosa (Reaplicação),reaplicacao,false
+2021,996,CN,Laranja,Laranja - Adaptada Ledor (Reaplicação),reaplicacao,false
+2021,1011,CN,Azul,Azul (Digital),digital,false
+2021,1012,CN,Amarela,Amarela (Digital),digital,false
+2021,1013,CN,Rosa,Rosa (Digital),digital,false
+2021,1014,CN,Cinza,Cinza (Digital),digital,false
+2021,1045,CN,Azul,Azul (Segunda oportunidade),segunda_oportunidade,false
+2021,1046,CN,Amarela,Amarela (Segunda oportunidade),segunda_oportunidade,false
+2021,1047,CN,Cinza,Cinza (Segunda oportunidade),segunda_oportunidade,false
+2021,1048,CN,Rosa,Rosa (Segunda oportunidade),segunda_oportunidade,false
+2021,1052,CN,Laranja,Laranja - Adaptada Ledor (Segunda oportunidade),segunda_oportunidade,false
+2021,889,LC,Azul,Azul,regular,true
+2021,890,LC,Amarela,Amarela,regular,true
+2021,891,LC,Rosa,Rosa,regular,true
+2021,892,LC,Branca,Branca,regular,true
+2021,895,LC,Laranja,Laranja - Braille,acessibilidade,false
+2021,896,LC,Laranja,Laranja - Adaptada Ledor,acessibilidade,false
+2021,897,LC,Verde,Verde - Videoprova - Libras,acessibilidade,false
+2021,969,LC,Azul,Azul (Reaplicação),reaplicacao,false
+2021,970,LC,Amarela,Amarela (Reaplicação),reaplicacao,false
+2021,971,LC,Rosa,Rosa (Reaplicação),reaplicacao,false
+2021,972,LC,Branca,Branca (Reaplicação),reaplicacao,false
+2021,976,LC,Laranja,Laranja - Adaptada Ledor (Reaplicação),reaplicacao,false
+2021,1003,LC,Azul,Azul (Digital),digital,false
+2021,1004,LC,Amarela,Amarela (Digital),digital,false
+2021,1005,LC,Branca,Branca (Digital),digital,false
+2021,1006,LC,Rosa,Rosa (Digital),digital,false
+2021,1025,LC,Azul,Azul (Segunda oportunidade),segunda_oportunidade,false
+2021,1026,LC,Amarela,Amarela (Segunda oportunidade),segunda_oportunidade,false
+2021,1027,LC,Rosa,Rosa (Segunda oportunidade),segunda_oportunidade,false
+2021,1028,LC,Branca,Branca (Segunda oportunidade),segunda_oportunidade,false
+2021,1032,LC,Laranja,Laranja - Adaptada Ledor (Segunda oportunidade),segunda_oportunidade,false
+2021,899,MT,Azul,Azul,regular,true
+2021,900,MT,Amarela,Amarela,regular,true
+2021,901,MT,Rosa,Rosa,regular,true
+2021,902,MT,Cinza,Cinza,regular,true
+2021,905,MT,Laranja,Laranja - Braille,acessibilidade,false
+2021,906,MT,Laranja,Laranja - Adaptada Ledor,acessibilidade,false
+2021,907,MT,Verde,Verde - Videoprova - Libras,acessibilidade,false
+2021,979,MT,Azul,Azul (Reaplicação),reaplicacao,false
+2021,980,MT,Amarela,Amarela (Reaplicação),reaplicacao,false
+2021,981,MT,Rosa,Rosa (Reaplicação),reaplicacao,false
+2021,982,MT,Cinza,Cinza (Reaplicação),reaplicacao,false
+2021,986,MT,Laranja,Laranja - Adaptada Ledor (Reaplicação),reaplicacao,false
+2021,1007,MT,Azul,Azul (Digital),digital,false
+2021,1008,MT,Amarela,Amarela (Digital),digital,false
+2021,1009,MT,Rosa,Rosa (Digital),digital,false
+2021,1010,MT,Cinza,Cinza (Digital),digital,false
+2021,1035,MT,Azul,Azul (Segunda oportunidade),segunda_oportunidade,false
+2021,1036,MT,Amarela,Amarela (Segunda oportunidade),segunda_oportunidade,false
+2021,1037,MT,Cinza,Cinza (Segunda oportunidade),segunda_oportunidade,false
+2021,1038,MT,Rosa,Rosa (Segunda oportunidade),segunda_oportunidade,false
+2021,1042,MT,Laranja,Laranja - Adaptada Ledor (Segunda oportunidade),segunda_oportunidade,false
+2022,1055,CH,Azul,Azul,regular,true
+2022,1056,CH,Amarela,Amarela,regular,true
+2022,1057,CH,Branca,Branca,regular,true
+2022,1058,CH,Rosa,Rosa,regular,true
+2022,1062,CH,Laranja,Laranja - Adaptada Ledor,acessibilidade,false
+2022,1063,CH,Verde,Verde - Videoprova - Libras,acessibilidade,false
+2022,1135,CH,Azul,Azul (Reaplicação),reaplicacao,false
+2022,1136,CH,Amarela,Amarela (Reaplicação),reaplicacao,false
+2022,1137,CH,Branca,Branca (Reaplicação),reaplicacao,false
+2022,1138,CH,Rosa,Rosa (Reaplicação),reaplicacao,false
+2022,1175,CH,Azul,Azul (Digital),digital,false
+2022,1176,CH,Amarela,Amarela (Digital),digital,false
+2022,1177,CH,Branca,Branca (Digital),digital,false
+2022,1178,CH,Rosa,Rosa (Digital),digital,false
+2022,1085,CN,Azul,Azul,regular,true
+2022,1086,CN,Amarela,Amarela,regular,true
+2022,1087,CN,Cinza,Cinza,regular,true
+2022,1088,CN,Rosa,Rosa,regular,true
+2022,1092,CN,Laranja,Laranja - Adaptada Ledor,acessibilidade,false
+2022,1093,CN,Verde,Verde - Videoprova - Libras,acessibilidade,false
+2022,1165,CN,Azul,Azul (Reaplicação),reaplicacao,false
+2022,1166,CN,Amarela,Amarela (Reaplicação),reaplicacao,false
+2022,1167,CN,Cinza,Cinza (Reaplicação),reaplicacao,false
+2022,1168,CN,Rosa,Rosa (Reaplicação),reaplicacao,false
+2022,1187,CN,Azul,Azul (Digital),digital,false
+2022,1188,CN,Amarela,Amarela (Digital),digital,false
+2022,1189,CN,Rosa,Rosa (Digital),digital,false
+2022,1190,CN,Cinza,Cinza (Digital),digital,false
+2022,1065,LC,Azul,Azul,regular,true
+2022,1066,LC,Amarela,Amarela,regular,true
+2022,1067,LC,Rosa,Rosa,regular,true
+2022,1068,LC,Branca,Branca,regular,true
+2022,1072,LC,Laranja,Laranja - Adaptada Ledor,acessibilidade,false
+2022,1073,LC,Verde,Verde - Videoprova - Libras,acessibilidade,false
+2022,1145,LC,Azul,Azul (Reaplicação),reaplicacao,false
+2022,1146,LC,Amarela,Amarela (Reaplicação),reaplicacao,false
+2022,1147,LC,Rosa,Rosa (Reaplicação),reaplicacao,false
+2022,1148,LC,Branca,Branca (Reaplicação),reaplicacao,false
+2022,1179,LC,Azul,Azul (Digital),digital,false
+2022,1180,LC,Amarela,Amarela (Digital),digital,false
+2022,1181,LC,Branca,Branca (Digital),digital,false
+2022,1182,LC,Rosa,Rosa (Digital),digital,false
+2022,1075,MT,Azul,Azul,regular,true
+2022,1076,MT,Amarela,Amarela,regular,true
+2022,1077,MT,Rosa,Rosa,regular,true
+2022,1078,MT,Cinza,Cinza,regular,true
+2022,1082,MT,Laranja,Laranja - Adaptada Ledor,acessibilidade,false
+2022,1083,MT,Verde,Verde - Videoprova - Libras,acessibilidade,false
+2022,1155,MT,Azul,Azul (Reaplicação),reaplicacao,false
+2022,1156,MT,Amarela,Amarela (Reaplicação),reaplicacao,false
+2022,1157,MT,Rosa,Rosa (Reaplicação),reaplicacao,false
+2022,1158,MT,Cinza,Cinza (Reaplicação),reaplicacao,false
+2022,1183,MT,Azul,Azul (Digital),digital,false
+2022,1184,MT,Amarela,Amarela (Digital),digital,false
+2022,1185,MT,Rosa,Rosa (Digital),digital,false
+2022,1186,MT,Cinza,Cinza (Digital),digital,false
+2023,1191,CH,Azul,Azul,regular,true
+2023,1192,CH,Amarela,Amarela,regular,true
+2023,1193,CH,Branca,Branca,regular,true
+2023,1194,CH,Rosa,Rosa,regular,true
+2023,1195,CH,Rosa,Rosa - Ampliada,acessibilidade,false
+2023,1196,CH,Rosa,Rosa - Superampliada,acessibilidade,false
+2023,1197,CH,Laranja,Laranja - Braile,acessibilidade,false
+2023,1198,CH,Laranja,Laranja - Adaptada Ledor,acessibilidade,false
+2023,1199,CH,Verde,Verde - Videoprova - Libras,acessibilidade,false
+2023,1271,CH,Azul,Azul (ReaplicaÃ§Ã£o),reaplicacao,false
+2023,1272,CH,Amarela,Amarela (ReaplicaÃ§Ã£o),reaplicacao,false
+2023,1273,CH,Branca,Branca (ReaplicaÃ§Ã£o),reaplicacao,false
+2023,1274,CH,Rosa,Rosa (ReaplicaÃ§Ã£o),reaplicacao,false
+2023,1221,CN,Azul,Azul,regular,true
+2023,1222,CN,Amarela,Amarela,regular,true
+2023,1223,CN,Rosa,Rosa,regular,true
+2023,1224,CN,Cinza,Cinza,regular,true
+2023,1225,CN,Rosa,Rosa - Ampliada,acessibilidade,false
+2023,1226,CN,Rosa,Rosa - Superampliada,acessibilidade,false
+2023,1227,CN,Laranja,Laranja - Braile,acessibilidade,false
+2023,1228,CN,Laranja,Laranja - Adaptada Ledor,acessibilidade,false
+2023,1229,CN,Verde,Verde - Videoprova - Libras,acessibilidade,false
+2023,1301,CN,Azul,Azul (ReaplicaÃ§Ã£o),reaplicacao,false
+2023,1302,CN,Amarela,Amarela (ReaplicaÃ§Ã£o),reaplicacao,false
+2023,1303,CN,Cinza,Cinza (ReaplicaÃ§Ã£o),reaplicacao,false
+2023,1304,CN,Rosa,Rosa (ReaplicaÃ§Ã£o),reaplicacao,false
+2023,1201,LC,Azul,Azul,regular,true
+2023,1202,LC,Amarela,Amarela,regular,true
+2023,1203,LC,Rosa,Rosa,regular,true
+2023,1204,LC,Branca,Branca,regular,true
+2023,1205,LC,Rosa,Rosa - Ampliada,acessibilidade,false
+2023,1206,LC,Rosa,Rosa - Superampliada,acessibilidade,false
+2023,1207,LC,Laranja,Laranja - Braile,acessibilidade,false
+2023,1208,LC,Laranja,Laranja - Adaptada Ledor,acessibilidade,false
+2023,1209,LC,Verde,Verde - Videoprova - Libras,acessibilidade,false
+2023,1281,LC,Azul,Azul (ReaplicaÃ§Ã£o),reaplicacao,false
+2023,1282,LC,Amarela,Amarela (ReaplicaÃ§Ã£o),reaplicacao,false
+2023,1283,LC,Rosa,Rosa (ReaplicaÃ§Ã£o),reaplicacao,false
+2023,1284,LC,Branca,Branca (ReaplicaÃ§Ã£o),reaplicacao,false
+2023,1211,MT,Azul,Azul,regular,true
+2023,1212,MT,Amarela,Amarela,regular,true
+2023,1213,MT,Rosa,Rosa,regular,true
+2023,1214,MT,Cinza,Cinza,regular,true
+2023,1215,MT,Rosa,Rosa - Ampliada,acessibilidade,false
+2023,1216,MT,Rosa,Rosa - Superampliada,acessibilidade,false
+2023,1217,MT,Laranja,Laranja - Braile,acessibilidade,false
+2023,1218,MT,Laranja,Laranja - Adaptada Ledor,acessibilidade,false
+2023,1219,MT,Verde,Verde - Videoprova - Libras,acessibilidade,false
+2023,1291,MT,Azul,Azul (ReaplicaÃ§Ã£o),reaplicacao,false
+2023,1292,MT,Amarela,Amarela (ReaplicaÃ§Ã£o),reaplicacao,false
+2023,1293,MT,Rosa,Rosa (ReaplicaÃ§Ã£o),reaplicacao,false
+2023,1294,MT,Cinza,Cinza (ReaplicaÃ§Ã£o),reaplicacao,false
+2024,1343,CH,Azul,Azul (Reaplicação),reaplicacao,false
+2024,1344,CH,Amarela,Amarela (Reaplicação),reaplicacao,false
+2024,1345,CH,Branca,Branca (Reaplicação),reaplicacao,false
+2024,1346,CH,Verde,Verde (Reaplicação),reaplicacao,false
+2024,1347,CH,Verde,Verde - Ampliada (Reaplicação),reaplicacao,false
+2024,1348,CH,Verde,Verde - Superampliada (Reaplicação),reaplicacao,false
+2024,1350,CH,Laranja,Laranja - Adaptada Ledor (Reaplicação),reaplicacao,false
+2024,1383,CH,Azul,Azul,regular,true
+2024,1384,CH,Amarela,Amarela,regular,true
+2024,1385,CH,Branca,Branca,regular,true
+2024,1386,CH,Verde,Verde,regular,true
+2024,1387,CH,Verde,Verde - Ampliada,acessibilidade,false
+2024,1388,CH,Verde,Verde - Superampliada,acessibilidade,false
+2024,1390,CH,Laranja,Laranja - Adaptada Ledor,acessibilidade,false
+2024,1391,CH,Roxa,Roxa - Videoprova - Libras,acessibilidade,false
+2024,1392,CH,Roxa,Roxa - Videoprova - Libras - Ampliada,acessibilidade,false
+2024,1393,CH,Roxa,Roxa - Videoprova - Libras - Superampliada,acessibilidade,false
+2024,1373,CN,Azul,Azul (Reaplicação),reaplicacao,false
+2024,1374,CN,Amarela,Amarela (Reaplicação),reaplicacao,false
+2024,1375,CN,Cinza,Cinza (Reaplicação),reaplicacao,false
+2024,1376,CN,Verde,Verde (Reaplicação),reaplicacao,false
+2024,1377,CN,Verde,Verde - Ampliada (Reaplicação),reaplicacao,false
+2024,1378,CN,Verde,Verde - Superampliada (Reaplicação),reaplicacao,false
+2024,1380,CN,Laranja,Laranja - Adaptada Ledor (Reaplicação),reaplicacao,false
+2024,1419,CN,Azul,Azul,regular,true
+2024,1420,CN,Amarela,Amarela,regular,true
+2024,1421,CN,Verde,Verde,regular,true
+2024,1422,CN,Cinza,Cinza,regular,true
+2024,1423,CN,Verde,Verde - Ampliada,acessibilidade,false
+2024,1424,CN,Verde,Verde - Superampliada,acessibilidade,false
+2024,1426,CN,Laranja,Laranja - Adaptada Ledor,acessibilidade,false
+2024,1427,CN,Roxa,Roxa - Videoprova - Libras,acessibilidade,false
+2024,1428,CN,Roxa,Roxa - Videoprova - Libras - Ampliada,acessibilidade,false
+2024,1353,LC,Azul,Azul (Reaplicação),reaplicacao,false
+2024,1354,LC,Amarela,Amarela (Reaplicação),reaplicacao,false
+2024,1355,LC,Verde,Verde (Reaplicação),reaplicacao,false
+2024,1356,LC,Branca,Branca (Reaplicação),reaplicacao,false
+2024,1357,LC,Verde,Verde - Ampliada (Reaplicação),reaplicacao,false
+2024,1358,LC,Verde,Verde - Superampliada (Reaplicação),reaplicacao,false
+2024,1360,LC,Laranja,Laranja - Adaptada Ledor (Reaplicação),reaplicacao,false
+2024,1395,LC,Azul,Azul,regular,true
+2024,1396,LC,Amarela,Amarela,regular,true
+2024,1397,LC,Verde,Verde,regular,true
+2024,1398,LC,Branca,Branca,regular,true
+2024,1399,LC,Verde,Verde - Ampliada,acessibilidade,false
+2024,1400,LC,Verde,Verde - Superampliada,acessibilidade,false
+2024,1402,LC,Laranja,Laranja - Adaptada Ledor,acessibilidade,false
+2024,1403,LC,Roxa,Roxa - Videoprova - Libras,acessibilidade,false
+2024,1404,LC,Roxa,Roxa - Videoprova - Libras - Ampliada,acessibilidade,false
+2024,1405,LC,Roxa,Roxa - Videoprova - Libras - Superampliada,acessibilidade,false
+2024,1363,MT,Azul,Azul (Reaplicação),reaplicacao,false
+2024,1364,MT,Amarela,Amarela (Reaplicação),reaplicacao,false
+2024,1365,MT,Verde,Verde (Reaplicação),reaplicacao,false
+2024,1366,MT,Cinza,Cinza (Reaplicação),reaplicacao,false
+2024,1367,MT,Verde,Verde - Ampliada (Reaplicação),reaplicacao,false
+2024,1368,MT,Verde,Verde - Superampliada (Reaplicação),reaplicacao,false
+2024,1370,MT,Laranja,Laranja - Adaptada Ledor (Reaplicação),reaplicacao,false
+2024,1407,MT,Azul,Azul,regular,true
+2024,1408,MT,Amarela,Amarela,regular,true
+2024,1409,MT,Verde,Verde,regular,true
+2024,1410,MT,Cinza,Cinza,regular,true
+2024,1411,MT,Verde,Verde - Ampliada,acessibilidade,false
+2024,1412,MT,Verde,Verde - Superampliada,acessibilidade,false
+2024,1414,MT,Laranja,Laranja - Adaptada Ledor,acessibilidade,false
+2024,1415,MT,Roxa,Roxa - Videoprova - Libras,acessibilidade,false
+2024,1416,MT,Roxa,Roxa - Videoprova - Libras - Ampliada,acessibilidade,false
+2025,1447,CH,Azul,Azul,regular,true
+2025,1448,CH,Amarela,Amarela,regular,true
+2025,1449,CH,Branca,Branca,regular,true
+2025,1450,CH,Verde,Verde,regular,true
+2025,1451,CH,Laranja,Laranja - Ampliada,acessibilidade,false
+2025,1452,CH,Laranja,Laranja - Superampliada,acessibilidade,false
+2025,1454,CH,Laranja,Laranja - Adaptada Ledor,acessibilidade,false
+2025,1455,CH,Roxo,Roxo - Videoprova - Libras,acessibilidade,false
+2025,1495,CH,Laranja,Laranja - Atendimento Especializado,acessibilidade,false
+2025,1539,CH,Azul,Azul (ReaplicaÃ§Ã£o),reaplicacao,false
+2025,1541,CH,Branca,Branca (ReaplicaÃ§Ã£o),reaplicacao,false
+2025,1542,CH,Verde,Verde (ReaplicaÃ§Ã£o),reaplicacao,false
+2025,1583,CH,Azul,Azul - BAM,bam,false
+2025,1584,CH,Amarela,Amarela - BAM,bam,false
+2025,1585,CH,Branca,Branca - BAM,bam,false
+2025,1586,CH,Verde,Verde - BAM,bam,false
+2025,1587,CH,Laranja,Laranja - Ampliada - BAM,bam,false
+2025,1631,CH,Laranja,Laranja - Atendimento Especializado - BAM,bam,false
+2025,1483,CN,Azul,Azul,regular,true
+2025,1484,CN,Amarela,Amarela,regular,true
+2025,1485,CN,Verde,Verde,regular,true
+2025,1486,CN,Cinza,Cinza,regular,true
+2025,1487,CN,Laranja,Laranja - Ampliada,acessibilidade,false
+2025,1488,CN,Laranja,Laranja - Superampliada,acessibilidade,false
+2025,1490,CN,Laranja,Laranja - Adaptada Ledor,acessibilidade,false
+2025,1491,CN,Roxo,Roxo - Videoprova - Libras,acessibilidade,false
+2025,1498,CN,Laranja,Laranja - Atendimento Especializado,acessibilidade,false
+2025,1569,CN,Azul,Azul (ReaplicaÃ§Ã£o),reaplicacao,false
+2025,1570,CN,Amarela,Amarela (ReaplicaÃ§Ã£o),reaplicacao,false
+2025,1571,CN,Cinza,Cinza (ReaplicaÃ§Ã£o),reaplicacao,false
+2025,1572,CN,Verde,Verde (ReaplicaÃ§Ã£o),reaplicacao,false
+2025,1619,CN,Azul,Azul - BAM,bam,false
+2025,1620,CN,Amarela,Amarela - BAM,bam,false
+2025,1621,CN,Verde,Verde - BAM,bam,false
+2025,1622,CN,Cinza,Cinza - BAM,bam,false
+2025,1623,CN,Laranja,Laranja - Ampliada - BAM,bam,false
+2025,1634,CN,Laranja,Laranja - Atendimento Especializado - BAM,bam,false
+2025,1459,LC,Azul,Azul,regular,true
+2025,1460,LC,Amarela,Amarela,regular,true
+2025,1461,LC,Verde,Verde,regular,true
+2025,1462,LC,Branca,Branca,regular,true
+2025,1463,LC,Laranja,Laranja - Ampliada,acessibilidade,false
+2025,1464,LC,Laranja,Laranja - Superampliada,acessibilidade,false
+2025,1466,LC,Laranja,Laranja - Adaptada Ledor,acessibilidade,false
+2025,1467,LC,Roxo,Roxo - Videoprova - Libras,acessibilidade,false
+2025,1496,LC,Laranja,Laranja - Atendimento Especializado,acessibilidade,false
+2025,1549,LC,Azul,Azul (ReaplicaÃ§Ã£o),reaplicacao,false
+2025,1551,LC,Verde,Verde (ReaplicaÃ§Ã£o),reaplicacao,false
+2025,1552,LC,Branca,Branca (ReaplicaÃ§Ã£o),reaplicacao,false
+2025,1595,LC,Azul,Azul - BAM,bam,false
+2025,1596,LC,Amarela,Amarela - BAM,bam,false
+2025,1597,LC,Verde,Verde - BAM,bam,false
+2025,1598,LC,Branca,Branca - BAM,bam,false
+2025,1599,LC,Laranja,Laranja - Ampliada - BAM,bam,false
+2025,1632,LC,Laranja,Laranja - Atendimento Especializado - BAM,bam,false
+2025,1471,MT,Azul,Azul,regular,true
+2025,1472,MT,Amarela,Amarela,regular,true
+2025,1473,MT,Verde,Verde,regular,true
+2025,1474,MT,Cinza,Cinza,regular,true
+2025,1475,MT,Laranja,Laranja - Ampliada,acessibilidade,false
+2025,1476,MT,Laranja,Laranja - Superampliada,acessibilidade,false
+2025,1478,MT,Laranja,Laranja - Adaptada Ledor,acessibilidade,false
+2025,1479,MT,Roxo,Roxo - Videoprova - Libras,acessibilidade,false
+2025,1497,MT,Laranja,Laranja - Atendimento Especializado,acessibilidade,false
+2025,1559,MT,Azul,Azul (ReaplicaÃ§Ã£o),reaplicacao,false
+2025,1560,MT,Amarela,Amarela (ReaplicaÃ§Ã£o),reaplicacao,false
+2025,1561,MT,Verde,Verde (ReaplicaÃ§Ã£o),reaplicacao,false
+2025,1562,MT,Cinza,Cinza (ReaplicaÃ§Ã£o),reaplicacao,false
+2025,1607,MT,Azul,Azul - BAM,bam,false
+2025,1608,MT,Amarela,Amarela - BAM,bam,false
+2025,1609,MT,Verde,Verde - BAM,bam,false
+2025,1610,MT,Cinza,Cinza - BAM,bam,false
+2025,1611,MT,Laranja,Laranja - Ampliada - BAM,bam,false
+2025,1633,MT,Laranja,Laranja - Atendimento Especializado - BAM,bam,false

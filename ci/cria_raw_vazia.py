@@ -19,9 +19,10 @@ import os
 
 import psycopg2
 
-from ingestion.config import BASES, CENSO_ESCOLAR
+from ingestion.config import (BASES, CENSO_ESCOLAR, EDICOES_ITENS,
+                              ITENS_PROVA, ANO_CORRENTE)
 
-ANO = 2025
+ANO = ANO_CORRENTE
 ANO_CENSO = 2024
 
 
@@ -41,6 +42,10 @@ def main():
     # saem, entao a fonte real e censo_escolar_2024 (ver load_censo.py)
     tabelas = {f"{base}_{ANO}": colunas for base, colunas in BASES.items()}
     tabelas[f"censo_escolar_{ANO_CENSO}"] = CENSO_ESCOLAR
+    # o banco de itens tem uma tabela por edicao; a lista mora no config,
+    # entao acrescentar uma edicao nao exige tocar na CI
+    for ano in EDICOES_ITENS:
+        tabelas[f"itens_prova_{ano}"] = ITENS_PROVA
 
     for nome, colunas in tabelas.items():
         tabela = f"raw.{nome}"
