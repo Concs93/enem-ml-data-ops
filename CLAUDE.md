@@ -43,10 +43,21 @@ tabela, não como binário:
 
 A `dim_escola` ganhou **nome** (Censo 2024), microrregião e infraestrutura.
 
-**A calibração empírica não é detalhe:** nota 800 → θ_efetivo 2,35 contra
-3,05 da fórmula ingênua; nota 500 → 0,50 contra 0,05. Só ~600 coincide.
-Faixas ≤ ~380 saturam no piso da grade (−3,00) — região de prova em branco,
-onde a TCC não desce; comportamento esperado, não bug.
+**A calibração empírica não é detalhe** — e não é correção da escala do
+INEP. `nota = 100·θ + 500` é **definição** ("ENEM — Procedimentos de Análise":
+EAP na escala de 2009, grupo de referência normal padrão, equalização por itens
+comuns). O `theta_efetivo` é **outra quantidade**: o θ cuja TCC reproduz o total
+médio de acertos observado na faixa — a ponte "nota → acertos esperados", que o
+INEP não publica e o produto precisa.
+
+As duas **coincidem no miolo da escala**: entre 450 e 700 a diferença média é
+~0,2 nas quatro áreas (MT faixa 610: ambas dão 1,15) — validação do modelo, não
+divergência. Afastam-se nas caudas: no topo (nota 805 → 2,35 medido contra 3,05
+da escala) porque a nota vem do *padrão* de respostas e a TCC é côncava ali —
+a média dos acertos de um grupo fica abaixo do acerto previsto para o θ médio;
+no piso (≤ ~380, saturando em −3,00) porque prova em branco não chuta e o
+observado cai abaixo do piso de acerto casual do 3PL. Comportamento esperado e
+declarado em tela, não bug.
 
 **A prioridade muda com o nível** (a tese do produto): em MT, θ=0,5 → H4/H10/
 H25; θ=2,0 → H28 dominante (informação 7,3). E H28 é a mesma habilidade em
@@ -76,7 +87,758 @@ medição que mudou o motor" — Poisson-binomial, morte do nível 2, calibraç�
 empírica), código real nos blocos (incluindo o join `is_regular` que o
 rascunho não tinha), e README com o motor e a geografia.
 
-**Próximo: Volume 9 — API e site** (as duas faces; o `lz` calcula na API).
+### Face do aluno — site estático, com o nível 3 dentro
+
+`dbt test` verde: **83/83** (32 modelos). Não há API: o site é estático e o
+cálculo roda no navegador. `export/export_site.py` gera `webapp/dados/motor.json`
+(0,6 MB) a partir dos marts, com validação de conservação que **falha antes de
+gravar**.
+
+O `mart_item_prova` (740 linhas) é o caderno das 16 provas regulares — posição,
+gabarito, parâmetros e habilidade. Com ele o **nível 3** existe sem servidor: a
+pessoa cola as 45 respostas no formulário e **a correção acontece no aparelho
+dela**; o caderno desce, as respostas nunca sobem. Tudo ali já é público nos
+artefatos do INEP; o mart só muda o formato.
+
+O que o vetor muda no produto: o "vale até +X pontos" deixa de usar a média de
+quem tem aquela nota e passa a **contar as questões que a pessoa errou**; as
+questões aparecem numeradas como no caderno real (LC 1–45 · CH 46–90 ·
+CN 91–135 · MT 136–180); e o destaque de **pontos baratos** (erro em questão que
+≥60% do nível acerta) vira o conselho mais acionável da tela.
+
+O teste `item_prova_completa` trava caderno incompleto: 45 questões (50 em LC,
+que carrega as duas línguas) e válidas exatas por área — **CH 45 · CN 42 ·
+LC 50 · MT 43**, os cinco não avaliáveis da edição.
+
+**Medido com vetor individual (4.000 participantes de MT):** re-estimar a nota
+pelo padrão de respostas dá correlação **0,9907** com a oficial. A fórmula
+`500 + 100·θ` **não** reproduz a unidade — erra ~80 pontos no topo, e o desvio
+não se move ao trocar o priori: é a régua de equalização do INEP, não a receita
+do estimador. Ajustando dois parâmetros (`nota = 487,7 + 135,4·θ`) o erro cai
+para **±13 pontos**, com viés ~zero em todas as faixas. Confirmação cruzada:
+essa reta dá θ 2,31 para nota 800, contra **2,35** da calibração empírica do
+Passo 0 — dois caminhos independentes, mesma resposta.
+
+### A ordem da tela: ganho de um passo, não informação de Fisher
+
+Erro de desenho pego olhando a tela pronta: a lista era **ordenada por
+informação** e **rotulada com o teto** (ganho de dominar tudo). São duas
+medidas diferentes, e elas divergem forte — em LC 583 a competência em 1º
+tinha teto **+5** e a em 6º tinha **+25**; em MT 612 o maior teto (+70) caía
+em 6º. Para quem lê, a ordem parecia invertida. Estava mesmo: **ordem e número
+em destaque não podem se contradizer.**
+
+Solução: o número em destaque passou a ser o **ganho de um passo** — o mesmo
+avanço de θ (0,5) aplicado a todo conteúdo, medindo onde ele devolve mais
+acerto e, pela calibração, mais nota. A lista desce por ele, por construção. O
+teto continua visível ao lado, rotulado como tal.
+
+Por que isso **não** trai a tese do produto: o ganho de um passo é a derivada
+da curva característica restrita àquela competência, e ela também zera nas duas
+pontas (conteúdo dominado não tem o que ganhar; conteúdo distante tem curva
+plana). Em MT 450, a competência com informação 0,0 — a mais distante — fica em
+**último** por essa métrica, e a de informação mais alta fica em primeiro. A
+proteção contra "estude o que você mais erra" continua de pé.
+
+Onde a métrica nova é **melhor** que a informação: informação mede *precisão
+de medida*, não *ponto disponível*. LC C2 (língua estrangeira, 3–5 itens) tinha
+a maior informação da área e quase nada a entregar. O ganho de um passo pesa o
+número de questões naturalmente.
+
+Verificado em **60 casos** (4 áreas × 2 línguas × 6 faixas de nota × com e sem
+vetor): ordem e números exibidos monotônicos em todos.
+
+Bug irmão, achado no mesmo teste: a curva empírica **acaba** onde os dados
+acabam (LC em 745, CH em 775, CN em 795, MT em 965). Quem digitava acima disso
+saturava e via **+0 em tudo**. O `notaPorAcertos` agora estende o topo pela
+inclinação dos últimos trechos (janela de 4 pontos) e marca o trecho como
+extrapolado — o rótulo vira "+X pontos ou mais".
+
+### Tom: oportunidade, nunca comparação — e o topo também recebe resposta
+
+A tela falava por comparação: *"escaparam questões que a maioria do seu nível
+acerta"*, *"menos acertos que o comum"*, *"de cada 100 pessoas no seu nível"*.
+Tecnicamente correto e pedagogicamente ruim: o mesmo dado, dito assim, vira
+veredito sobre a pessoa. Auditoria completa do texto visível — **17 trechos**
+reescritos.
+
+A régua adotada, que vale para todo texto novo:
+
+- **Nunca comparar a pessoa com outras pessoas.** O dado da população entra
+  como método (na seção "como é calculado"), nunca como julgamento na tela.
+- **Nomear a oportunidade, não o déficit.** "questões com ótima oportunidade
+  de ganho" no lugar de "questões que escaparam".
+- **Nenhum rótulo negativo.** Ganho ~zero tem duas causas opostas, e a tela diz
+  qual: *"você já domina — mantenha em dia"* (esperado ≥ 80%) ou *"rende mais
+  depois dos primeiros da lista"* (conteúdo ainda distante). Antes era um
+  genérico "sem ganho a esta altura", que soava como porta fechada.
+- **Quem acerta tudo não fica sem resposta.** Não há lista a dar, e a tela
+  passa a dizer o que fazer: *lapidar o que já domina* — manter o conteúdo em
+  dia, treinar precisão e tempo para que o desempenho se repita no dia da
+  prova. Vale nos três níveis: habilidade, competência e área — e também para
+  quem tem nota alta **sem** ter colado respostas (gatilho: ganho total da
+  área < 12 pontos).
+
+Vocabulário unificado (a mesma ideia com o mesmo nome em toda a tela): *ao seu
+alcance* · *oportunidade de ganho* · *você já domina* · *lapidar*. As classes
+CSS acompanharam (`.qtag.barato` → `.qtag.chance`, `.destaque-barato` →
+`.destaque-oportunidade`), porque nome interno que contradiz o produto é dívida
+de leitura.
+
+### Crivo de UX — 42 achados confirmados, 4 descartados
+
+Três revisores independentes (hierarquia, cor, responsividade), cada achado
+passando por um verificador cético contra o arquivo. O que era **medível** eu
+tinha calculado antes; o crivo pegou o resto.
+
+**Contraste — duas falhas reais.** No tema escuro o accent é *claro*
+(`#2dd4bf`), então `color:#fff` sobre ele dava **1,86** — o botão principal e
+os selos eram ilegíveis. A causa é conceitual: **o accent que funciona como
+traço não é o que funciona como fundo de texto.** Viraram dois tokens,
+`--accent-fill` e `--sobre-accent`, que trocam de valor entre os temas
+(5,47 no claro · 9,54 no escuro). O código `H21` a 13px negrito dava 3,74 e
+passou a `--accent-deep` (7,58).
+
+**A correção que não pegou.** `.hab .pos` foi corrigida na regra genérica, mas
+todos os `.hab` renderizados vivem dentro de `details.compbloco`, cuja regra
+vence por especificidade — a cor nova nunca chegou à tela. Só apareceu porque
+o revisor conferiu o DOM em vez do CSS. **Corrigir a regra errada tem a mesma
+aparência de sucesso que corrigir a certa.**
+
+**Semântica de cor: uma ideia, uma cor.** "Você acertou" saía em quatro cores
+na mesma tela, e o mesmo conjunto de questões recebia verde no bloco e âmbar
+na etiqueta a 20px de distância. Pior, o gradiente estava **invertido**:
+vermelho (a cor mais alarmante) marcava erro em conteúdo *avançado* —
+exatamente o que o método manda **não** priorizar. Agora: verde = você domina ·
+âmbar = oportunidade ao seu alcance · vermelho = **só** erro de entrada · erro
+em conteúdo distante = neutro.
+
+**Hierarquia invertida.** Havia regra para `.hab .meta b` (teal) e **nenhuma**
+para `.cmeta b`: o "+25 pontos" da competência ficava cinza a 12,5px enquanto
+o "+7 pontos" da habilidade *filha* ficava em destaque. E o número que ordena
+a página inteira vivia **dentro** do `<details>` — nos oito blocos fechados o
+leitor via a fila numerada e nada que a justificasse. O valor subiu para o
+`summary`.
+
+**O único overflow horizontal real** era o `summary`: `flex` sem `flex-wrap` e
+`.ctit` com `min-width:auto` travando na maior palavra da Matriz.
+
+**Celular** (metade dos acessos): campos abaixo de 16px disparam zoom
+automático no Safari do iOS **e ele não desfaz**; o campo das 45 respostas
+mostrava 26 e escondia o resto num scroll sem indicação (virou `textarea`); o
+`maxlength` truncava em silêncio quem colava com separadores; e 106px de recuo
+antes do texto eram **27% de uma tela de 390px**.
+
+**Sistemas, no lugar de valores avulsos:** 13 tamanhos de fonte (seis deles
+entre 11 e 13,5px, com meio-pixel que ninguém distingue) viraram **6 degraus**;
+9 raios viraram **4 papéis**. Restou um único `px` literal — os 16px que
+impedem o zoom do iOS.
+
+**Acessibilidade:** `:focus-visible` global (existia só nos campos de nota),
+`prefers-reduced-motion`, o comparativo virou `<button>` com `aria-pressed`
+(era `div`, fora da ordem de Tab — e é a navegação principal), `tabular-nums`
+nas colunas de número, e rolagem até o resultado (no celular ele nascia abaixo
+da dobra e a tela parecia não responder).
+
+### Auditoria adversarial do racional (27/07/2026) — o veredito e as correções
+
+Quatro lentes (psicometria, estatística, verificação numérica, lógica de
+produto) atacaram a corrente de raciocínio inteira; cada ataque passou por um
+juiz cético com acesso ao código e ao banco. **Veredito por elo:** as
+validações (E8) se sustentam; a espinha dorsal é séria; **três erros de conta
+e cinco violações de texto**, todos na camada do site — o mart documentava
+honestamente as próprias limitações e a tela as consumia sem herdar as
+ressalvas. Não por coincidência, o site era a única camada sem testes.
+
+**Os três erros de conta, todos corrigidos:**
+
+1. **O piso saturado quebrava a conversão em pontos.** As faixas 310–360
+   saturam em θ=−3,00 (região de prova em branco — 225 mil participantes), a
+   curva nota↔acertos via TCC ficava **plana** ali, e inverter curva plana
+   transformava milésimos de acerto em **"+40 pontos" fantasma**, com teto
+   extrapolado de "+654" (nota implícita 969). Correção: a curva passou a
+   inverter o **acertos_medio observado** (terceiro elemento da calibração no
+   motor.json — estritamente crescente, 4,11→7,28 no piso), a base ancora na
+   **nota digitada**, segmentos degenerados são colapsados mantendo a maior
+   nota, e a extrapolação tem teto de escala (+10 da última faixa). A região
+   do piso ganhou ressalva na tela e **sai do ranking "comece aqui"**.
+2. **Clamp de θ em 3,00 contra grade que vai a 5,00** zerava os ganhos de MT
+   900–950 — a tela dizia "você não deixou pontos na mesa" a quem deixou ~36.
+   Correção: `TH_MIN/TH_MAX` derivados da grade do motor.json no boot (regra
+   da casa: derivar, nunca transcrever).
+3. **A guarda do vetor só pegava gabarito errado em nota alta** (na metade de
+   baixo da escala o mínimo observado é ≤9, nível do acaso — o vetor de outra
+   edição passava). Correção: guarda de **padrão** (`padraoSuspeito`): vetor
+   real tem gradiente fáceis≫difíceis; vetor corrigido contra gabarito errado
+   é plano (~20%) nos dois grupos. Detecção parcial declarada (~74% com 5
+   itens fáceis; <3% de falso positivo, recuperável).
+
+**As violações de texto, todas corrigidas:** `montaPercentil` inferia causa
+individual que o PLANO.md proíbe no nível 2 (sobre uma zona neutra com largura
+de UM acerto) — virou fato empírico com a ressalva "±1–2 acertos mudam essa
+posição"; "você acertaria ~X%" virou "acerto típico no seu nível" (o SE(θ) com
+45 itens é 0,30–0,96 — 11 a 14 itens trocam de classe verbal dentro de ±1 SE);
+o banner "Comece por estas" ganhou **guarda binomial** (errar ~Σ(1−P) das
+fáceis é o que o próprio 3PL espera — até a média+1 DP é ruído de prova, não
+lacuna); o comentário que citava ρ=+0,44 (configuração descartada) passou a
+citar +0,27 com proveniência; e a escada de confiança por área declarou o
+tamanho do n (ρ sobre 6–9 competências, ICs que se cruzam, 1º lugar no nível
+do acaso) — selo dourado removido do cartão de estudo, "tendeu a se repetir"
+no lugar de "é a que mais se repete".
+
+**A camada ganhou testes: `ci/testa_webapp.js`** — carrega o **código real**
+da página num sandbox de vm com DOM falso (não uma réplica que deriva) e roda
+15 casos, cada um um bug que já existiu: curvas estritamente crescentes,
+milésimo não vira ponto, MT 905 > 0, teto de extrapolação, piso marcado,
+vetor plano recusado, vetor coerente aceito. Requer o motor.json exportado.
+`node ci/testa_webapp.js` → **15/15**.
+
+Nota de conduta da correção do piso: o ganho mostrado ali agora usa o
+gradiente observado (~15–18 pts/acerto), e o passo de área inteira no meio da
+escala vale ~+70–90 pontos — coerente com a reta de equalização (135×0,5≈68).
+O teste de regressão guarda contra 0 e contra absurdo, não contra o valor
+legítimo.
+
+### Um número por conteúdo, e a ordem virou linguagem (27/07/2026)
+
+Feedback do dono do produto: passo E teto em cada linha era informação demais,
+e quem somava as habilidades não encontrava o teto da competência ("em uma
+área o teto vai até +47, mas dentro aparecem +6, +5 e não bate"). O redesenho
+resolve as duas coisas e de quebra implementa a pendência das **faixas de
+prioridade** que a medição de estabilidade recomendava:
+
+- **Um número só**: "dá para ganhar até +X pontos" (o teto). O passo sumiu da
+  tela — vive no motor, decidindo os grupos.
+- **A ordem virou linguagem, não número**: três grupos — *"Comece por aqui —
+  é onde o estudo rende mais rápido no seu nível"* · *"Na sequência"* ·
+  *"Mais distante por enquanto — rende depois de avançar nos primeiros"*
+  (limiares: ≥55% e ≥22% do maior passo; com respostas, competência fechada
+  vira o grupo *"Você já fechou"*). O porquê da ordem está no título do
+  grupo; dentro de cada grupo a lista desce pelo número exibido. É o que os
+  dados sustentam: grupos, não ranking de 1ª a 7ª.
+- **As somas fecham**: o teto da competência é convertido UMA vez e repartido
+  entre as habilidades na proporção das questões recuperáveis (resto do
+  arredondamento vai para a maior fatia). Antes, cada valor era convertido
+  "partindo de hoje" separadamente, e a não-linearidade da curva fazia a soma
+  divergir do total — matematicamente honesto, mas inconferível. Somar é
+  exatamente a conferência que o leitor faz; agora ela fecha, e o teste
+  `confereSomas` no `ci/testa_webapp.js` trava isso (17 casos no total).
+- O comparativo de áreas manteve o passo ("seu próximo passo vale ~+X") com o
+  selo "comece aqui" — área não ganhou teto porque o teto de área é
+  "gabaritar a prova" (+350), número verdadeiro e inútil.
+
+A tese sobrevive visível: em MT 613, a C2 tem o maior prêmio (+69) e **não**
+abre a lista — abre o grupo onde o estudo converte agora. Ordenar pelo prêmio
+seria "estude o que você mais erra", o conselho que o produto existe para
+corrigir; a diferença é que agora essa lógica está num título de grupo que
+uma pessoa de 17 anos lê, não em dois números que ela precisa reconciliar.
+
+### Página "Como funciona" (metodo.html) — e o crivo que a corrigiu
+
+A pedido do dono do produto, a trilha completa do mérito virou página própria
+(`webapp/metodo.html`, no nav e no fim do expansível): as dez seções percorrem
+da calibração às fontes, incluindo "revisar ≠ estudar" e onde o peso fino por
+questão entra ou não. **Página de método com erro seria pior que nenhuma**,
+então três verificadores conferiram cada afirmação contra o código e os dados
+— e acharam **13 problemas, todos corrigidos**. Os que ensinam:
+
+- **Eu tinha a direção da curva errada.** Escrevi "no topo, a escala
+  comprime"; medido no motor.json, perto do topo cada acerto vale **mais**
+  (16–28 pts), e o trecho lento é o **meio** (7–14). A compressão do topo é em
+  *acertos por nota*; em *pontos por acerto* — o que a frase afirmava — é o
+  inverso. Corrigido também o "±15 a 25" que eu repetia sem nunca ter medido
+  (o registrado é ±13 na conversão nível↔nota, mais o sorteio de questões).
+- **"A soma de todos os tetos leva ao topo" era falso em geral.** Verdade por
+  coincidência em MT 613; em MT 500 a soma dos tetos dá 640 (nota implícita
+  1140). Fechar tudo *de uma vez* leva ao topo; somar cenários separados,
+  não — a página agora explica com a analogia dos cupons.
+- **O piso de "+1" por habilidade quebrava as somas** em 16% dos casos
+  (205/1.287 combinações testadas): fatia que arredondava a zero virava 1 e a
+  soma passava do cabeçalho. Consertado no código: o piso agora desconta da
+  maior fatia, e o teste de somas apertou para ±1.
+- "1,27 milhão por área" só vale em MT/CN; CH e LC têm 1,32–1,33 (corrigido
+  aqui, no README e no expansível). "Quem acertou todas" só existe em MT — nas
+  outras áreas o topo observado não corresponde a gabarito perfeito. A guarda
+  do vetor é **unilateral** (só abaixo do mínimo) e a página agora diz isso.
+
+### O teto da curva não era o teto da escala (achado de usuário)
+
+O dono do produto conferiu no noticiário: a maior nota de CH em 2025 foi
+**856,4** — e o site dizia que o topo da área era ~775. Os dois números são
+verdadeiros e medem coisas diferentes: o `having n >= 100` da calibração corta
+as faixas raras, então **a curva calibrável termina onde acaba a amostra**
+(~770 em CH), mas a escala vai além. O site limitava o "ou mais" no fim da
+curva — dizendo *menos* do que a escala realmente pagou.
+
+Correção na estrutura, não no texto: `int_nota_maxima` (uma varredura, 5
+linhas) leva a maior nota real por área/língua ao `mart_calibracao_nota`
+(coluna `nota_maxima_area`), que viaja no motor.json (`maxNota`) e vira o
+teto físico das extrapolações. Os máximos reais de 2025, prova regular:
+**MT 980,3 · CN 858,7 · CH 856,4 · LC 794,5**. A página do método agora cita
+esses números e explica a diferença entre curva calibrável e escala.
+
+No mesmo episódio, o usuário somou **tudo** que dizia "até +X" na tela (~803):
+competências + habilidades, nos dois cartões — quádrupla contagem (habilidades
+já somam as competências; os dois cartões são dois cenários sobre as mesmas 45
+questões). Os dois cartões agora dizem: *"valores de conteúdos diferentes não
+se somam — cada um parte da sua nota de hoje"*. E o vetor usado no teste não
+era de CH/2025 (6–12 acertos em todas as cores, contra 22–32 esperados para a
+nota) — a guarda de coerência o recusou corretamente; o caso confirmou que ela
+funciona, e que o aviso precisa ser notado: ele aparece sob o campo da área.
+
+### A partição completa: o mapa virou o caminho até o topo (27/07/2026)
+
+Segundo achado do mesmo usuário testando somas: convertendo cada competência
+como cenário separado, a soma das competências **estourava a nota máxima**
+(cupons de desconto). E ele formulou o alvo do produto melhor que nós: *"o
+ideal é o que o aluno teria que estudar para atingir a nota máxima, e qual a
+ordem"*.
+
+O desenho final: **"fechar tudo" é convertido UMA única vez** (com o teto
+físico da escala) e o total é **repartido** — competência recebe sua fatia na
+proporção das questões recuperáveis; habilidade, a fatia dentro da
+competência. Tudo telescopa: habilidades somam a competência, competências
+somam o total, e a linha nova *"Fechando tudo: até +X — da sua nota N para
+~M"* dá o número conferível no topo do cartão. Nos dois cartões (2025 e
+histórico).
+
+Exemplo real (CH 565): total +272 → chegada ~837, abaixo do máximo real
+856,4; as seis competências (74+42+40+36+33+47) somam exatamente 272. A ordem
+continua dos grupos (rendimento do passo); o valor é a fatia do caminho.
+
+O significado do número por competência mudou de "se eu fechasse só isto,
+partindo de hoje" para **"a parte desta competência no caminho até o topo"**
+— mais simples, somável, e é a pergunta que o usuário fazia. Três testes novos
+travam a partição nos dois cartões (`ci/testa_webapp.js`, 22 casos).
+
+### Cada cartão tem a sua moeda (27/07/2026)
+
+Terceiro achado do mesmo usuário, e o mais conceitual: *"pra próxima, essa
+pontuação está almejando o quê?"* — e a resposta honesta era **nada
+defensável**. Pontos no cartão do histórico miravam uma prova que não existe,
+com a curva de conversão de 2025 e uma transferência de ordem medida como
+fraca (ρ +0,27; CH −0,01). Precisão fabricada.
+
+Decisão: **cada cartão fala na moeda que a sua fonte mede bem.**
+
+| cartão | moeda | por quê | soma |
+|---|---|---|---|
+| Diagnóstico (2025) | **pontos** | a prova existe, a escala é a dela | até o topo real |
+| Próxima (2020–2025) | **questões** | peso típico do conteúdo é o que 6 edições medem | as 45 da prova |
+
+O cartão da próxima agora mostra "~7,0 questões" por competência (fatias que
+somam 45,0), com grupos por rendimento e o selo "✓ também em 2025" — e o
+subtítulo diz onde os pontos moram e por quê. Os testes trocaram junto: o
+cartão de estudo **não pode** conter "pontos" nem "Fechando tudo" (22 casos).
+
+**Link externo: só para a fonte do conteúdo.** A tela mostra os códigos `C3` e
+`H8`, e agora aponta para a
+[Matriz de Referência do INEP](https://download.inep.gov.br/download/enem/matriz_referencia.pdf)
+— sem ano na URL, então o link acompanha a edição vigente sozinho. Isso não
+contradiz a decisão de tirar todo vínculo com GitHub/código aberto: aquilo
+expunha *como o site é feito*; isto dá ao estudante a **fonte oficial do que
+ele está lendo**. Único link externo da página (auditado).
+
+Termo corrigido: **probabilidade**, não "chance". Em estatística *chance*
+traduz *odds* (p/(1−p)); o que a tela mostra é P. Custa uma palavra mais longa
+e ganha precisão — e "probabilidade" não é jargão para quem está no ensino
+médio.
+
+### Auditoria por lentes de leitor — 29 confirmados, 25 descartados
+
+Três leitores independentes leram o texto visível: um estudante de nota baixa
+(gatilho), um de nota alta (o site fala com ele?) e um professor de português
+(concordância e consistência). Cada achado passou por um verificador cético.
+O que só a leitura pela lente do topo pegou:
+
+- **Quem gabarita via `+0 pontos` nas quatro áreas** com "— comece aqui"
+  colado num zero, e o selo de ouro indo para LC por acidente (o `sort` é
+  estável e todos empatam em 0). Agora existe **modo manutenção**: sem selo,
+  sem barra, sem numeração, com o texto de lapidação no lugar da fila.
+- **A lista contradizia o próprio cabeçalho**: depois de "não há o que
+  corrigir aqui" vinham 30 habilidades numeradas por prioridade. Ordenar
+  conteúdos empatados em zero inventa urgência — virou inventário.
+- **`montaPercentil` dizia o oposto do insight** logo acima. Suprimido no modo
+  manutenção.
+- **Total de acertos acima do máximo observado era acusado como erro.**
+  É o contrário: desempenho no extremo. Só o caso *abaixo do mínimo* continua
+  como suspeita de erro.
+- Seis plurais quebrados que só aparecem com n=1: `+1 pontos`, `✓ 1 acertos`,
+  `as 1 que ainda podem`, `das 7` (sem substantivo).
+- **`nome.split(" ")[0]`** fazia CH e CN aparecerem as duas como "Ciências"
+  nas linhas do gabarito — duas linhas idênticas, convite a colar as respostas
+  na área errada. Virou um mapa `CURTO` de nome único por área.
+- "cole suas respostas" — em boca de estudante, **colar é trapacear**.
+  Padronizado em "preencher".
+
+### Fallback de edição: a nota atravessa anos, o acerto não
+
+Alguém pode trazer nota e acertos de **outra edição** do ENEM. O que vale para
+cada entrada:
+
+| entrada | atravessa edições? | por quê |
+|---|---|---|
+| nota | **sim** | a TRI equaliza todas as edições na mesma escala |
+| total de acertos | **não** | cada ano tem prova própria; E(θ) muda com os itens |
+| vetor de respostas | **não** | o gabarito é de 2025 |
+
+Consequência de produto: **a nota sozinha já monta o mapa** — é o fallback, e
+ele já funcionava por construção (sem acertos, a tela usa só a nota). O que
+faltava era *dizer isso*. Agora a mensagem de fora de faixa oferece as duas
+leituras: confira a área/contagem, **ou** é de outra edição e seguimos com a
+nota.
+
+Guarda nova no vetor: se o total derivado cair **abaixo do mínimo já observado**
+para aquela nota, o cartão é recusado com explicação. Um vetor de outra edição
+(ou da cor errada) é corrigido contra o gabarito errado e cai no nível do
+acaso — corrigir mesmo assim daria um mapa confiante e completamente falso.
+A guarda pega bem no topo e pouco na base (onde a faixa observada é larga), e
+isso está documentado aqui de propósito: é detecção parcial, não garantia.
+
+Ressalva que fica: as prioridades refletem o **mix de itens da prova de 2025**.
+A Matriz é a mesma entre edições, então o conselho por competência transfere
+razoavelmente; a ordem exata, não. **Quanto?** Medido abaixo.
+
+### A ordem das competências é menos firme do que a tela sugere — medido
+
+Pergunta levantada revisando o produto: a dificuldade de cada habilidade é
+propriedade do *conteúdo* ou dos *itens daquele ano*? Dá para testar **dentro
+de 2025**, partindo os itens ao meio e vendo se as duas metades concordam.
+Três medidas, nos 180 itens válidos distintos das provas regulares:
+
+**1. Split-half da ordem (correlação de postos entre as duas metades):**
+
+| área | ρ por θ (0,0 · 0,5 · 1,0 · 1,5 · 2,0) | mesmo 1º lugar |
+|---|---|---|
+| CH | −0,71 · +0,14 · −0,03 · +0,37 · +0,14 | 0 de 5 |
+| CN | +0,07 · −0,31 · +0,24 · +0,67 · +0,55 | 1 de 5 |
+| LC | +0,14 · +0,48 · +0,19 · +0,81 · +0,76 | 1 de 5 |
+| MT | +0,18 · −0,25 · +0,04 · +0,18 · +0,04 | 2 de 5 |
+
+Metade dos itens discorda da outra metade sobre o que estudar primeiro.
+
+**2. Os itens de uma mesma habilidade nem sempre concordam entre si.**
+Amplitude do parâmetro *b* **dentro** da habilidade: mediana 0,38 (LC) a 1,03
+(CN) — mas o **máximo** chega a 2,70 em CH (que é a amplitude inteira da área)
+e 2,99 em MT. Duas questões da mesma habilidade podem estar em extremos opostos
+de dificuldade: a habilidade não é uma unidade coerente de dificuldade.
+
+**3. Bootstrap — quanta confiança há no "1ª parada"?** (400 reamostragens dos
+itens dentro de cada competência)
+
+| caso | vencedora | acaso |
+|---|---|---|
+| MT θ=0,5 | C1 **52%** · C6 22% · C3 21% | 14% |
+| MT θ=1,5 | C7 **58%** · C3 17% · C4 10% | 14% |
+| CH θ=0,5 | C6 **46%** · C4 32% · C5 10% | 17% |
+| CH θ=1,5 | C5 **86%** · C3 12% | 17% |
+
+**A leitura correta das três medidas juntas:** há sinal real — 46 a 86% contra
+14 a 17% de acaso é muito acima de ruído. Mas o sinal sustenta um **grupo de
+melhores apostas**, não um ranking de sete posições. O split-half é o teste mais
+duro (corta a evidência pela metade, sem correção de Spearman-Brown) e por isso
+parece pior; o bootstrap é o mais justo para a pergunta "confio nesta ordem com
+estes itens?".
+
+No nível da **área**, a confiança varia com θ: MT em θ=2,0 vence 96% das
+reamostragens (firme), mas em θ=0,0 é cara ou coroa entre LC (52%) e CH (48%).
+
+**E isto tudo é dentro de 2025.** Entre edições os itens mudam por completo, e
+62 das 120 habilidades são medidas por **um item só** — logo a instabilidade
+entre anos é no mínimo desta ordem, provavelmente maior.
+
+O que **sobrevive** a troca de edição: a nota → θ (a TRI equaliza), a Matriz, e
+o princípio de que o ganho mora na fronteira do nível. O que **não** sobrevive:
+qual competência específica está na fronteira, e quanto ela vale em pontos.
+
+**Mas quanto custa errar a ordem?** É a pergunta que importa, e a resposta é
+tranquilizadora: escolhendo a 1ª competência com metade dos itens e medindo o
+ganho real pelo conjunto completo, a perda é de **30%** da vantagem disponível —
+e em **11 de 20 casos** a escolha foi exatamente a melhor. Nunca pior que
+sorteio. A correlação horrível acima media a coisa errada: ela tenta resolver a
+ordem completa de 6 a 8 competências, e as do meio estão genuinamente
+empatadas (1ª rende de 45% a 100% mais que a mediana; da 2ª à 5ª a diferença é
+de poucos pontos).
+
+Consequência para a tela (pendente de decisão): apresentar **faixas de
+prioridade** em vez de 1º a 7º, e escopar a afirmação à edição ("no ENEM 2025").
+O `n_itens` já viaja em todos os marts — o lastro está exposto; falta a
+apresentação parar de prometer uma precisão que a medida não tem.
+
+### Banco de itens multiedição — 6 edições por 184 KB de download
+
+`ingestion/baixa_itens.py` baixa **apenas o `ITENS_PROVA`** de cada edição, sem
+puxar o ZIP inteiro. O truque: o servidor do INEP responde `Accept-Ranges:
+bytes`, então o script lê o diretório central no fim do ZIP, localiza a entrada
+e pede por *range* só os bytes dela.
+
+| edição | ZIP remoto | baixado | economia |
+|---|---|---|---|
+| 2020 | 592 MB | 32 KB | 19.074× |
+| 2021 | 475 MB | 29 KB | 16.547× |
+| 2022 | 592 MB | 35 KB | 17.468× |
+| 2023 | 524 MB | 55 KB | 9.734× |
+| 2024 | 502 MB | 33 KB | 15.371× |
+
+**184 KB no lugar de 2,6 GB.** Os parâmetros de TRI só são publicados a partir
+de 2020 — o script confere o cabeçalho e recusa a edição que não os tiver, em
+vez de gravar um arquivo inútil.
+
+Compatibilidade verificada, e ela sustenta o pooling:
+
+- **Mesmas 14 colunas** em todas as edições (2020 traz `TP_VERSAO_DIGITAL` a
+  mais, do ENEM digital daquele ano). Nenhuma coluna falta.
+- **Parâmetros na mesma escala**: *b* médio entre 1,10 e 1,26 · p10 entre −0,00
+  e 0,21 · p90 entre 2,16 e 2,41 · *c* médio entre 0,175 e 0,181 nas seis
+  edições. É o que a equalização sobre banco de itens comum deve produzir —
+  confirmação empírica de que somar edições é legítimo.
+
+**O teste decisivo — as 5 edições anteriores preveem a ordem de 2025?**
+Ranqueando as competências com 2020–2024 e conferindo contra 2025:
+
+| | correlação média | 1º lugar previsto |
+|---|---|---|
+| passado (5 edições) → 2025 | **+0,44** | 9 de 20 |
+| metade de 2025 → outra metade | +0,19 | — |
+
+O passado prevê 2025 **melhor do que metade de 2025 prevê a outra metade**.
+Há sinal cross-edição real. E ele **varia muito por área**: LC acerta o 1º
+lugar em **5 de 5** níveis (ρ 0,45–0,83); CH e MT quase não transferem. Isso
+autoriza dizer a confiança **por área** em vez de fingir precisão uniforme.
+
+Lastro por habilidade no banco reunido: de ~4,5 itens (2025, todos os tipos de
+prova) para **~22**. Nenhuma habilidade com um item só.
+
+### Dois cartões, duas perguntas — `mart_perfil_estudo`
+
+Ingerido e construído. `dbt test` verde: **88/88** (34 modelos). A decisão de
+desenho: **não é uma fonte ou outra, são as duas**, porque respondem a
+perguntas diferentes e o site mostra as duas em cartões separados.
+
+| cartão | fonte | pergunta |
+|---|---|---|
+| Diagnóstico da sua prova de 2025 | `mart_perfil_habilidade` (itens de 2025) | o que aconteceu na prova que eu fiz |
+| O que estudar para a próxima | `mart_perfil_estudo` (banco 2020–2025) | o que costuma render no meu nível |
+
+Não são versões da mesma resposta: as três primeiras competências coincidem
+em média **1,5 de 3**. Se coincidissem 3/3 o segundo cartão seria redundante.
+
+`EDICOES_ITENS` no `ingestion/config.py` é a fonte única da lista de edições —
+a ingestão, a CI (`cria_raw_vazia`) e as sources derivam dela, então
+acrescentar 2026 é uma linha. O `load_raw.py` já era parametrizado por ano e
+não precisou mudar.
+
+**A normalização é onde um pooling ingênuo erraria feio.** O banco tem seis
+edições e, dentro de cada uma, **12 a 18 versões de prova** (regular,
+reaplicação, acessibilidade, BAM) — ~20× mais itens que numa prova. Somar cru
+transformaria a lista num ranking de "quantas vezes o conteúdo apareceu". O
+mart usa **rendimento por questão × proporção de itens da área × 45**, e o
+teste `estudo_escala_de_uma_prova` trava a invariante: os `itens_por_prova` de
+um nível somam 45. Assim os dois cartões ficam na mesma unidade e são
+comparáveis lado a lado.
+
+Duas armadilhas que morderam ao construir:
+
+- **LC precisa da união por língua também aqui.** Sem ela aparece um terceiro
+  grupo com `cod_lingua` nulo, que não corresponde a participante nenhum, e as
+  habilidades 5–8 somem para quem fez a outra língua. Mesma regra do
+  `mart_perfil_habilidade`.
+- **Tolerância do teste ≠ afrouxar a exigência.** A primeira versão do
+  `estudo_escala_de_uma_prova` usava 0,01 e reprovou 322 linhas: a coluna é
+  gravada com `round(...,2)`, e somar 30 valores arredondados acumula até 0,15
+  (LC/espanhol dá 44,96, e está certo). A tolerância virou 0,25 — o erro que o
+  teste existe para pegar levaria a soma para ~120.
+
+### Banco só com provas regulares — e o preço medido da pureza
+
+Decisão do dono do produto: o banco de estudo usa **só provas regulares**,
+igual ao mart de 2025. A recomendação descreve a prova que a pessoa vai fazer.
+
+Para isso o `co_prova_banco.csv` (400 linhas, versionado) classifica as versões
+das seis edições pela mesma regra do `co_prova` de 2025. O
+`build_co_prova_banco.py` baixa de cada ZIP **apenas o script `INPUT_R`**
+(~3 KB de um pacote de 500 MB), pelo mesmo truque de range — e valida
+**16 provas regulares por edição, 4 por área**, falhando alto se não der.
+
+**Três armadilhas, todas silenciosas, todas encontradas pela validação:**
+
+- **ENEM Digital (2020 e 2021).** Rótulo `"Azul (Digital)"` — sem `" - "`,
+  sem `"Reaplica"` — caía em `regular` no `classifica_prova`. A edição
+  aparecia com 8 provas regulares por área.
+- **"Segunda oportunidade" (2021).** Data extra da pandemia, mesmo defeito.
+- **A causa raiz das duas:** o classificador terminava em `return "regular"`,
+  ou seja, **qualificador desconhecido virava prova regular em silêncio**.
+  Agora qualquer parêntese não reconhecido cai em `outra_aplicacao` — o
+  default errа para o lado seguro e o nome novo aparece no resumo.
+
+**E uma quarta, no SQL:** o `distinct on (edicao, co_item)` escolhia o menor
+`co_prova`, que para centenas de itens era uma versão de contingência sem
+rótulo no script do R. O item **existia na prova regular** e mesmo assim ficava
+com `is_regular` nulo, sumindo pelo filtro. A ordenação agora prefere a versão
+regular. Sintoma antes da correção: 211 itens "sem classificação" em 2020.
+
+O teste `banco_cobre_edicoes` passou a exigir o número **exato** da prova —
+45 itens em CH/CN/MT, 50 em LC — em vez de um piso frouxo. A contagem frouxa
+não teria pego a quarta armadilha.
+
+**O preço, medido e não suposto:**
+
+| | lastro por habilidade | ρ (2020-24 → 2025) | 1º lugar previsto |
+|---|---|---|---|
+| todas as aplicações | ~22 itens | +0,44 | 9 de 20 |
+| **só regulares** | ~9 itens (mín. 5) | **+0,27** | 2 de 20 |
+
+Filtrar custou poder preditivo — menos itens, estimativa mais ruidosa. Ainda é
+melhor que uma edição sozinha (+0,19), e só um pouco. Por área:
+**LC +0,50 · CN +0,42 · MT +0,16 · CH −0,01** — em Humanas não há
+transferência mensurável entre edições, e a tela passou a dizer isso com todas
+as letras em vez de rotular a área como "confiança baixa".
+
+`dbt test` verde: **89/89**.
+
+### Tipo de prova: como os dois marts divergiam (histórico)
+
+Pergunta que expôs isso: *"aqui estamos usando só as versões regulares?"* — a
+resposta era **não, e por descuido**. Agora é decisão medida:
+
+| mart | tipos de prova | por quê |
+|---|---|---|
+| `mart_curva_item` → diagnóstico 2025 | **só regular** (`is_regular`) | tem de bater com a prova que a pessoa fez |
+| `mart_perfil_estudo` → banco | **todas** | a pergunta é "qual a dificuldade típica"; mais item, melhor medida |
+
+Medido em 2025 (única edição com os tipos classificados — o `TX_COR` do
+arquivo de itens traz **só a cor**; o qualificador de reaplicação vem do
+dicionário, que não baixamos para as outras edições):
+
+| tipo | itens | b médio | a médio |
+|---|---|---|---|
+| regular | 180 | 1,17 | 2,27 |
+| reaplicação | 184 | 1,13 | 2,18 |
+| acessibilidade | 186 | 1,16 | 2,26 |
+
+Viés por habilidade entre −0,12 e +0,12. As outras aplicações são **outra
+amostra do mesmo desenho**, não uma prova mais fácil — incluir triplica o
+lastro sem enviesar. Item individualmente **adaptado** continua fora.
+
+### O NULO que apagou uma edição inteira, em silêncio
+
+Na mesma investigação: **2021 estava contribuindo zero itens**. O
+`IN_ITEM_ADAPTADO` daquela edição vem **vazio** em vez de `"0"`; o macro
+`booleano()` devolve nulo; e `not nulo` é nulo — que não é verdadeiro. O
+filtro descartou os 370 itens da edição sem erro nenhum, e as outras cinco
+davam totais plausíveis o bastante para não chamar atenção.
+
+É a família de defeito que o projeto já conhece — *linha ausente é omissão
+silenciosa* — num disfarce novo: aqui não é a linha que falta na origem, é o
+**nulo num filtro booleano** que a descarta. Contagem por si não denuncia; só
+denuncia quem exige **presença de cada parte**.
+
+Solução: `not coalesce(item_adaptado, false)` e o teste
+`banco_cobre_edicoes`, que reprova se qualquer edição contribuir menos de 30
+itens úteis em qualquer área. `dbt test` verde: **89/89**.
+
+Resultado no lastro depois da correção: **mínimo de 13 itens por habilidade**
+(média ~20), contra 0 a 2 na prova regular de 2025.
+
+O cartão de estudo mostra a **confiança por área** medida acima — LC "esta
+ordem se repetiu em todos os níveis testados", CH e MT "trate as primeiras
+como um grupo de boas apostas, não como fila exata" — e marca com
+**"✓ também em 2025"** a competência que aparece no topo das duas leituras.
+A discordância medida virou confiança visível, em vez de ressalva genérica.
+
+### A prova não mede todo mundo com a mesma precisão (28/07/2026)
+
+Pergunta que ninguém tinha feito: **o conselho sobrevive à incerteza da própria
+nota?** O erro-padrão de θ varia **9×** ao longo da escala — ±16 pontos na nota
+700, ±82 na nota 400. A causa é estrutural e não tem conserto no código: quase
+toda questão está *acima* do nível de quem tira nota baixa, e questão muito
+acima quase não informa (o acerto vira chute). A prova separa mal quem está em
+401 de quem está em 499.
+
+O site calculava tudo num ponto e falava com a **mesma confiança** em toda a
+escala. Medido antes da correção: **11,7%** das competências abaixo de 500
+pulavam de *"comece por aqui"* para *"mais distante"* dentro de um erro-padrão,
+contra **0,3%** entre 505 e 700. E ali estão **2,0 milhões de participantes
+(42,8%)** — o maior grupo isolado de usuários.
+
+**A correção é integrar, não remendar:** o ganho passou a ser a média ponderada
+sobre a faixa plausível da nota (7 nós, pesos com média 0 e variância 1), em vez
+do valor num ponto. Não muda a tela — mesmos grupos, mesmo formato — e muda os
+números só onde a medida é ruim: **até 24%** em CH 400, **0–5%** no miolo.
+
+Duas alternativas foram medidas e **reprovadas**, e o motivo de cada uma ensina:
+
+| regra | contradições ≤500 | por quê falhou |
+|---|---|---|
+| fundir em 2 grupos | 38,3% | o grupo do meio **amortece**; sem ele todo deslocamento brando vira contradição |
+| reatribuir por estabilidade | 26,1% | a reatribuição depende de θ, que é justamente o que está incerto — amplifica |
+| **integrar sobre a incerteza** | **~0%** | — |
+
+Verificação contra alisamento excessivo (o risco oposto): a tese sobrevive —
+**12 de 20** trocas de 1º lugar entre notas vizinhas, e MT em θ≈2,0 continua
+dando **H28 dominante**, o caso registrado acima.
+
+**O bug que rodou, passou nos testes e não fazia nada.** A grade do perfil é
+discreta (passo 0,05, derivado no boot). `θ + z·SE` não cai nela, `grade()`
+devolvia `undefined`, os nós eram descartados **em silêncio** e sobrava o
+central — a média virava o valor pontual. Os 22 testes ficaram verdes porque
+nada havia mudado. É a família *"linha ausente é omissão silenciosa"* num
+disfarce novo: aqui o descartado é o **nó de quadratura**.
+
+**E o teste que travava isso era falso.** A primeira versão exigia só que o
+resultado *diferisse* do cálculo pontual. Não bastava: sem o encaixe,
+`toFixed(2)` arredonda para 0,01 contra grade de 0,05, então ~1 em 5 nós
+sobrevive por coincidência — o número muda, com pesos errados. Reintroduzindo o
+bug, a suíte inteira ficava verde. O teste que funciona **refaz a quadratura por
+fora e exige igualdade**. Lição: *teste que aceita "mudou" não trava
+"mudou certo"*.
+
+**O ±X pontos estava errado por até 2×.** A ressalva convertia o erro-padrão em
+pontos com `100·SE` — a constante da escala **oficial** aplicada à curva
+**empírica** do site, cuja inclinação vai de **57 a 200** pontos por unidade de
+θ conforme a faixa. Mesmo erro de categoria entre θ e `theta_efetivo` que o
+projeto já documenta. Em CN 400 o número caiu de 49 para **34**. Agora sai da
+própria tabela de calibração, por interpolação.
+
+Dois bugs **anteriores** a esta mudança, achados de passagem e corrigidos: o
+troféu *"você já está no alto desta área"* aparecia em nota de **piso**
+(310–360), dizendo o oposto da realidade; e no topo real da grade (MT ≥ 955,
+onde o par de níveis é medido para trás) o `tetoHab` media a folga **meio passo
+abaixo** da pessoa, inflando o teto ~4× — o cartão de quem acerta as 43 questões
+válidas oferecia +14 pontos a fechar (agora +7, dentro do cartão de topo).
+
+`node ci/testa_webapp.js` → **38/38**.
+
+### A quarta lente: teoria
+
+As três lentes existentes conferem **números e código** — `dbt test` ("meu SQL
+fez o que eu quis?"), Great Expectations ("o dado que chegou é o esperado?") e
+`ci/testa_webapp.js` ("a conta do navegador está certa?"). Nenhuma confere
+**teoria**, e foi por aí que passaram dois erros conceituais que sobreviveram a
+três rodadas de verificação.
+
+`.claude/skills/psicometria/` é a quarta lente: procedimento (página de
+referência, conta reproduzível, ou ressalva explícita — não há quarta opção),
+os invariantes deriváveis com página, uma lista de **9 frases que soam certas e
+estão erradas**, e `scripts/verifica.py`, que calcula sobre os itens reais.
+
+Obtidas legitimamente (em `referencias/`, fora do Git; só o `INDICE.md` é
+versionado): **Andrade, Tavares & Valle (2000)** — a que o próprio INEP cita, com
+o cap. 7.3 sobre equalização no BILOG-MG — e **Baker (2001)**, de distribuição
+gratuita autorizada pelo ERIC, mais o material de aula do Dalton (UFSC) sobre
+escala de habilidade.
+
+A lente já pagou o custo dela. A afirmação *"acertar uma questão difícil sobe
+mais do que acertar uma fácil"* virou derivação, não só medição: pela eq. 5-1 do
+Baker (p. 85), sob 3PL o peso de cada resposta é
+`1,7·a·(P−c)/(P(1−c))`. Sem acerto casual (`c=0`) trocar erro por acerto move o
+**mesmo tanto em qualquer questão** — medido, +0,1389 em todas. Com o `c` do
+ENEM, a fácil move **3,5×** mais. **A assimetria inteira é o parâmetro de acerto
+casual.** Corolário: a frase original não é só imprecisa — sob Rasch é *vazia*,
+sob 3PL é *invertida*.
+
+**Próximo: face do gestor** (exportar `mart_geografia_*`), página de apoio e o
+Volume 9.
 
 ### Etapa 4 — o que ficou de pé
 
@@ -542,6 +1304,29 @@ Usar extrator que trabalhe com o **posicionamento real** de cada caractere
 (`pdfplumber`). A diferença não aparece em teste nenhum — aparece quando alguém
 lê "signif icados" no relatório.
 
+### O que vem DEPOIS da última linha também entra — o ANEXO na CH H30
+
+O `build_matriz.py` fecha uma habilidade quando encontra a próxima (`H\d+ –`) ou
+uma competência. A **CH H30 é a última do PDF**, e logo depois vem o ANEXO com
+os objetos de conhecimento das quatro áreas. Nenhuma linha dele casa com os
+padrões, então todas viraram continuação da H30: **21.710 caracteres** numa
+descrição que tem 93.
+
+O estrago não ficou no seed. A descrição viaja **replicada por escola** nos
+marts: `mart_diagnostico_habilidade` estava com **1.671 MB** e caiu para 1.326
+depois do conserto; a geografia, de 249 para 177. **417 MB de disco** numa
+máquina que vive perto do limite — e ninguém tinha olhado, porque a contagem de
+linhas estava certíssima.
+
+Solução: cortar o texto na linha `ANEXO` (o único marcador de fim que o PDF
+tem) e — o que importa mais — **validar o teto**: descrição acima de 600
+caracteres derruba o script. As guardas existentes perguntavam se a descrição
+era *curta demais* ou vazia; nunca ocorreu que o perigo fosse o excesso.
+
+Lição geral: **todo parser de documento precisa saber onde o documento acaba.**
+Sem marcador de fim, o último registro absorve o rodapé, o anexo, a bibliografia
+— e passa em qualquer teste de contagem.
+
 ### `NU_INSCRICAO` estoura o `integer`
 
 12 dígitos; o `integer` do Postgres vai até 2.147.483.647. Usar o macro
@@ -605,6 +1390,24 @@ conjunto é **idêntico** — as cores são a mesma prova reordenada:
 
 **A quarta cor não é a mesma em todas as áreas** — CH e LC usam Branca, CN e MT
 usam Cinza. São dias diferentes de prova.
+
+### A cor é do CADERNO, e o caderno é do DIA
+
+Consequência da linha acima, que só apareceu ao desenhar a tela: o ENEM aplica
+**LC + CH no 1º dia** e **CN + MT no 2º**, e cada dia tem **um** caderno. Logo a
+cor vale para as **duas áreas do dia** — verificado no dado, cada cor emparelha
+exatamente LC↔CH e CN↔MT:
+
+| dia | áreas | cores |
+|---|---|---|
+| 1º | LC + CH | Azul · Amarela · **Branca** · Verde |
+| 2º | CN + MT | Azul · Amarela · **Cinza** · Verde |
+
+O formulário do site pedia **quatro** cores, uma por área — convite a uma
+combinação que não existe (Branca em Matemática). Agora pede **duas**, uma por
+dia, e as respostas continuam por área porque é assim que a Vista Pedagógica as
+apresenta. Menos campo, menos erro possível, e espelha como a pessoa viveu a
+prova.
 
 Tipos de aplicação no seed `co_prova`: `regular` (16), `acessibilidade` (20),
 `reaplicacao` (14), `bam` (24). A regra de classificação é durável: é regular

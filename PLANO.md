@@ -76,9 +76,13 @@ Regras duras da face do aluno:
     (~7,4 acertos em 43): quem está ali deixa em branco, e branco não chuta —
     o piso `c` do 3PL não vale. No topo, nota 700 ⇒ 24,7 acertos reais vs
     29,7 teóricos. Consequência: o motor mapeia nota→θ pela **calibração
-    empírica** (nota → acertos típicos → θ efetivo via TCC inversa), não por
-    `(nota−500)/100` ingênuo. A tabela medida no Passo 0 vira insumo do
-    produto (`mart_calibracao_nota`).
+    empírica** (nota → acertos típicos → θ efetivo via TCC inversa). Isso
+    **não corrige** a escala do INEP — `nota = 100·θ + 500` é definição
+    (Procedimentos de Análise: EAP na escala de 2009, equalização por itens
+    comuns). É outra ponte, "nota → acertos esperados", que o INEP não
+    publica: as duas coincidem no miolo (~0,2 de diferença entre 450 e 700)
+    e se afastam só nas caudas, pelos dois motivos acima. A tabela medida no
+    Passo 0 vira insumo do produto (`mart_calibracao_nota`).
 - **Passo 1 — fundação.** `stg_censo_escola`; `dim_escola` ganha nome,
   região imediata e infraestrutura. FEITO.
 - **Passo 2 — motor. FEITO** (61/61). `mart_curva_item` (o modelo é uma

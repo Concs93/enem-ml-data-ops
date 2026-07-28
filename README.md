@@ -76,12 +76,16 @@ Os parâmetros de TRI (`a`, `b`, `c`) que o INEP publica viraram um motor
 consultável — **como tabela versionada pelo dbt, não como binário**:
 
 - **Curva e informação por item × nível** (`mart_curva_item`): a prioridade de
-  estudo ordena por *informação de Fisher*, não por taxa de erro — a
-  habilidade que a pessoa mais erra costuma ser a pior escolha de estudo no
-  curto prazo.
-- **Calibração empírica nota → θ** (`mart_calibracao_nota`), medida em 1,27
-  milhão de participantes por área: a fórmula ingênua `(nota−500)/100` erra
-  até 0,7 desvio-padrão nas caudas (nota 800 → θ real 2,35, não 3,05).
+  estudo ordena pelo **ganho de um passo** — quanto o mesmo avanço de nível
+  rende em cada conteúdo — nunca por taxa de erro: a habilidade que a pessoa
+  mais erra costuma ser a pior escolha de estudo no curto prazo. A informação
+  de Fisher viaja no mart como o fato psicométrico subjacente.
+- **Calibração empírica nota → θ efetivo** (`mart_calibracao_nota`), medida
+  em 1,27 a 1,33 milhão de participantes por área. Não corrige a escala do
+  INEP (`nota = 100·θ + 500` é definição): mede a ponte *nota → acertos
+  esperados*, que o INEP não publica. Coincidem no miolo (diferença ~0,2 entre
+  450 e 700); afastam-se nas caudas — no topo porque a nota vem do padrão e
+  não da contagem, no piso por causa das provas em branco.
 - **Distribuição empírica de acertos por nota** (`mart_distribuicao_acertos`):
   valida entrada e responde "entre os participantes com a sua nota, esse
   total está no percentil X" — contagem pura, sem teoria.
