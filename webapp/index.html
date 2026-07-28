@@ -253,7 +253,7 @@
   <div id="resultado" class="oculto">
     <div class="cartao" id="card-comparativo">
       <h2 id="titulo-comparativo">Se você só tiver tempo para uma área, comece por:</h2>
-      <p class="sub" id="sub-comparativo">Avançando o mesmo tanto em cada área, é aqui que a nota sobe mais. <b>Toque ou clique em uma área para ver os detalhes.</b></p>
+      <p class="sub" id="sub-comparativo">Onde o mesmo esforço sobe mais a nota. <b>Toque numa área para ver os detalhes.</b></p>
       <div class="comp-areas" id="comp-areas"></div>
     </div>
     <div id="cards-areas"></div>
@@ -418,7 +418,7 @@ function analisar(){
     ? "Você não deixou pontos na mesa" : "Se você só tiver tempo para uma área, comece por:";
   $("sub-comparativo").innerHTML = tudoZero
     ? `Em todas as áreas você converteu o que estava ao seu alcance — nenhuma devolve ponto novo com um passo de estudo. Daqui em diante o ganho é de <b>lapidação</b>: revisão espaçada para não perder o que já está pronto, simulados cronometrados para blindar o tempo, e leitura atenta do enunciado. <b>Toque ou clique em uma área para ver o que manter em dia nela.</b>`
-    : `Avançando o mesmo tanto em cada área, é aqui que a nota sobe mais. <b>Toque ou clique em uma área para ver os detalhes.</b>`;
+    : `Onde o mesmo esforço sobe mais a nota. <b>Toque numa área para ver os detalhes.</b>`;
 
   // cards em posicao fixa, na ordem da prova; a ordem de estudo vai no selo
   // <button> e nao <div>: e a navegacao principal do resultado, e como div
@@ -1154,9 +1154,9 @@ function cartaoEstudo(a){
   const maxG = Math.max(...lista.map(c=>c.ganho), 1e-9);
   const grupoE = c => c.ganho >= 0.55*maxG ? 0 : c.ganho >= 0.22*maxG ? 1 : 2;
   const TITULO_E = {
-    0: "Comece por aqui — é onde o estudo rende mais rápido no seu nível",
+    0: "Comece por aqui",
     1: "Na sequência",
-    2: "Mais distante por enquanto — rende depois de avançar nos primeiros",
+    2: "Mais distante por enquanto",
   };
   // dentro do grupo, ordena pelo numero exibido (peso em questoes) -- ordem e
   // numero nunca se contradizem
@@ -1203,15 +1203,15 @@ function cartaoEstudo(a){
   // rho(2020-24 -> 2025) por area sobre APENAS 6-9 competencias, entao os
   // intervalos se sobrepoem; a leitura honesta e tendencia, nunca ranking
   const notaConf = {
-    LC: "Em Linguagens esta ordem <b>tendeu a se repetir</b> entre as edições — ainda assim, trate as primeiras como um grupo, não como fila exata.",
-    CN: "Em Ciências da Natureza a ordem <b>tendeu a se repetir em parte</b>: use as primeiras posições como grupo de boas apostas.",
-    MT: "Em Matemática a ordem <b>varia bastante</b> de uma edição para outra. Aqui o mais confiável é o conteúdo em si, não a posição na lista.",
-    CH: "Em Humanas a ordem <b>quase não se repete</b> entre edições — o que cai muda muito de ano para ano. Use esta lista como panorama do que costuma ser cobrado, não como fila de prioridade."
+    LC: "Em Linguagens esta ordem <b>tendeu a se repetir</b> entre as edições.",
+    CN: "Em Ciências da Natureza a ordem <b>se repetiu em parte</b>.",
+    MT: "Em Matemática a ordem <b>varia bastante</b> entre edições — confie no conteúdo, não na posição.",
+    CH: "Em Humanas a ordem <b>quase não se repete</b> entre edições — leia como panorama, não como fila."
   }[a.sig];
 
   return `<div class="cartao">
     <h2>O que estudar para a próxima <span class="nota">${a.nome}</span></h2>
-    <p class="sub">O <b>peso típico</b> de cada conteúdo — quantas das 45 questões ele costuma valer, na média das <b>seis edições de 2020 a 2025</b> (as fatias somam as 45). Pontos ficam no cartão de cima: a escala de pontos é a da prova que já existe. ${notaConf} <span title="a repetição da ordem entre edições foi medida sobre poucas competências por área — leia como tendência">A ordem aqui é tendência, não ranking.</span></p>
+    <p class="sub"><b>Quanto cada conteúdo costuma valer</b> numa prova de 45 questões, na média de <b>2020 a 2025</b> — peso do conteúdo e rendimento no seu nível, juntos. ${notaConf}</p>
     ${blocos}
   </div>`;
 }
@@ -1325,9 +1325,9 @@ function cartaoArea(a){
     : c.agora >= 0.55*maxAgora ? 0
     : c.agora >= 0.22*maxAgora ? 1 : 2;
   const TITULO_GRUPO = {
-    0: "Comece por aqui — é onde o estudo rende mais rápido no seu nível",
+    0: "Comece por aqui",
     1: "Na sequência",
-    2: "Mais distante por enquanto — rende depois de avançar nos primeiros",
+    2: "Mais distante por enquanto",
     3: "Você já fechou — mantenha em dia",
   };
   const ordenada = manutencao
@@ -1338,7 +1338,7 @@ function cartaoArea(a){
   // a linha que responde "e se eu fizer tudo?": o total unico, conferivel
   const chegada = Math.round(Number(a.nota) + gTotal.pts);
   const totalHtml = (!manutencao && gTotal.pts>=1)
-    ? `<div class="percentil" style="font-variant-numeric:tabular-nums"><b>Fechando tudo: até +${gTotal.pts} pontos</b> — da sua nota ${a.nota} para ~${chegada}${gTotal.alem?", o topo da área":""}. As partes abaixo somam esse total.</div>`
+    ? `<div class="percentil" style="font-variant-numeric:tabular-nums"><b>Fechando tudo: até +${gTotal.pts} pontos</b> — da sua nota ${a.nota} para ~${chegada}${gTotal.alem?", o topo da área":""}.</div>`
     : "";
 
   let grupoAnterior = null, primeiro = true;
@@ -1432,7 +1432,7 @@ function cartaoArea(a){
 
   const sub = manutencao
     ? `Você acertou todas as questões desta área — não há fila de prioridade, só o <b>inventário do que sustenta a sua nota</b>.`
-    : `${temResp ? "Questão por questão, o que aconteceu na <b>sua prova</b>." : "O que rendia <b>na prova de 2025</b>, no seu nível."} Cada conteúdo mostra <b>quanto dá para ganhar</b> se você o fechar; os grupos dizem <b>por onde começar</b>; os valores são as fatias do caminho até o topo, e <b>somam o total</b>. <b>C</b> = competência, <b>H</b> = habilidade — os códigos oficiais da ${linkMatriz("Matriz de Referência do ENEM")}.`;
+    : `${temResp ? "Questão por questão, o que aconteceu na <b>sua prova</b>." : "O que rendia <b>na prova de 2025</b>, no seu nível."} Quanto cada conteúdo pode render, e por onde começar. <b>C</b> competência · <b>H</b> habilidade (${linkMatriz("Matriz do ENEM")}).`;
 
   // A CONTA TEM DE FECHAR NA TELA. Antes o cabecalho mostrava "45 questões ·
   // 43 valem ponto · 1 anulada" -- e 43+1 da 44. Faltava a questao cuja
