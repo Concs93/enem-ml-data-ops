@@ -786,61 +786,19 @@ function padraoSuspeito(corr, nota){
 }
 
 function montaPercentil(a){
-  let percentilHtml = "";
-  if(a.acertos!==""){
-    const acer = Number(a.acertos);
-    const d = M.distribuicao[k(a.sig, a.sig==="LC"?Number($("lingua").value):null, a.faixa)];
-    if(d && isFinite(acer)){
-      const min=d.acertos[0], max=d.acertos[d.acertos.length-1];
-      const nTxt = d.n.toLocaleString("pt-BR");
-      if(acer>max){
-        // acima do topo observado NAO e erro de digitacao: e desempenho no
-        // extremo. Acusar quem foi excepcional seria o pior falso positivo
-        percentilHtml = `<div class="percentil">Seu total de acertos está <b>acima de tudo o que foi observado nesta faixa de nota em 2025</b> (o máximo foi ${max}). Você aproveitou ao máximo o que estava ao seu alcance — daqui o ganho vem de conteúdo mais avançado.</div>`;
-      } else if(acer<min){
-        // abaixo do minimo observado: quase sempre area trocada, cor errada
-        // ou dado de outra edicao -- e a nota sozinha ja monta o mapa
-        percentilHtml = `<div class="percentil atencao">⚠ Esse total não combina com essa nota em ${a.sig}: em 2025 os totais ficaram entre ${min} e ${max}. Confira a área e a contagem. Se for de <b>outra edição</b>, é esperado — seguimos com a nota, que atravessa os anos e já monta o mapa sozinha.</div>`;
-      } else {
-        // convencao do ponto medio (estritamente abaixo + metade dos
-        // empatados), traduzida para "a cada 100 pessoas" — sem jargao
-        const iEx = d.acertos.indexOf(acer);
-        let abaixo, empatados;
-        if(iEx >= 0){
-          abaixo = iEx > 0 ? d.pct[iEx-1] : 0;
-          empatados = d.pct[iEx] - abaixo;
-        } else {
-          let j = -1;
-          for(let t=0; t<d.acertos.length && d.acertos[t]<acer; t++) j = t;
-          abaixo = j >= 0 ? d.pct[j] : 0;
-          empatados = 0;
-        }
-        const pr = abaixo + empatados/2;
-        // SO O FATO EMPIRICO, sem causa individual. A versao anterior dizia
-        // "seus acertos foram em questoes que pesam mais" / "voce converte
-        // bem" -- inferencias que o PLANO.md proibe no nivel 2 (chute,
-        // discriminacao e perfil de conteudo produzem a MESMA evidencia), e a
-        // zona neutra tem largura de UM acerto nas faixas altas: o veredito
-        // mudava com a mesma margem de erro de quem conta os proprios
-        // acertos. Regra do Passo 0: percentil empirico sim, diagnostico nao
-        let frase;
-        if(pr < 30){
-          frase = `Seu total ficou <b>abaixo do típico da sua faixa de nota</b> —
-            costuma haver ganho rápido nas questões mais acessíveis.`;
-        } else if(pr > 70){
-          frase = `Seu total ficou <b>acima do típico da sua faixa de nota</b> —
-            os próximos pontos tendem a estar no conteúdo mais avançado.`;
-        } else {
-          frase = `Seu total de acertos está <b>dentro do típico da sua faixa de nota</b>.`;
-        }
-        percentilHtml = `<div class="percentil">${frase}
-          <span style="opacity:.75;display:block;margin-top:3px">Leitura por comparação de
-          totais (${nTxt} participantes da faixa) — 1 ou 2 acertos de diferença mudam essa
-          posição. Para uma leitura sua, preencha as respostas.</span></div>`;
-      }
-    }
-  }
-  return percentilHtml;
+  // Sobrou SO a guarda. A leitura por percentil ("seu total ficou acima do
+  // tipico...", com a ressalva de que 1 ou 2 acertos mudam a posicao) saiu a
+  // pedido: informava sem dizer o que fazer, e o que fazer ja esta na lista
+  // abaixo. A guarda fica porque nao e texto, e protecao: total muito abaixo
+  // do observado quase sempre e area trocada, cor errada ou outra edicao, e
+  // seguir com ele daria um mapa confiante e falso
+  if(a.acertos === "") return "";
+  const acer = Number(a.acertos);
+  const d = M.distribuicao[k(a.sig, a.sig==="LC"?Number($("lingua").value):null, a.faixa)];
+  if(!d || !isFinite(acer)) return "";
+  const min = d.acertos[0], max = d.acertos[d.acertos.length-1];
+  if(acer >= min) return "";
+  return `<div class="percentil atencao">⚠ Esse total não combina com essa nota em ${a.sig}: em 2025 os totais ficaram entre ${min} e ${max}. Confira a área e a contagem. Se for de <b>outra edição</b>, é esperado — seguimos com a nota, que atravessa os anos e já monta o mapa sozinha.</div>`;
 }
 
 // Um passo de estudo: o quanto o nivel avanca no cenario que a tela promete.
@@ -1237,7 +1195,7 @@ function cartaoEstudo(a){
 
   return `<div class="cartao">
     <h2>O que estudar para a próxima <span class="nota">${a.nome}</span></h2>
-    <p class="sub"><b>Peso típico de cada conteúdo</b>: quanto ele costuma valer numa prova, combinado com o quanto rende no seu nível — média de <b>2020 a 2025</b>. ${notaConf}</p>
+    <p class="sub">Pesamos <b>quanto cada conteúdo costuma cair</b> (2020 a 2025) e <b>quanto ele rende no seu nível</b> — a ordem é o que mais tende a virar ponto na próxima prova. ${notaConf}</p>
     ${blocos}
   </div>`;
 }
@@ -1293,13 +1251,12 @@ function cartaoArea(a){
       // do nivel do que numa dificil (que o modelo desconta como esperado)
       const dentroDoEsperado = baratas.length <= eEsp + Math.sqrt(vEsp);
       const qsTxt = baratas.map(o=>"Q"+o.q).join(", ");
-      if(dentroDoEsperado){
-        insightHtml = `<div class="percentil"><b>Para conferir:</b> ${qsTxt} — ${um?"uma questão acessível":"questões acessíveis"} que ${um?"ficou":"ficaram"} para trás. Errar ~${Math.max(1,Math.round(eEsp))} assim é <b>normal no seu nível</b>; vale refazer para tirar a dúvida${brancoTxt}.</div>`;
-      } else {
-        insightHtml = `<div class="destaque-oportunidade">💡 <b>Revise primeiro:</b> ${qsTxt}, nessa ordem — ${um?"está":"estão"} ao seu alcance e ${um?"é":"são"} o ganho mais imediato${brancoTxt}.</div>`;
-      }
+      // as duas listas de questoes ("Para conferir: Q179, Q136..." e "Revise
+      // primeiro...") sairam a pedido, por concisao. O calculo continua vivo
+      // acima porque as questoes seguem marcadas dentro de cada habilidade
+      insightHtml = "";
     } else if(perdidas.length){
-      insightHtml = `<div class="percentil">Você acertou tudo o que já estava ao seu alcance. O que faltou é conteúdo mais avançado — siga a lista.</div>`;
+      insightHtml = "";
     } else {
       insightHtml = `<div class="destaque-conquista">🏆 <b>Você acertou tudo nesta área.</b> Daqui o ganho é manter em dia e treinar tempo e precisão.</div>`;
     }
@@ -1458,7 +1415,7 @@ function cartaoArea(a){
 
   const sub = manutencao
     ? `Você acertou todas as questões desta área — não há fila de prioridade, só o <b>inventário do que sustenta a sua nota</b>.`
-    : `${temResp ? "Questão por questão, o que aconteceu na <b>sua prova</b>." : ""}`;
+    : "";
 
   // A CONTA TEM DE FECHAR NA TELA. Antes o cabecalho mostrava "45 questões ·
   // 43 valem ponto · 1 anulada" -- e 43+1 da 44. Faltava a questao cuja
@@ -1502,7 +1459,6 @@ function cartaoArea(a){
     ${medidaLarga && !manutencao && !noAlto ? `<div class="percentil">Nesta faixa a prova mede com folga${seEmPontos ? ` de uns <b>${Math.round(seEmPontos)} pontos</b>` : " maior"} — trate os primeiros como um <b>conjunto de boas apostas</b>, não como ordem exata.</div>` : ""}
     ${insightHtml}
     ${percentilHtml}
-    ${totalHtml}
     ${blocos}
     ${naoMedHtml}
     ${rodape}

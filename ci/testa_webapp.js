@@ -79,6 +79,12 @@ function areaDe(sig, nota, lin) {
   return { sig, nota, faixa, theta,
            perfil: X.M.perfil[X.k(sig, sig === "LC" ? lin : null, theta)] || [] };
 }
+function totalDaAreaDe(a) {
+  const mot = X.motorArea(a);
+  let dT = 0;
+  for (const h of a.perfil) if (h[4] > 0) dT += mot.tetoHab(h[0], h[4], h[1]);
+  return mot.ganho(dT).pts;
+}
 function passoDaArea(a) {
   const mot = X.motorArea(a);
   let dE = 0;
@@ -196,10 +202,13 @@ function passoDaArea(a) {
 
   // e um andar acima: as competencias somam o "Fechando tudo", que nunca
   // passa da maior nota real da area -- o achado do usuario que somou tudo
-  function confereTotal(html, rotulo, nota, maxArea) {
-    const m = html.match(/Fechando tudo: até \+(\d+) pontos/);
-    espera(m, `${rotulo}: linha "Fechando tudo" ausente`);
-    const total = Number(m[1]);
+  function confereTotal(a, rotulo, maxArea) {
+    // a linha "Fechando tudo" saiu da tela (o comparativo ja mostra o mesmo
+    // numero). A invariante continua: as competencias tem de somar o teto da
+    // area -- so que agora o total vem do MOTOR, nao de um texto na tela
+    const html = X.cartaoArea(a), nota = a.nota;
+    espera(!/Fechando tudo/.test(html), `${rotulo}: "Fechando tudo" voltou ao cartao`);
+    const total = totalDaAreaDe(a);
     const comps = [...html.matchAll(/class="cval">até \+(\d+) ponto/g)].map(x => Number(x[1]));
     espera(comps.length >= 3, `${rotulo}: poucas competencias (${comps.length})`);
     const soma = comps.reduce((s, v) => s + v, 0);
@@ -209,11 +218,9 @@ function passoDaArea(a) {
       `${rotulo}: ${nota}+${total} passa do maximo real ${maxArea}`);
   }
   caso("CH 565: competencias somam o total, e nada passa de 856,4", () =>
-    confereTotal(X.cartaoArea(areaDe("CH", 565, null)), "diagnostico CH 565",
-      565, X.M.maxNota["CH|_"]));
+    confereTotal(areaDe("CH", 565, null), "diagnostico CH 565", X.M.maxNota["CH|_"]));
   caso("MT 613: competencias somam o total, e nada passa de 980,3", () =>
-    confereTotal(X.cartaoArea(areaDe("MT", 613, null)), "diagnostico MT 613",
-      613, X.M.maxNota["MT|_"]));
+    confereTotal(areaDe("MT", 613, null), "diagnostico MT 613", X.M.maxNota["MT|_"]));
 
   // o cartao da PROXIMA usa outra moeda: QUESTOES (peso tipico), nunca pontos
   // -- pontos ali mirariam uma prova que nao existe, com escala de 2025 e
