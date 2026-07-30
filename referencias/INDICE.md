@@ -164,7 +164,7 @@ normal**; fora disso o corte ótimo é outro, e ele não especifica qual.
 
 ---
 
-## 6. Fonte primária do ENEM (não é livro, mas manda mais)
+## 7. Fonte primária do ENEM (não é livro, mas manda mais)
 
 `data/raw/enem_procedimentos_de_analise.pdf` — *"ENEM — Procedimentos de
 Análise"*, publicado pelo INEP dentro do ZIP dos microdados de 2025 (30 p.).
