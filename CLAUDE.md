@@ -375,7 +375,11 @@ linhas) leva a maior nota real por área/língua ao `mart_calibracao_nota`
 (colunas `nota_minima_area` e `nota_maxima_area`), que viajam no motor.json
 (`minNota`/`maxNota`) e viram o
 teto físico das extrapolações. Os máximos reais de 2025, prova regular:
-**MT 980,3 · CN 858,7 · CH 856,4 · LC 794,5**. A página do método agora cita
+**MT 980,3 · CN 858,7 · CH 856,4 · LC 794,5**. O mesmo modelo leva o **piso**
+real (MT 315,0 · CN 324,2 · CH 325,6 · LC 316,5 inglês / 314,2 espanhol), e a
+faixa aceita no formulário sai dos dois — antes o site aceitava nota que não
+existe, porque usava a primeira faixa da calibração (mais baixa que o piso: em
+CH, 320 contra 325,6). A página do método agora cita
 esses números e explica a diferença entre curva calibrável e escala.
 
 No mesmo episódio, o usuário somou **tudo** que dizia "até +X" na tela (~803):

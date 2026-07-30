@@ -352,6 +352,11 @@ function faixaAcertos(sig, lin, nota){
 // a 114 pontos em LC/espanhol. Recusar ali seria dizer a alguem que a nota
 // verdadeira dele nao existe. Acima do fim da curva o mapa usa o ultimo nivel
 // medido -- aproximacao no topo, nao invencao.
+// numero de nota como se escreve em portugues: virgula decimal, e sem casa
+// quando ela e zero (315,0 -> 315). Sem isto a tela misturava "325.6" com
+// "856,4" na mesma frase
+const notaTxt = v => (Math.round(v*10)/10).toString().replace(".", ",");
+
 const _limites = {};
 function limitesNota(area, lingua){
   const ch = k(area, area==="LC" ? lingua : null);
@@ -404,7 +409,7 @@ function analisar(){
     }
     if(lim && (n < lim.min || n > lim.max)){
       erroEl.textContent = `Em ${nome} (${sig}), as notas do ENEM 2025 foram de `
-        + `${lim.min} a ${String(lim.max).replace(".",",")} — confira o valor digitado.`;
+        + `${notaTxt(lim.min)} a ${notaTxt(lim.max)} — confira o valor digitado.`;
       erroEl.classList.remove("oculto"); return;
     }
     entradas[sig]=n;
@@ -719,7 +724,7 @@ function montaFaixasNota(){
     if(!el) continue;
     const lim = limitesNota(sig, lingua);
     el.textContent = lim
-      ? `de ${lim.min} a ${String(lim.max).replace(".",",")}`
+      ? `de ${notaTxt(lim.min)} a ${notaTxt(lim.max)}`
       : "";
   }
 }
