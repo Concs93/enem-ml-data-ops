@@ -1282,18 +1282,11 @@ function cartaoEstudo(a){
   // Confianca medida, nao adjetivo -- e com o tamanho da medida declarado:
   // rho(2020-24 -> 2025) por area sobre APENAS 6-9 competencias, entao os
   // intervalos se sobrepoem; a leitura honesta e tendencia, nunca ranking
-  const notaConf = {
-    LC: "A ordem <b>tendeu a se repetir</b> entre edições.",
-    CN: "A ordem <b>se repetiu em parte</b>.",
-    MT: "A ordem <b>varia bastante</b> entre edições.",
-    CH: "A ordem <b>quase não se repete</b> entre edições — leia como panorama."
-  }[a.sig];
 
   return `<div class="cartao">
     <h2>O que estudar para a próxima <span class="nota">${a.nome}</span></h2>
-    <p class="sub">Pesamos <b>quanto cada conteúdo costuma cair</b> (2020 a 2025) e <b>quanto ele rende no seu nível</b>.</p>
+    <p class="sub">Pesamos <b>quanto cada conteúdo costuma cair</b> (2020 a 2025) e <b>quanto ele rende no seu nível</b>. Questões numeradas pelo <b>caderno azul</b>.</p>
     ${blocos}
-    <p class="rodape-cartao">${notaConf} Questões numeradas pelo caderno azul — nas outras cores o número muda.</p>
   </div>`;
 }
 
