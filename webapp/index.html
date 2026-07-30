@@ -597,41 +597,73 @@ function simulaVetor(sig, lin, theta, cor){
   return {cp, txt};
 }
 
-// CORTES DE DESEMPENHO, derivados da distribuicao real de notas (a
-// calibracao ja traz o n de cada faixa, entao nao ha dado novo a exportar).
+// CORTES DE DESEMPENHO, derivados da distribuicao real de ACERTOS.
 //
-// 27% e 73% nao sao escolha arbitraria: e a regra classica de Kelley (1939,
-// "The selection of upper and lower groups for the validation of test items")
-// para separar grupo superior e inferior na analise de itens. RESSALVA que o
-// proprio Kelley faz: os 27% sao otimos quando a distribuicao e normal; fora
-// disso o corte otimo e outro, e ele nao especifica qual.
+// 27% e 73% e a regra classica de Kelley (1939, "The selection of upper and
+// lower groups for the validation of test items") para separar grupo superior
+// e inferior. Ela e definida sobre o ESCORE BRUTO -- quantas a pessoa acertou
+// --, nao sobre escala transformada, e por isso a conta aqui parte dos
+// acertos e so depois traduz para nota.
 //
-// Aqui isso nao pesa: a regra serve para ESCOLHER TRES EXEMPLOS
-// representativos, nao para sustentar nenhuma afirmacao sobre o dado. Nao
-// esta em nenhuma das duas referencias de TRI do projeto -- e teoria classica,
-// nao TRI -- e por isso vem declarada em vez de citada como pagina.
+// Na pratica os dois criterios quase coincidem (a diferenca fica em 10 a 20
+// pontos), porque nota e acertos andam juntos. Mas o certo e o certo, e a
+// medida direta de desempenho e o acerto.
+//
+// RESSALVA do proprio Kelley: os 27% sao otimos quando a distribuicao e
+// normal; fora disso o corte otimo e outro, e ele nao especifica qual. Aqui
+// isso nao pesa -- a regra escolhe TRES EXEMPLOS representativos e nao
+// sustenta afirmacao nenhuma sobre o dado. Nao esta em nenhuma das duas
+// referencias de TRI do projeto (e teoria classica), entao vem declarada.
 const _cortes = {};
 function cortesDesempenho(sig, lin){
   const ch = k(sig, sig==="LC" ? lin : null);
   if(_cortes[ch]) return _cortes[ch];
-  const fs = [];
-  for(const chave in M.calibracao){
+
+  // distribuicao MARGINAL de acertos: a distribuicao guardada e por faixa de
+  // nota (percentil acumulado dentro da faixa), entao reconstroi a contagem de
+  // cada total e soma as faixas, ponderando pelo n de cada uma
+  const cont = {};
+  let total = 0;
+  for(const chave in M.distribuicao){
     const [a, l, f] = chave.split("|");
     if(a !== sig || l !== (sig==="LC" ? String(lin) : "_")) continue;
-    fs.push([Number(f) + 5, M.calibracao[chave][1]]);
+    const d = M.distribuicao[chave];
+    let ant = 0;
+    for(let i = 0; i < d.acertos.length; i++){
+      const frac = (d.pct[i] - ant)/100; ant = d.pct[i];
+      cont[d.acertos[i]] = (cont[d.acertos[i]] || 0) + d.n*frac;
+      total += d.n*frac;
+    }
   }
-  if(!fs.length) return null;
-  fs.sort((x, y) => x[0] - y[0]);
-  const total = fs.reduce((s, x) => s + x[1], 0);
+  if(!total) return null;
+  const xs = Object.keys(cont).map(Number).sort((x,y)=>x-y);
   const percentil = alvo => {
     let acc = 0;
-    for(const [nota, n] of fs){ acc += n; if(acc/total >= alvo) return nota; }
-    return fs[fs.length-1][0];
+    for(const x of xs){ acc += cont[x]; if(acc/total >= alvo) return x; }
+    return xs[xs.length-1];
   };
-  return (_cortes[ch] = {p27: percentil(0.27), p73: percentil(0.73),
-                         min: fs[0][0], max: fs[fs.length-1][0]});
-}
+  const acP27 = percentil(0.27), acP73 = percentil(0.73);
 
+  // traducao para nota: a faixa cujo acerto MEDIO mais se aproxima do corte.
+  // E a mesma ponte que o resto do site usa (calibracao), nao uma nova
+  const notaDe = ac => {
+    let melhor = null, dist = Infinity;
+    for(const chave in M.calibracao){
+      const [a, l, f] = chave.split("|");
+      if(a !== sig || l !== (sig==="LC" ? String(lin) : "_")) continue;
+      const d = Math.abs(M.calibracao[chave][2] - ac);
+      if(d < dist){ dist = d; melhor = Number(f) + 5; }
+    }
+    return melhor;
+  };
+  const lim = limitesNota(sig, sig==="LC" ? lin : null);
+  return (_cortes[ch] = {
+    acP27, acP73,
+    p27: notaDe(acP27), p73: notaDe(acP73),
+    min: lim ? Math.ceil(lim.min) : notaDe(xs[0]),
+    max: lim ? Math.floor(lim.max) : notaDe(xs[xs.length-1]),
+  });
+}
 // faixa: "baixo" (abaixo do p27), "medio" (entre p27 e p73) ou "alto" (acima
 // do p73). Sem argumento, sorteia em toda a escala, como antes
 function exemplo(faixa){
@@ -654,15 +686,27 @@ function exemplo(faixa){
     const cor = cores[Math.floor(Math.random()*cores.length)] || "";
     $("v-cor-dia"+dia.n).value = cor;
     for(const sig of dia.areas){
-      const lim = limitesNota(sig, sig==="LC" ? lingua : null);
+      const lin0 = sig==="LC" ? lingua : null;
+      const lim = limitesNota(sig, lin0);
+      let piso = lim ? Math.ceil(lim.min) : 300;
+      let teto = lim ? Math.floor(lim.max) : 1000;
+      // cada area presa na SUA faixa, nao so a que sorteou o nivel geral: com
+      // o ruido de +-55 entre areas, "nota mais alta" chegava a produzir MT
+      // abaixo do proprio p73 -- e o rotulo do botao virava mentira
+      if(faixa){
+        const cc = cortesDesempenho(sig, lin0);
+        if(cc){
+          if(faixa === "baixo") teto = Math.min(teto, cc.p27);
+          if(faixa === "medio"){ piso = Math.max(piso, cc.p27); teto = Math.min(teto, cc.p73); }
+          if(faixa === "alto")  piso = Math.max(piso, cc.p73);
+        }
+      }
       const bruto = Math.round(base + (Math.random()*2-1)*55);
-      const nota = lim ? Math.max(Math.ceil(lim.min), Math.min(Math.floor(lim.max), bruto))
-                       : bruto;
+      const nota = Math.max(piso, Math.min(teto, bruto));
       $("n-"+sig.toLowerCase()).value = nota;
-      const lin = sig==="LC" ? lingua : null;
-      const faixa = faixaDisponivel(sig, lin, nota);
-      const cal = M.calibracao[k(sig, lin, faixa)];
-      const sim = (cor && cal) ? simulaVetorAceito(sig, lin, cal[0], cor, nota) : null;
+      const fx = faixaDisponivel(sig, lin0, nota);
+      const cal = M.calibracao[k(sig, lin0, fx)];
+      const sim = (cor && cal) ? simulaVetorAceito(sig, lin0, cal[0], cor, nota) : null;
       $("v-resp-"+sig).value = sim ? sim.txt : "";
       $("a-"+sig.toLowerCase()).value = "";
       if(sim) leVetor(sig);      // o total de acertos vem das respostas

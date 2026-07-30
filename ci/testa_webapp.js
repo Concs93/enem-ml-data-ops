@@ -610,6 +610,11 @@ function passoDaArea(a) {
         `${sig}: cortes (${c.min}-${c.max}) fora da escala do formulario (${l.min}-${l.max})`);
       // e os tres grupos precisam ter tamanho parecido com o desenho (27/46/27)
       espera(c.p73 - c.p27 > 20, `${sig}: faixa do meio estreita demais`);
+      // os cortes tem de vir dos ACERTOS (regra de Kelley e sobre escore
+      // bruto), nao da nota -- e o escore bruto cabe na prova
+      const nq = sig === "LC" ? 50 : 45;
+      espera(c.acP27 >= 1 && c.acP27 < c.acP73 && c.acP73 < nq,
+        `${sig}: cortes de acertos fora de ordem ou fora da prova (${c.acP27}/${c.acP73} de ${nq})`);
     }
   });
 
