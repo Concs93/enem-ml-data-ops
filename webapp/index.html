@@ -70,6 +70,8 @@
   .painel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-card);padding:22px 24px;margin:0 0 34px}
   .grid-notas{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;align-items:end}
   .campo{font-family:var(--sans)}
+  .faixa-nota{display:block;margin-top:4px;font-size:var(--fs-100);
+       color:var(--muted);font-variant-numeric:tabular-nums}
   .campo label{display:block;font-size:var(--fs-100);font-weight:700;letter-spacing:.05em;
                text-transform:uppercase;color:var(--accent-deep);margin-bottom:5px}
   .campo small{display:block;font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted);font-size:var(--fs-100);margin-top:2px}
@@ -232,10 +234,10 @@
 
   <div class="painel" id="form">
     <div class="grid-notas">
-      <div class="campo"><label for="n-lc">Linguagens <small>LC</small></label><input id="n-lc" inputmode="decimal" placeholder="ex.: 560"></div>
-      <div class="campo"><label for="n-ch">Humanas <small>CH</small></label><input id="n-ch" inputmode="decimal" placeholder="ex.: 540"></div>
-      <div class="campo"><label for="n-cn">Natureza <small>CN</small></label><input id="n-cn" inputmode="decimal" placeholder="ex.: 505"></div>
-      <div class="campo"><label for="n-mt">Matemática <small>MT</small></label><input id="n-mt" inputmode="decimal" placeholder="ex.: 610"></div>
+      <div class="campo"><label for="n-lc">Linguagens <small>LC</small></label><input id="n-lc" inputmode="decimal" placeholder="ex.: 560"><small class="faixa-nota" id="faixa-lc"></small></div>
+      <div class="campo"><label for="n-ch">Humanas <small>CH</small></label><input id="n-ch" inputmode="decimal" placeholder="ex.: 540"><small class="faixa-nota" id="faixa-ch"></small></div>
+      <div class="campo"><label for="n-cn">Natureza <small>CN</small></label><input id="n-cn" inputmode="decimal" placeholder="ex.: 505"><small class="faixa-nota" id="faixa-cn"></small></div>
+      <div class="campo"><label for="n-mt">Matemática <small>MT</small></label><input id="n-mt" inputmode="decimal" placeholder="ex.: 610"><small class="faixa-nota" id="faixa-mt"></small></div>
       <div class="campo"><label for="lingua">Língua estrangeira</label>
         <select id="lingua"><option value="0">Inglês</option><option value="1">Espanhol</option></select>
       </div>
@@ -318,6 +320,7 @@ fetch("dados/motor.json").then(r=>r.json()).then(j=>{
   for(let i=1;i<ord.length;i++) menor = Math.min(menor, ord[i]-ord[i-1]);
   if(isFinite(menor) && menor > 0) PASSO_GRADE = Number(menor.toFixed(4));
   montaLinhasGabarito();
+  montaFaixasNota();
 }).catch(()=>{
   document.getElementById("erro-form").textContent="não consegui carregar os dados da prova — verifique sua conexão e recarregue a página";
   document.getElementById("erro-form").classList.remove("oculto");
@@ -336,6 +339,31 @@ function faixaAcertos(sig, lin, nota){
   const d = M.distribuicao[k(sig, lin, faixa)];
   if(!d || !d.acertos.length) return null;
   return {min: d.acertos[0], max: d.acertos[d.acertos.length-1], n: d.n};
+}
+
+// Faixa real de notas daquela area na edicao. O MINIMO e a primeira faixa
+// calibrada (o piso da escala, ~310-320); o MAXIMO e a maior nota realmente
+// tirada em 2025, que viaja no motor.json. Os dois saem do dado, nao de
+// constante escrita a mao.
+//
+// Por que aceitar ate o maximo REAL e nao ate o fim da curva calibravel: a
+// curva acaba onde a amostra fica rala (having n >= 100), e a diferenca chega
+// a 114 pontos em LC/espanhol. Recusar ali seria dizer a alguem que a nota
+// verdadeira dele nao existe. Acima do fim da curva o mapa usa o ultimo nivel
+// medido -- aproximacao no topo, nao invencao.
+const _limites = {};
+function limitesNota(area, lingua){
+  const ch = k(area, area==="LC" ? lingua : null);
+  if(_limites[ch]) return _limites[ch];
+  let min = Infinity;
+  for(const chave in M.calibracao){
+    const [a,l,f] = chave.split("|");
+    if(a!==area || l!==(area==="LC"? String(lingua):"_")) continue;
+    min = Math.min(min, Number(f));
+  }
+  const max = (M.maxNota||{})[ch];
+  if(!isFinite(min) || !max) return null;
+  return (_limites[ch] = {min, max: Math.round(max*10)/10});
 }
 
 function faixaDisponivel(area, lingua, nota){
@@ -360,8 +388,14 @@ function analisar(){
     const v = $("n-"+sig.toLowerCase()).value.replace(",",".").trim();
     if(v==="") continue;
     const n = Number(v);
-    if(!isFinite(n) || n<0 || n>1000){
-      erroEl.textContent = `Confira a nota de ${nome} (${sig}): digite um número de 0 a 1000.`;
+    const lim = limitesNota(sig, lingua);
+    if(!isFinite(n)){
+      erroEl.textContent = `Confira a nota de ${nome} (${sig}): digite um número.`;
+      erroEl.classList.remove("oculto"); return;
+    }
+    if(lim && (n < lim.min || n > lim.max)){
+      erroEl.textContent = `Em ${nome} (${sig}), as notas do ENEM 2025 foram de `
+        + `${lim.min} a ${String(lim.max).replace(".",",")} — confira o valor digitado.`;
       erroEl.classList.remove("oculto"); return;
     }
     entradas[sig]=n;
@@ -666,6 +700,21 @@ function cadernoDe(sig, cor){
 
 // as linhas do gabarito vivem no FORMULARIO, junto das notas -- e um dado de
 // entrada como qualquer outro, nao um apendice do resultado
+// a faixa vive sob o campo, nao numa explicacao: e o tipo de informacao que
+// so importa no momento de digitar
+function montaFaixasNota(){
+  if(!M) return;
+  const lingua = Number($("lingua").value);
+  for(const [sig] of AREAS){
+    const el = $("faixa-"+sig.toLowerCase());
+    if(!el) continue;
+    const lim = limitesNota(sig, lingua);
+    el.textContent = lim
+      ? `de ${lim.min} a ${String(lim.max).replace(".",",")}`
+      : "";
+  }
+}
+
 function montaLinhasGabarito(){
   const nomeArea = Object.fromEntries(AREAS);
   $("linhas-gabarito").innerHTML = DIAS.map(dia=>{
@@ -1467,6 +1516,7 @@ function cartaoArea(a){
 
 $("btn").addEventListener("click", analisar);
 $("btn-exemplo").addEventListener("click", exemplo);
+$("lingua").addEventListener("change", montaFaixasNota);
 // delegado: as linhas do gabarito so existem depois que os dados carregam
 $("form").addEventListener("keydown", e=>{
   if(e.key==="Enter" && e.target.tagName==="INPUT") analisar();

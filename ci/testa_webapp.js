@@ -60,6 +60,7 @@ const epilogo = `
   faixaDisponivel, curvaAcertos, notaPorAcertos, motorArea,
   corrigeCaderno, padraoSuspeito, cartaoArea, cartaoEstudo,
   erroPadrao, itensDaArea, get NOS_QUAD(){ return NOS_QUAD }, resumoDesc,
+  limitesNota,
 };`;
 vm.runInContext(script + epilogo, sandbox);
 const X = sandbox.X;
@@ -491,6 +492,41 @@ function passoDaArea(a) {
     const achados = [...bruto].filter(c => c.charCodeAt(0) < 32 && !"\n\r\t".includes(c));
     espera(achados.length === 0,
       `${achados.length} caractere(s) de controle: ${[...new Set(achados.map(c => "0x" + c.charCodeAt(0).toString(16)))].join(", ")}`);
+  });
+
+  // Nota fora da faixa real da edicao: antes, faixaDisponivel() encostava na
+  // faixa mais proxima e o mapa saia calculado para outra pessoa, em silencio
+  caso("limites de nota saem dos dados: 1a faixa calibrada e maior nota real", () => {
+    for (const [sig, lin] of [["MT", null], ["CH", null], ["CN", null], ["LC", 0], ["LC", 1]]) {
+      const l = X.limitesNota(sig, lin);
+      espera(l, `${sig}: sem limites`);
+      // o maximo e a maior nota realmente tirada, que viaja no motor.json
+      const chave = X.k(sig, sig === "LC" ? lin : null);
+      espera(Math.abs(l.max - X.M.maxNota[chave]) <= 0.05,
+        `${sig}: max ${l.max} != maxNota ${X.M.maxNota[chave]}`);
+      // o minimo e a menor faixa que existe na calibracao
+      let menor = Infinity;
+      for (const ch in X.M.calibracao) {
+        const [a, ll, f] = ch.split("|");
+        if (a === sig && ll === (sig === "LC" ? String(lin) : "_")) menor = Math.min(menor, Number(f));
+      }
+      espera(l.min === menor, `${sig}: min ${l.min} != primeira faixa ${menor}`);
+      espera(l.min >= 250 && l.min <= 400, `${sig}: minimo implausivel (${l.min})`);
+      espera(l.max >= 700 && l.max <= 1000, `${sig}: maximo implausivel (${l.max})`);
+    }
+  });
+  caso("a faixa aceita cobre toda a calibracao da area (nao corta nota real)", () => {
+    // recusar acima do fim da curva rejeitaria nota verdadeira: a curva acaba
+    // onde a amostra fica rala, e a diferenca chega a 114 pontos em LC/espanhol
+    for (const [sig, lin] of [["MT", null], ["CH", null], ["CN", null], ["LC", 0], ["LC", 1]]) {
+      const l = X.limitesNota(sig, lin);
+      let maior = -Infinity;
+      for (const ch in X.M.calibracao) {
+        const [a, ll, f] = ch.split("|");
+        if (a === sig && ll === (sig === "LC" ? String(lin) : "_")) maior = Math.max(maior, Number(f) + 5);
+      }
+      espera(l.max >= maior, `${sig}: teto ${l.max} corta a ultima faixa calibrada (${maior})`);
+    }
   });
 
   // dois bugs ANTERIORES a integracao, achados pela revisao adversarial de
