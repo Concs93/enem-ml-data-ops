@@ -138,6 +138,50 @@ Corolário que vale registrar: a frase *"acertar uma difícil sobe mais"* não �
 só imprecisa — sob Rasch ela é **vazia** (não há diferença) e sob 3PL é
 **invertida**.
 
+### `a` pesa mais que `b`? Depende de que lado da pessoa a questão está
+
+**Pergunta levantada mexendo no simulador** (30/07/2026): a discriminação
+parece influir mais na nota que a dificuldade. Confere?
+
+**Meio.** Pela eq. 5-1 (Baker, p. 85), o peso de cada resposta sob 3PL é
+
+```
+1,7 · a · (P − c) / (P(1 − c))
+```
+
+`a` aparece como **multiplicador direto** — daí a impressão. Mas ele só
+multiplica enquanto `(P−c)/P` não for minúsculo, e quem controla isso é `b`.
+
+Medido nos 43 itens de MT 2025, para alguém em θ = 1,10 (nota 600):
+
+| questão | `a` = 1,0 | `a` = 3,9 |
+|---|---|---|
+| **abaixo** dela (b = 0,0) | peso 1,66 | peso 6,63 — **4× maior** |
+| na altura (b = 1,10) | 1,45 | 5,67 |
+| **acima** dela (b = 2,5) | 0,60 | **0,00** — some |
+
+O efeito de `a` **inverte de sinal**. Numa questão acima do nível, `P` cai
+perto de `c`, a fração vai a zero, e `a` alto só faz `P` cair mais rápido: o
+multiplicador vira divisor.
+
+Em pontos de nota, variando `a` de 0,93 a 3,86 (a faixa real da prova):
+
+| onde está a questão | valor com `a` baixo | com `a` alto |
+|---|---|---|
+| nota 435 (abaixo) | 4,3 | **36,7** |
+| nota 605 (na altura) | 3,8 | 22,4 |
+| nota 750 (acima) | 2,8 | **1,1** |
+
+**Resposta curta:** varrendo um parâmetro por vez com os outros na mediana da
+prova, `b` tem amplitude de **13,7 pontos** e `a` só **1,5** — então `b`
+domina. Mas a interação é enorme: com a questão abaixo da pessoa, `a` sozinho
+multiplica o valor por **8,5×**. Não são efeitos independentes, e comparar
+"qual pesa mais" sem fixar `b` não tem resposta.
+
+Corolário útil: os +37 pontos de uma questão fácil e muito discriminante que
+a pessoa errou são a forma extrema do invariante já registrado — errar fácil é
+o que mais derruba.
+
 ---
 
 ## 5. Fora do escopo das duas obras
