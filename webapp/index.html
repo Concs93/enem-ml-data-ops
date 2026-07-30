@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Onde estudar rende mais — ENEM 2025</title>
+<title>ENEM 2025 em foco</title>
 <style>
   :root{
     --bg:#fbfaf7; --surface:#ffffff; --text:#20211f; --muted:#5f625d;
@@ -90,6 +90,8 @@
           padding:20px 24px;margin:0 0 22px}
   .cartao h2{font-family:var(--sans);font-size:var(--fs-500);margin:0 0 2px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
   .cartao h2 .nota{color:var(--muted);font-weight:400;font-size:var(--fs-300)}
+  .rodape-cartao{font-family:var(--sans);font-size:var(--fs-200);
+       color:var(--muted);margin:18px 0 0;max-width:66ch}
   .cartao .sub{font-family:var(--sans);font-size:var(--fs-200);color:var(--muted);margin:0 0 14px;max-width:68ch}
   .metodo p,.hab .desc{max-width:68ch}
   main a,footer a{color:var(--accent-deep);text-decoration:underline;text-underline-offset:2px}
@@ -240,7 +242,7 @@
     </div>
     <details class="opcional" id="det-gabarito">
       <summary>Opcional: já conferiu seu gabarito? Preencha aqui — o mapa fica muito mais preciso</summary>
-      <p class="dica">Com as suas respostas, o mapa passa a falar de <b>você</b>: quais questões ainda podem virar ponto, quais estão mais ao seu alcance e quanto isso vale em nota. <b>A correção acontece no seu próprio aparelho — nada é enviado.</b> Suas respostas estão na Vista Pedagógica da Prova, na Página do Participante do INEP. Se preferir, preencha só o total de acertos.</p>
+      <p class="dica">Quais questões teriam mais impacto no aumento da sua nota. <b>A correção acontece no seu aparelho — nada é enviado.</b></p>
       <div id="linhas-gabarito"></div>
     </details>
     <div class="acao">
@@ -389,25 +391,34 @@ function analisar(){
 
   // comparativo entre areas — mesma regra dos blocos: ordena pelo ganho do
   // proximo passo, que e o numero mostrado. E tambem a NAVEGACAO
+  // DUAS medidas, e so UMA vai para a tela. O comparativo mostrava o PASSO
+  // ("~+32") enquanto o cartao da area mostrava o TETO ("+81"), e o leitor
+  // somava um contra o outro sem fechar -- reclamacao do dono do produto, e a
+  // mesma confusao que ja tinha sido resolvida um nivel abaixo (competencia x
+  // habilidade). Agora vale a mesma regra daquela correcao: UM numero na tela
+  // (o teto, igual ao "Fechando tudo" do cartao) e a ORDEM carrega o passo
   ULTIMA = porArea.slice();
   for(const a of ULTIMA){
     const mot = motorArea(a);
-    let dE = 0;
-    for(const h of a.perfil) if(h[4]>0) dE += mot.agoraHab(h[0], h[4], h[1]);
-    a.ptsAgora = mot.ganho(dE).pts;
+    let dE = 0, dT = 0;
+    for(const h of a.perfil) if(h[4]>0){
+      dE += mot.agoraHab(h[0], h[4], h[1]);
+      dT += mot.tetoHab(h[0], h[4], h[1]);
+    }
+    a.ptsAgora = mot.ganho(dE).pts;   // ordena e decide o selo
+    a.ptsTeto  = mot.ganho(dT).pts;   // e o que aparece
     a.piso = mot.piso;
   }
   // area no piso da calibracao nao disputa o "comece aqui": naquela regiao a
   // relacao acertos-nota de 2025 nao distingue faixas, e um ranking fingiria
   // precisao que nao existe (auditoria adversarial)
   ULTIMA.sort((x,y)=>(x.piso?1:0)-(y.piso?1:0) || y.ptsAgora-x.ptsAgora);
-  const topPts = ULTIMA.length ? Math.max(ULTIMA[0].ptsAgora, 1) : 1;
   const rank = {}; ULTIMA.forEach((a,i)=>rank[a.sig]=i+1);
 
   // Sem ponto a recuperar em area nenhuma: nao existe "comece por". Ordenar
   // quatro zeros daria o selo de ouro a quem estivesse primeiro no array --
   // uma colocacao inventada. O cartao vira orientacao de manutencao
-  const tudoZero = ULTIMA.length>0 && ULTIMA.every(x=>x.ptsAgora===0);
+  const tudoZero = ULTIMA.length>0 && ULTIMA.every(x=>x.ptsTeto===0);
   $("titulo-comparativo").textContent = tudoZero
     ? "Você não deixou pontos na mesa" : "Se você só tiver tempo para uma área, comece por:";
   $("sub-comparativo").innerHTML = tudoZero
@@ -422,11 +433,10 @@ function analisar(){
     <button type="button" class="item" data-sig="${a.sig}" aria-pressed="false">
       <div class="rot">${a.nome} ${!tudoZero && !a.piso && rank[a.sig]===1 ? `<span class="selo ouro">comece aqui</span>` : ""}</div>
       <div class="val">sua nota: ${a.nota}</div>
-      ${tudoZero || a.piso ? "" : `<div class="barra" style="margin-top:8px"><i style="width:${Math.max(8, Math.round(100*a.ptsAgora/topPts))}%"></i></div>`}
       <div class="val">${a.piso
         ? "nesta faixa a prova de 2025 não separa níveis — veja o cartão da área"
-        : a.ptsAgora>=1
-          ? `seu próximo passo vale <b>~+${plural(a.ptsAgora,"ponto","pontos")}</b>`
+        : a.ptsTeto>=1
+          ? `dá para ganhar <b>até +${plural(a.ptsTeto,"ponto","pontos")}</b>`
           : "sem pontos a recuperar — modo manutenção"}</div>
     </button>`).join("");
   $("card-comparativo").style.display = ULTIMA.length>1 ? "" : "none";
@@ -460,6 +470,28 @@ function mostraArea(sig){
 // propria curva do item naquele nivel -- por isso sai coerente com a nota.
 // Nunca a linha de um participante real: nenhum dado individual viaja neste
 // site, nem para dar exemplo.
+// O exemplo tem de passar nas guardas do PROPRIO site. Sem isto ele era
+// gerado pelo modelo TEORICO e conferido contra o envelope OBSERVADO -- e a
+// dispersao observada e ~metade da teorica (Passo 0), entao o site recusava o
+// proprio exemplo com "fora do esperado para 737 em CN (33 a 37)". Sorteia de
+// novo ate cair dentro; se nao conseguir, devolve a tentativa mais proxima
+function simulaVetorAceito(sig, lin, theta, cor, nota){
+  const r = (nota!=null && isFinite(nota)) ? faixaAcertos(sig, lin, nota) : null;
+  let melhor = null, menorDist = Infinity;
+  for(let i = 0; i < 40; i++){
+    const sim = simulaVetor(sig, lin, theta, cor);
+    if(!sim) return null;
+    const corr = corrigeCaderno(sig, sim.cp, lin, sim.txt, theta);
+    if(!corr) return sim;
+    const ac = corr.filter(o=>o.valido && o.acertou).length;
+    const dentro = !r || (ac >= r.min && ac <= r.max);
+    if(dentro && !padraoSuspeito(corr, nota)) return sim;
+    const dist = r ? Math.max(r.min - ac, ac - r.max, 0) : 0;
+    if(dist < menorDist){ menorDist = dist; melhor = sim; }
+  }
+  return melhor;
+}
+
 function simulaVetor(sig, lin, theta, cor){
   const cp = cadernoDe(sig, cor);
   const p = cp && M.provas[cp];
@@ -500,7 +532,7 @@ function exemplo(){
       const lin = sig==="LC" ? lingua : null;
       const faixa = faixaDisponivel(sig, lin, nota);
       const cal = M.calibracao[k(sig, lin, faixa)];
-      const sim = (cor && cal) ? simulaVetor(sig, lin, cal[0], cor) : null;
+      const sim = (cor && cal) ? simulaVetorAceito(sig, lin, cal[0], cor, nota) : null;
       $("v-resp-"+sig).value = sim ? sim.txt : "";
       $("a-"+sig.toLowerCase()).value = "";
       if(sim) leVetor(sig);      // o total de acertos vem das respostas
@@ -1205,7 +1237,7 @@ function cartaoEstudo(a){
 
   return `<div class="cartao">
     <h2>O que estudar para a próxima <span class="nota">${a.nome}</span></h2>
-    <p class="sub"><b>Peso típico de cada conteúdo</b>, na média de <b>2020 a 2025</b>. ${notaConf}</p>
+    <p class="sub"><b>Peso típico de cada conteúdo</b>: quanto ele costuma valer numa prova, combinado com o quanto rende no seu nível — média de <b>2020 a 2025</b>. ${notaConf}</p>
     ${blocos}
   </div>`;
 }
@@ -1440,12 +1472,32 @@ function cartaoArea(a){
   const detalhe = foraLista.length
     ? ` (${foraLista.map(o=>`Q${o.q} ${MOTIVO_CURTO[o.fora]||"fora"}`).join(", ")})`
     : "";
-  const contagem = `${nCaderno} questões · <b>${nValidas} valem ponto</b>`
-    + (nFora>0 ? ` · ${nFora} fora da correção${detalhe}` : "");
+  // a contagem desceu para o rodape e virou frase: no topo ela atrasava o que
+  // a pessoa veio ver, e como lista de codigos nao se lia. Sem o vetor colado
+  // o site sabe QUANTAS ficaram de fora, mas nao quais -- entao a frase muda
+  const porMotivo = {};
+  for(const o of foraLista) (porMotivo[o.fora] = porMotivo[o.fora] || []).push(o.q);
+  // anulada primeiro (o conceito e mais conhecido); a segunda vira "outra"
+  // quando vem depois de outro trecho, senao a frase repete o numeral
+  const ORDEM_MOTIVO = ["anulada", "sem_calibracao"];
+  const trechos = ORDEM_MOTIVO.filter(mv => porMotivo[mv]).map((mv, i) => {
+    const n = porMotivo[mv].length;
+    if(mv === "anulada") return plural(n, "questão anulada", "questões anuladas");
+    if(n === 1) return i > 0 ? "outra cujos parâmetros não convergiram"
+                             : "1 questão cujos parâmetros não convergiram";
+    return `${n} questões cujos parâmetros não convergiram`;
+  });
+  const verbo = nFora === 1 ? "não foi considerada" : "não foram consideradas";
+  const rodape = nFora > 0
+    ? `<p class="rodape-cartao">Em ${a.nome}, ${trechos.length
+        ? `houve ${trechos.join(" e ")}`
+        : `${plural(nFora, "questão ficou", "questões ficaram")} fora da correção do INEP`}` +
+      ` — ${verbo} para a nota.</p>`
+    : "";
 
   return `<div class="cartao">
     <h2>${temResp ? "Diagnóstico da sua prova de 2025" : "Como foi a prova de 2025"} <span class="nota">${a.nome} · sua nota: ${a.nota}</span></h2>
-    <p class="sub">${contagem}. ${sub}</p>
+    ${sub ? `<p class="sub">${sub}</p>` : ""}
     ${piso ? `<div class="percentil atencao">Nesta faixa a prova <b>não separa níveis</b> — os pontos abaixo são aproximados. O maior ganho está fora do que o mapa mede: <b>responder todas as questões</b>, mesmo sem certeza.</div>` : ""}
     ${medidaLarga && !manutencao && !noAlto ? `<div class="percentil">Nesta faixa a prova mede com folga${seEmPontos ? ` de uns <b>${Math.round(seEmPontos)} pontos</b>` : " maior"} — trate os primeiros como um <b>conjunto de boas apostas</b>, não como ordem exata.</div>` : ""}
     ${insightHtml}
@@ -1453,6 +1505,7 @@ function cartaoArea(a){
     ${totalHtml}
     ${blocos}
     ${naoMedHtml}
+    ${rodape}
   </div>`;
 }
 
