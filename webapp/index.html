@@ -483,15 +483,11 @@ function analisar(){
     }
     a.ptsAgora = mot.ganho(dE).pts;
     a.ptsTeto  = mot.ganho(dT).pts;
-    // a MELHOR competencia da area, pela mesma conta do cartao: o teto da area
-    // repartido na proporcao das questoes recuperaveis. E este numero que
-    // ordena as areas -- a pessoa comeca por UM conteudo, nao pela area toda
-    let topo = 0;
-    for(const c in porComp){
-      const pts = dT > 1e-9 ? Math.round(a.ptsTeto * porComp[c].t / dT) : 0;
-      if(pts > topo) topo = pts;
-    }
-    a.ptsTop = topo;
+    // a MELHOR competencia da area, pela MESMA funcao que o cartao usa. E este
+    // numero que ordena as areas -- a pessoa comeca por UM conteudo, nao pela
+    // area toda -- e ele tem de ser identico ao que a lista mostra em cima
+    const fatias = reparte(Object.keys(porComp).map(c=>porComp[c].t), a.ptsTeto);
+    a.ptsTop = fatias.length ? Math.max(...fatias) : 0;
     a.piso = mot.piso;
   }
   // area no piso da calibracao nao disputa o "comece aqui": naquela regiao a
@@ -904,6 +900,29 @@ function montaPercentil(a){
 // Um passo de estudo: o quanto o nivel avanca no cenario que a tela promete.
 // Nao e arbitrario no que importa -- o passo e o MESMO em todo conteudo, entao
 // o que a ordem compara e onde esse mesmo esforco rende mais ponto.
+// Reparte um total de pontos entre partes, na proporcao do que cada uma tem a
+// recuperar. Tres passos, e os tres importam:
+//   1. arredonda a fatia proporcional;
+//   2. piso de 1 no que ainda rende (fatia que arredonda a zero sumiria);
+//   3. o excesso do arredondamento sai da MAIOR fatia, para a soma fechar no
+//      total exibido -- somar e a conferencia que o leitor faz.
+//
+// Existia duas vezes (cartao e comparativo) e derivou: o comparativo pulava o
+// passo 3 e anunciava "+68" para a competencia que o cartao mostrava como
+// "+66". Uma funcao so, os dois chamam.
+function reparte(tetos, totalPts){
+  const soma = tetos.reduce((s,v)=>s+v, 0);
+  if(!(soma > 1e-9)) return tetos.map(()=>0);
+  let fatias = tetos.map(t => Math.round(totalPts*t/soma));
+  fatias = fatias.map((v,i)=> tetos[i] > 1e-9 ? Math.max(v,1) : 0);
+  const excesso = fatias.reduce((s,v)=>s+v,0) - totalPts;
+  if(excesso !== 0){
+    const imax = fatias.indexOf(Math.max(...fatias));
+    fatias[imax] = Math.max(1, fatias[imax] - excesso);
+  }
+  return fatias;
+}
+
 const PASSO = 0.5;
 
 // A descricao da Matriz e uma frase oficial longa (21 a 33 palavras). Fechada,
@@ -1363,15 +1382,7 @@ function cartaoArea(a){
   // estabilidade sustenta, grupos e nao ranking
   const dAtotArea = lista.reduce((s,c)=>s+c.teto, 0);
   const gTotal = ganho(dAtotArea);
-  let sharesC = lista.map(c=> dAtotArea>1e-9 ? Math.round(gTotal.pts*c.teto/dAtotArea) : 0);
-  sharesC = sharesC.map((v,i)=> lista[i].teto>1e-9 ? Math.max(v,1) : 0);
-  if(dAtotArea>1e-9){
-    const excC = sharesC.reduce((s,v)=>s+v,0) - gTotal.pts;
-    if(excC !== 0){
-      const imC = sharesC.indexOf(Math.max(...sharesC));
-      sharesC[imC] = Math.max(1, sharesC[imC] - excC);
-    }
-  }
+  const sharesC = reparte(lista.map(c=>c.teto), gTotal.pts);
 
   const maxAgora = Math.max(...lista.map(c=>c.agora), 1e-9);
   const grupoDe = c => (temResp && Math.round(c.teto)===0) ? 3

@@ -60,7 +60,7 @@ const epilogo = `
   faixaDisponivel, curvaAcertos, notaPorAcertos, motorArea,
   corrigeCaderno, padraoSuspeito, cartaoArea, cartaoEstudo,
   erroPadrao, itensDaArea, get NOS_QUAD(){ return NOS_QUAD }, resumoDesc,
-  limitesNota,
+  limitesNota, reparte, V,
 };`;
 vm.runInContext(script + epilogo, sandbox);
 const X = sandbox.X;
@@ -515,6 +515,48 @@ function passoDaArea(a) {
     // no amarelo. Citar o numero sem a cor erra em tres de quatro cadernos
     const h = X.cartaoEstudo(areaDe("MT", 613, null));
     espera(/caderno azul/i.test(h), "cartao de estudo nao diz a cor do caderno");
+  });
+
+  // O card da area anuncia "1o conteudo: ate +X" e o cartao abre com essa
+  // mesma competencia -- os dois numeros TEM de ser identicos. Ja divergiram:
+  // a reparticao estava escrita duas vezes e o comparativo pulava o desconto
+  // do arredondamento, anunciando +68 para o que o cartao mostrava como +66
+  caso("o numero do card da area e o mesmo da 1a competencia do cartao", () => {
+    const VET = "CBBCAEAABDBECDDDBAADECBDDACBAECDEBDDA.EBCEBAC";
+    const casos = [
+      ["MT", 613, null, null], ["CH", 565, null, null], ["CN", 500, null, null],
+      ["LC", 600, 0, null], ["MT", 613, null, VET], ["MT", 770, null, VET],
+    ];
+    for (const [sig, nota, lin, vet] of casos) {
+      if (vet) {
+        const cp = Object.keys(X.M.provas).find(c => X.M.provas[c].area === sig);
+        X.V[sig] = { cp, txt: vet, erro: null };
+      }
+      const a = areaDe(sig, nota, lin);
+      if (!a.perfil.length) { X.V[sig] = {}; continue; }
+
+      // o caminho do COMPARATIVO
+      const mot = X.motorArea(a);
+      let dT = 0; const porComp = {};
+      for (const h of a.perfil) {
+        if (!(h[4] > 0)) continue;
+        const t = mot.tetoHab(h[0], h[4], h[1]); dT += t;
+        const c = (X.M.matriz[X.k(sig, h[0])] || {}).comp;
+        if (c) porComp[c] = (porComp[c] || 0) + t;
+      }
+      const ptsTeto = mot.ganho(dT).pts;
+      const fatias = X.reparte(Object.keys(porComp).map(c => porComp[c]), ptsTeto);
+      const doCard = fatias.length ? Math.max(...fatias) : 0;
+
+      // o caminho do CARTAO
+      const html = X.cartaoArea(a);
+      const vals = [...html.matchAll(/class="cval">até \+(\d+) ponto/g)].map(m => Number(m[1]));
+      X.V[sig] = {};
+      if (!vals.length) continue;
+      const doCartao = Math.max(...vals);
+      espera(doCard === doCartao,
+        `${sig} ${nota}${vet ? " (com vetor)" : ""}: card diz +${doCard}, cartao mostra +${doCartao}`);
+    }
   });
 
   // A lista tem de DESCER pelo numero exibido. Antes a posicao vinha do passo
