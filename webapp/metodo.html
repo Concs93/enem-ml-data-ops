@@ -61,6 +61,33 @@
        padding:1px 6px;border-radius:var(--r-chip)}
   footer{border-top:1px solid var(--border);margin-top:48px;padding-top:18px;
          font-family:var(--sans);font-size:var(--fs-200);color:var(--muted)}
+  .fig{display:block;width:100%;height:auto;margin:18px 0 4px;color:var(--text)}
+  .legenda{font-family:var(--sans);font-size:var(--fs-100);color:var(--muted);
+       margin:0 0 22px;display:flex;flex-wrap:wrap;gap:14px}
+  .legenda i{font-style:normal;display:inline-flex;align-items:center;gap:6px}
+  .legenda i::before{content:"";width:16px;height:3px;border-radius:2px;background:currentColor}
+  .p1{color:var(--accent-fill)} .p2{color:var(--warn)} .p3{color:var(--alert)}
+  .ana{background:var(--chip);border-radius:var(--r-card);padding:14px 18px;margin:18px 0;
+       font-family:var(--sans);font-size:var(--fs-300)}
+  .ana b{color:var(--accent-deep)}
+  .fig{display:block;width:100%;height:auto;margin:18px 0 4px;color:var(--text)}
+  .legenda{font-family:var(--sans);font-size:var(--fs-100);color:var(--muted);
+       margin:0 0 22px;display:flex;flex-wrap:wrap;gap:14px}
+  .legenda i{font-style:normal;display:inline-flex;align-items:center;gap:6px}
+  .legenda i::before{content:"";width:16px;height:3px;border-radius:2px;background:currentColor}
+  .p1{color:var(--accent-fill)} .p2{color:var(--warn)} .p3{color:var(--alert)}
+  .ana{background:var(--chip);border-radius:var(--r-card);padding:14px 18px;margin:18px 0;
+       font-family:var(--sans);font-size:var(--fs-300)}
+  .ana b{color:var(--accent-deep)}
+  .fig{display:block;width:100%;height:auto;margin:18px 0 4px;color:var(--text)}
+  .legenda{font-family:var(--sans);font-size:var(--fs-100);color:var(--muted);
+       margin:0 0 22px;display:flex;flex-wrap:wrap;gap:14px}
+  .legenda i{font-style:normal;display:inline-flex;align-items:center;gap:6px}
+  .legenda i::before{content:"";width:16px;height:3px;border-radius:2px;background:currentColor}
+  .p1{color:var(--accent-fill)} .p2{color:var(--warn)} .p3{color:var(--alert)}
+  .ana{background:var(--chip);border-radius:var(--r-card);padding:14px 18px;margin:18px 0;
+       font-family:var(--sans);font-size:var(--fs-300)}
+  .ana b{color:var(--accent-deep)}
 </style>
 </head>
 <body>
@@ -72,63 +99,80 @@
 </header>
 <main>
   <h1>Como funciona</h1>
-  <p class="lede">Em dois minutos, sem matematiquês.</p>
+  <p class="lede">Em dois minutos, com a Ana de exemplo.</p>
 
-  <h2><span class="num">1.</span> Sua nota não é o número de acertos</h2>
-  <p>Pense num teste de força na academia: não conta quantas vezes você
-  levantou, conta <b>quanto peso</b>. Duas pessoas com 10 repetições podem ter
-  levantado pesos bem diferentes.</p>
-  <p>O ENEM faz igual. Cada questão tem um peso conhecido — o INEP publica isso
-  — e a sua nota sai do <b>conjunto</b> das suas respostas, não da mais difícil
-  que você acertou. Acertar uma questão muito acima do seu nível conta pouco: o
-  cálculo considera que pode ter sido chute. Por isso duas pessoas com o mesmo
-  número de acertos podem terminar com notas diferentes.</p>
+  <p class="ana">A <b>Ana</b> tirou <b>600 em Matemática</b>. É com a prova dela
+  que os números desta página são calculados — questões reais do ENEM 2025.</p>
 
-  <h2><span class="num">2.</span> O estudo rende mais logo acima de onde você está</h2>
-  <p>Se você já levanta 40 kg, treinar com 10 kg não adianta — você já faz. E
-  tentar 100 kg também não: está longe demais. O ganho está em 45, 50.</p>
-  <p class="caixa chave">É por isso que a tela <b>não</b> manda estudar o que
-  você mais errou. Errar uma questão muito difícil é esperado; ela não é o seu
-  próximo passo.</p>
+  <h2><span class="num">1.</span> A prova conhece cada questão por três números</h2>
+  <p>O INEP publica, para cada questão, três parâmetros. Eles são o que
+  transforma "errei a 17" em "isso custou tantos pontos":</p>
+  <ul>
+    <li><b>Dificuldade</b> — em que altura da escala a questão fica. Uma questão
+    de dificuldade 650 é aquela que quem tira 650 acerta com folga e quem tira
+    500, raramente.</li>
+    <li><b>Discriminação</b> — o quanto ela <i>separa</i> quem sabe de quem não
+    sabe. Discriminação alta é uma curva íngreme: 30 pontos de nota mudam muito
+    a chance de acerto. Baixa é uma curva quase plana — a questão quase não
+    distingue ninguém.</li>
+    <li><b>Acerto casual</b> — o piso. Mesmo quem não faz ideia às vezes marca
+    a certa. Esse piso varia muito de questão para questão: nas 43 de Matemática
+    ele vai de <b>1%</b> a <b>31%</b>, e não é o 20% do "chute entre cinco".</li>
+  </ul>
+  <svg viewBox="0 0 560 230" class="fig" role="img" aria-label="Curvas de tres questoes reais de Matematica: a probabilidade de acerto sobe com a nota, e cada questao tem sua propria posicao, inclinacao e piso."><line x1="46" y1="184" x2="546" y2="184" stroke="currentColor" opacity=".12"/><text x="39" y="188" text-anchor="end" font-size="11" opacity=".65">0%</text><line x1="46" y1="150" x2="546" y2="150" stroke="currentColor" opacity=".12"/><text x="39" y="154" text-anchor="end" font-size="11" opacity=".65">20%</text><line x1="46" y1="99" x2="546" y2="99" stroke="currentColor" opacity=".12"/><text x="39" y="103" text-anchor="end" font-size="11" opacity=".65">50%</text><line x1="46" y1="14" x2="546" y2="14" stroke="currentColor" opacity=".12"/><text x="39" y="18" text-anchor="end" font-size="11" opacity=".65">100%</text><line x1="166" y1="184" x2="166" y2="188" stroke="currentColor" opacity=".35"/><text x="166" y="201" text-anchor="middle" font-size="11" opacity=".65">400</text><line x1="241" y1="184" x2="241" y2="188" stroke="currentColor" opacity=".35"/><text x="241" y="201" text-anchor="middle" font-size="11" opacity=".65">500</text><line x1="301" y1="184" x2="301" y2="188" stroke="currentColor" opacity=".35"/><text x="301" y="201" text-anchor="middle" font-size="11" opacity=".65">600</text><line x1="364" y1="184" x2="364" y2="188" stroke="currentColor" opacity=".35"/><text x="364" y="201" text-anchor="middle" font-size="11" opacity=".65">700</text><line x1="428" y1="184" x2="428" y2="188" stroke="currentColor" opacity=".35"/><text x="428" y="201" text-anchor="middle" font-size="11" opacity=".65">800</text><line x1="501" y1="184" x2="501" y2="188" stroke="currentColor" opacity=".35"/><text x="501" y="201" text-anchor="middle" font-size="11" opacity=".65">900</text><line x1="46" y1="184" x2="546" y2="184" stroke="currentColor" opacity=".35"/><path d="M46.0,145.1 L51.0,144.5 L56.0,143.7 L61.0,142.9 L66.0,142.0 L71.0,141.0 L76.0,139.9 L81.0,138.6 L86.0,137.2 L91.0,135.7 L96.0,134.0 L101.0,132.1 L106.0,130.1 L111.0,127.9 L116.0,125.5 L121.0,122.9 L126.0,120.1 L131.0,117.1 L136.0,113.9 L141.0,110.6 L146.0,107.0 L151.0,103.3 L156.0,99.5 L161.0,95.5 L166.0,91.4 L171.0,87.3 L176.0,83.1 L181.0,78.9 L186.0,74.8 L191.0,70.7 L196.0,66.7 L201.0,62.8 L206.0,59.0 L211.0,55.4 L216.0,51.9 L221.0,48.6 L226.0,45.6 L231.0,42.7 L236.0,40.0 L241.0,37.5 L246.0,35.2 L251.0,33.1 L256.0,31.2 L261.0,29.4 L266.0,27.8 L271.0,26.4 L276.0,25.1 L281.0,23.9 L286.0,22.8 L291.0,21.8 L296.0,21.0 L301.0,20.2 L306.0,19.5 L311.0,18.9 L316.0,18.4 L321.0,17.9 L326.0,17.4 L331.0,17.1 L336.0,16.7 L341.0,16.4 L346.0,16.1 L351.0,15.9 L356.0,15.7 L361.0,15.5 L366.0,15.3 L371.0,15.2 L376.0,15.0 L381.0,14.9 L386.0,14.8 L391.0,14.7 L396.0,14.6 L401.0,14.6 L406.0,14.5 L411.0,14.4 L416.0,14.4 L421.0,14.3 L426.0,14.3 L431.0,14.3 L436.0,14.2 L441.0,14.2 L446.0,14.2 L451.0,14.2 L456.0,14.1 L461.0,14.1 L466.0,14.1 L471.0,14.1 L476.0,14.1 L481.0,14.1 L486.0,14.1 L491.0,14.1 L496.0,14.1 L501.0,14.0 L506.0,14.0 L511.0,14.0 L516.0,14.0 L521.0,14.0 L526.0,14.0 L531.0,14.0 L536.0,14.0 L541.0,14.0 L546.0,14.0" fill="none" stroke="var(--accent-fill)" stroke-width="2.4"/><path d="M46.0,147.3 L51.0,147.3 L56.0,147.3 L61.0,147.3 L66.0,147.3 L71.0,147.3 L76.0,147.3 L81.0,147.3 L86.0,147.3 L91.0,147.3 L96.0,147.3 L101.0,147.3 L106.0,147.3 L111.0,147.3 L116.0,147.3 L121.0,147.3 L126.0,147.3 L131.0,147.3 L136.0,147.3 L141.0,147.3 L146.0,147.3 L151.0,147.3 L156.0,147.3 L161.0,147.3 L166.0,147.3 L171.0,147.3 L176.0,147.3 L181.0,147.3 L186.0,147.3 L191.0,147.3 L196.0,147.3 L201.0,147.3 L206.0,147.3 L211.0,147.3 L216.0,147.3 L221.0,147.3 L226.0,147.3 L231.0,147.3 L236.0,147.2 L241.0,147.2 L246.0,147.2 L251.0,147.2 L256.0,147.2 L261.0,147.2 L266.0,147.1 L271.0,147.0 L276.0,147.0 L281.0,146.8 L286.0,146.7 L291.0,146.4 L296.0,146.1 L301.0,145.7 L306.0,145.1 L311.0,144.2 L316.0,143.1 L321.0,141.5 L326.0,139.4 L331.0,136.6 L336.0,132.9 L341.0,128.1 L346.0,122.0 L351.0,114.6 L356.0,105.9 L361.0,96.0 L366.0,85.3 L371.0,74.4 L376.0,63.8 L381.0,54.1 L386.0,45.5 L391.0,38.3 L396.0,32.4 L401.0,27.8 L406.0,24.2 L411.0,21.5 L416.0,19.5 L421.0,18.0 L426.0,16.9 L431.0,16.1 L436.0,15.5 L441.0,15.1 L446.0,14.8 L451.0,14.6 L456.0,14.4 L461.0,14.3 L466.0,14.2 L471.0,14.2 L476.0,14.1 L481.0,14.1 L486.0,14.1 L491.0,14.0 L496.0,14.0 L501.0,14.0 L506.0,14.0 L511.0,14.0 L516.0,14.0 L521.0,14.0 L526.0,14.0 L531.0,14.0 L536.0,14.0 L541.0,14.0 L546.0,14.0" fill="none" stroke="var(--warn)" stroke-width="2.4"/><path d="M46.0,131.0 L51.0,131.0 L56.0,131.0 L61.0,131.0 L66.0,131.0 L71.0,131.0 L76.0,131.0 L81.0,131.0 L86.0,131.0 L91.0,131.0 L96.0,130.9 L101.0,130.9 L106.0,130.9 L111.0,130.9 L116.0,130.9 L121.0,130.9 L126.0,130.9 L131.0,130.8 L136.0,130.8 L141.0,130.8 L146.0,130.8 L151.0,130.7 L156.0,130.7 L161.0,130.7 L166.0,130.6 L171.0,130.6 L176.0,130.5 L181.0,130.5 L186.0,130.4 L191.0,130.4 L196.0,130.3 L201.0,130.2 L206.0,130.2 L211.0,130.1 L216.0,130.0 L221.0,129.9 L226.0,129.8 L231.0,129.7 L236.0,129.5 L241.0,129.4 L246.0,129.3 L251.0,129.1 L256.0,128.9 L261.0,128.7 L266.0,128.5 L271.0,128.3 L276.0,128.1 L281.0,127.8 L286.0,127.5 L291.0,127.2 L296.0,126.9 L301.0,126.5 L306.0,126.1 L311.0,125.7 L316.0,125.2 L321.0,124.7 L326.0,124.2 L331.0,123.6 L336.0,123.0 L341.0,122.3 L346.0,121.6 L351.0,120.8 L356.0,119.9 L361.0,119.0 L366.0,118.1 L371.0,117.1 L376.0,116.0 L381.0,114.8 L386.0,113.5 L391.0,112.2 L396.0,110.8 L401.0,109.3 L406.0,107.8 L411.0,106.1 L416.0,104.4 L421.0,102.6 L426.0,100.7 L431.0,98.7 L436.0,96.6 L441.0,94.5 L446.0,92.3 L451.0,90.0 L456.0,87.7 L461.0,85.3 L466.0,82.9 L471.0,80.5 L476.0,78.0 L481.0,75.5 L486.0,73.0 L491.0,70.4 L496.0,67.9 L501.0,65.4 L506.0,63.0 L511.0,60.5 L516.0,58.1 L521.0,55.8 L526.0,53.5 L531.0,51.3 L536.0,49.1 L541.0,47.1 L546.0,45.1" fill="none" stroke="var(--alert)" stroke-width="2.4"/><text x="46" y="222" font-size="11" opacity=".65">sua nota em Matemática →</text></svg>
+  <p class="legenda">
+    <i class="p1">Q10 — fácil (dificuldade ~490)</i>
+    <i class="p2">Q32 — a mais íngreme da prova</i>
+    <i class="p3">Q4 — piso alto: 31% acertam no chute</i>
+  </p>
 
-  <h2><span class="num">3.</span> De onde saem os números</h2>
-  <p>Olhamos as 45 questões da prova, vemos o peso de cada uma e comparamos com
-  o seu nível. Daí sai <b>quanto cada conteúdo pode render</b> se você o dominar
-  — e é por esse número que a lista é ordenada.</p>
-  <p>No cartão do que estudar para a próxima, olhamos <b>seis edições</b>
-  (2020 a 2025): o que costuma cair e quanto costuma render para quem está no seu
-  nível. Ali a conta é em questões, não em pontos, porque a prova do ano que vem
-  ainda não existe.</p>
-  <p>As questões vêm numeradas <b>pelo caderno azul</b>: as quatro cores são a
-  mesma prova embaralhada, então o número muda de uma para outra. Em Linguagens,
-  <b>ING</b> e <b>ESP</b> marcam as cinco questões de língua estrangeira, que são
-  diferentes nos dois cadernos.</p>
+  <h2><span class="num">2.</span> As questões perto do seu degrau são as que mexem na nota</h2>
+  <p>A Ana acertou 16 das 43. O gráfico mostra, para cada uma das 27 que ela
+  errou, quanto teria somado à nota se tivesse acertado. As barras não são
+  iguais — e não crescem com a dificuldade: <b>encolhem</b>.</p>
+  <svg viewBox="0 0 560 220" class="fig" role="img" aria-label="Quanto cada questao que a Ana errou teria somado a nota dela. As barras sao mais altas nas questoes proximas do nivel dela e encolhem ate quase zero nas mais dificeis."><line x1="105" y1="174" x2="105" y2="178" stroke="currentColor" opacity=".35"/><text x="105" y="191" text-anchor="middle" font-size="11" opacity=".65">600</text><line x1="187" y1="174" x2="187" y2="178" stroke="currentColor" opacity=".35"/><text x="187" y="191" text-anchor="middle" font-size="11" opacity=".65">700</text><line x1="273" y1="174" x2="273" y2="178" stroke="currentColor" opacity=".35"/><text x="273" y="191" text-anchor="middle" font-size="11" opacity=".65">800</text><line x1="368" y1="174" x2="368" y2="178" stroke="currentColor" opacity=".35"/><text x="368" y="191" text-anchor="middle" font-size="11" opacity=".65">900</text><line x1="46" y1="174" x2="546" y2="174" stroke="currentColor" opacity=".12"/><text x="39" y="178" text-anchor="end" font-size="11" opacity=".65">+0</text><line x1="46" y1="98" x2="546" y2="98" stroke="currentColor" opacity=".12"/><text x="39" y="102" text-anchor="end" font-size="11" opacity=".65">+5</text><line x1="46" y1="22" x2="546" y2="22" stroke="currentColor" opacity=".12"/><text x="39" y="26" text-anchor="end" font-size="11" opacity=".65">+11</text><line x1="46" y1="174" x2="546" y2="174" stroke="currentColor" opacity=".35"/><rect x="101.9" y="37.4" width="8" height="136.6" fill="var(--accent-fill)" opacity=".8" rx="1.5"/><rect x="118.9" y="53.5" width="8" height="120.5" fill="var(--accent-fill)" opacity=".8" rx="1.5"/><rect x="164.4" y="53.9" width="8" height="120.1" fill="var(--accent-fill)" opacity=".8" rx="1.5"/><rect x="189.5" y="76.4" width="8" height="97.6" fill="var(--accent-fill)" opacity=".8" rx="1.5"/><rect x="191.2" y="22.0" width="8" height="152.0" fill="var(--accent-fill)" opacity=".8" rx="1.5"/><rect x="197.1" y="69.6" width="8" height="104.4" fill="var(--accent-fill)" opacity=".8" rx="1.5"/><rect x="203.8" y="93.4" width="8" height="80.6" fill="var(--accent-fill)" opacity=".8" rx="1.5"/><rect x="204.5" y="107.8" width="8" height="66.2" fill="var(--accent-fill)" opacity=".8" rx="1.5"/><rect x="213.0" y="64.6" width="8" height="109.4" fill="var(--accent-fill)" opacity=".8" rx="1.5"/><rect x="215.2" y="109.8" width="8" height="64.2" fill="var(--accent-fill)" opacity=".8" rx="1.5"/><rect x="221.4" y="117.3" width="8" height="56.7" fill="var(--accent-fill)" opacity=".8" rx="1.5"/><rect x="229.2" y="133.6" width="8" height="40.4" fill="var(--accent-fill)" opacity=".8" rx="1.5"/><rect x="247.9" y="126.4" width="8" height="47.6" fill="var(--accent-fill)" opacity=".8" rx="1.5"/><rect x="251.2" y="118.1" width="8" height="55.9" fill="var(--accent-fill)" opacity=".8" rx="1.5"/><rect x="256.1" y="135.0" width="8" height="39.0" fill="var(--accent-fill)" opacity=".8" rx="1.5"/><rect x="262.4" y="150.5" width="8" height="23.5" fill="var(--accent-fill)" opacity=".8" rx="1.5"/><rect x="263.8" y="120.3" width="8" height="53.7" fill="var(--accent-fill)" opacity=".8" rx="1.5"/><rect x="272.8" y="161.5" width="8" height="12.5" fill="var(--accent-fill)" opacity=".8" rx="1.5"/><rect x="275.4" y="170.4" width="8" height="3.6" fill="var(--accent-fill)" opacity=".8" rx="1.5"/><rect x="283.3" y="158.4" width="8" height="15.6" fill="var(--accent-fill)" opacity=".8" rx="1.5"/><rect x="301.7" y="161.7" width="8" height="12.3" fill="var(--accent-fill)" opacity=".8" rx="1.5"/><rect x="332.5" y="159.6" width="8" height="14.4" fill="var(--accent-fill)" opacity=".8" rx="1.5"/><rect x="345.7" y="158.5" width="8" height="15.5" fill="var(--accent-fill)" opacity=".8" rx="1.5"/><rect x="347.9" y="173.7" width="8" height="1.0" fill="var(--accent-fill)" opacity=".8" rx="1.5"/><rect x="355.1" y="160.2" width="8" height="13.8" fill="var(--accent-fill)" opacity=".8" rx="1.5"/><rect x="418.8" y="171.6" width="8" height="2.4" fill="var(--accent-fill)" opacity=".8" rx="1.5"/><rect x="520.6" y="167.7" width="8" height="6.3" fill="var(--accent-fill)" opacity=".8" rx="1.5"/><line x1="112" y1="14" x2="112" y2="174" stroke="var(--warn)" stroke-width="2" stroke-dasharray="4 3"/><text x="118" y="21" font-size="11" fill="var(--warn)">a Ana está aqui</text><text x="46" y="212" font-size="11" opacity=".65">dificuldade da questão, na escala da nota →</text></svg>
+  <p class="legenda"><i class="p1">quanto cada questão errada teria somado</i>
+    <i class="p2">o degrau da Ana (600)</i></p>
+  <p class="caixa chave">As seis questões mais próximas do degrau dela valiam de
+  <b>7 a 11 pontos</b> cada. As seis mais distantes, de <b>0 a 1</b> — na média,
+  <b>14 vezes menos</b>. O modelo considera que um acerto tão acima do nível
+  poderia ter sido chute, e quase não credita. <b>É por esse impacto que a lista
+  da tela é ordenada</b>, não pelo que a pessoa mais errou.</p>
 
-  <h2><span class="num">4.</span> Se você preencher suas respostas</h2>
-  <p>Aí o mapa deixa de falar de "quem tem a sua nota" e passa a ser <b>seu</b>:
-  contamos as questões que você errou e que ainda podem virar ponto. A correção
-  acontece no seu próprio aparelho — as respostas não são enviadas a lugar
-  nenhum.</p>
+  <h2><span class="num">3.</span> O número é quanto <i>teria</i> somado</h2>
+  <p>A prova de 2025 já passou — ninguém vai ganhar ponto nela. Quando a tela
+  diz <b>"até +76 pontos"</b>, está dizendo: <i>se a Ana dominasse este
+  conteúdo, a nota dela naquela prova teria sido até 76 pontos maior</i>.</p>
+  <p>Serve para escolher o que estudar porque a Matriz de Referência é a mesma
+  todo ano: o conteúdo que pesou em 2025 tende a pesar de novo. Mas o número é
+  do passado, e é assim que ele deve ser lido.</p>
 
-  <h2><span class="num">5.</span> O que ele não promete</h2>
-  <p class="caixa atencao">É um mapa, não uma bola de cristal. A nota real
-  depende de quais questões caem. Onde só uma questão mede um conteúdo, trate
-  como pista. E quanto mais baixa a nota, mais grossa a medida — a prova tem
-  poucas questões naquele nível.</p>
-  <p>Sobre o cartão da próxima prova: medimos o quanto a ordem dos conteúdos se
-  repete de uma edição para outra, e ela varia por área. Em <b>Linguagens</b> e
-  <b>Natureza</b> se repete bastante; em <b>Matemática</b>, pouco; em
-  <b>Humanas</b>, quase nada — ali a lista vale como panorama do que costuma ser
-  cobrado, não como fila.</p>
+  <h2><span class="num">4.</span> Com as suas respostas, a conta deixa de ser média</h2>
+  <p>Só com a nota, o site fala de <i>quem tirou 600</i> — um retrato médio de
+  todo mundo naquele degrau.</p>
+  <p>Preenchendo o gabarito, ele passa a falar da Ana. Sabemos <b>exatamente
+  quais</b> questões ela errou, e para cada uma calculamos, pelos três
+  parâmetros, qual era a probabilidade de ela acertar. Daí sai o impacto de
+  cada erro — e a lista deixa de ser um perfil de faixa e vira o mapa da prova
+  dela. A correção acontece no aparelho dela; as respostas não são enviadas.</p>
+
+  <h2><span class="num">5.</span> Nas pontas da escala, a medida é menos precisa</h2>
+  <p>A prova tem muitas questões no miolo da escala e poucas nos extremos. Onde
+  há poucas questões, ela <b>localiza a pessoa com menos precisão</b> — e tudo
+  o que se calcula a partir dali herda essa imprecisão.</p>
+  <p class="caixa atencao">Medido nas 43 questões de Matemática: a margem da
+  nota é de cerca de <b>±16 pontos</b> em 700, sobe para <b>±42</b> em 500 e
+  chega a <b>±143</b> em 400. No topo ela volta a subir. Perto das pontas,
+  leia o mapa como direção, não como medida fina.</p>
 
   <h2><span class="num">6.</span> De onde vêm os dados</h2>
   <p>Tudo é público: os
   <a href="https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/microdados/enem">microdados
   do ENEM</a> de 2020 a 2025 e a
   <a href="https://download.inep.gov.br/download/enem/matriz_referencia.pdf">Matriz de
-  Referência</a>, de onde saem os códigos C e H da tela. É o mesmo modelo que o INEP usa para
-  corrigir a prova (Teoria de Resposta ao Item). A ponte entre a sua nota e o
-  seu nível é medida aqui, nos participantes de 2025.</p>
+  Referência</a>, de onde saem os códigos C e H da tela. É o mesmo modelo que o
+  INEP usa para corrigir a prova (Teoria de Resposta ao Item). A ponte entre a
+  sua nota e o seu nível é medida aqui, nos participantes de 2025.</p>
 </main>
 
   <footer>

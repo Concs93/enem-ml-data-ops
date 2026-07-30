@@ -112,9 +112,13 @@
        border-radius:var(--r-pill);background:var(--chip);color:var(--muted);
        white-space:nowrap;display:inline-block}
   .badge.fragil{background:var(--chip);color:var(--muted);border:1px solid var(--border)}
-  .exemplos{display:flex;flex-wrap:wrap;align-items:center;gap:8px;
-       font-family:var(--sans);font-size:var(--fs-200);color:var(--muted)}
-  .secundaria.mini{padding:7px 12px;font-size:var(--fs-200);width:auto}
+  .exemplos{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:14px}
+  .exemplos .rot-ex{font-family:var(--sans);font-size:var(--fs-200);color:var(--muted)}
+  button.mini{font-family:var(--sans);font-weight:600;font-size:var(--fs-200);
+       padding:6px 13px;border:1px solid var(--border);border-radius:var(--r-pill);
+       background:var(--surface);color:var(--accent-deep);cursor:pointer;
+       white-space:nowrap;transition:border-color .12s,background .12s}
+  button.mini:hover{border-color:var(--accent);background:var(--accent-soft)}
   .ver-metodo{font-family:var(--sans);font-size:var(--fs-200);
        text-align:center;margin:28px 0 8px;color:var(--muted)}
   .cor-caderno{color:var(--muted)}
@@ -278,7 +282,12 @@
     </details>
     <div class="acao">
       <button class="analisar" id="btn">Ver meu mapa de estudo</button>
-      <span class="exemplos">Testar com um exemplo:<button class="secundaria mini" id="ex-baixo" type="button">nota mais baixa</button><button class="secundaria mini" id="ex-medio" type="button">nota média</button><button class="secundaria mini" id="ex-alto" type="button">nota mais alta</button></span>
+      <div class="exemplos">
+        <span class="rot-ex">Sem as suas notas? Veja um exemplo de</span>
+        <button class="mini" id="ex-baixo" type="button">nota mais baixa</button>
+        <button class="mini" id="ex-medio" type="button">nota média</button>
+        <button class="mini" id="ex-alto" type="button">nota mais alta</button>
+      </div>
       <span class="aviso-form oculto" id="erro-form"></span>
     </div>
   </div>
