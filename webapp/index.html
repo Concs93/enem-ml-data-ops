@@ -108,7 +108,9 @@
   .hab .meta b{font-size:var(--fs-300);color:var(--accent-deep)}
   .cod{font-family:var(--sans);font-size:var(--fs-100);font-weight:700;color:var(--accent-deep);
        background:var(--accent-soft);padding:1px 7px;border-radius:var(--r-chip);margin-right:6px}
-  .badge{font-family:var(--sans);font-size:var(--fs-100);font-weight:700;padding:1px 8px;border-radius:var(--r-pill);background:var(--chip);color:var(--muted)}
+  .badge{font-family:var(--sans);font-size:var(--fs-100);font-weight:700;padding:1px 8px;
+       border-radius:var(--r-pill);background:var(--chip);color:var(--muted);
+       white-space:nowrap;display:inline-block}
   .badge.fragil{background:var(--chip);color:var(--muted);border:1px solid var(--border)}
   .exemplos{display:flex;flex-wrap:wrap;align-items:center;gap:8px;
        font-family:var(--sans);font-size:var(--fs-200);color:var(--muted)}
@@ -124,7 +126,7 @@
   .qref i{font-style:normal;color:var(--muted);margin-left:5px}
   .qmais{font-family:var(--sans);font-size:var(--fs-100);color:var(--muted);
          align-self:center}
-  .badge.rende{background:var(--accent-soft);color:var(--accent-deep)}
+  .badge.rende{background:var(--accent-soft);color:var(--accent-deep);margin-right:7px}
   .badge.comp{background:var(--accent-soft);color:var(--accent-deep)}
   .barra{height:5px;border-radius:3px;background:var(--chip);margin-top:7px;overflow:hidden}
   .barra i{display:block;height:100%;background:var(--accent);border-radius:3px}
@@ -146,7 +148,8 @@
   details.compbloco .cmeta b{font-size:var(--fs-400);font-weight:700;color:var(--text)}
   /* o valor tambem no summary: fechado, o bloco precisa justificar a fila */
   details.compbloco summary .cval{font-family:var(--sans);font-weight:700;font-size:var(--fs-300);
-       color:var(--text);white-space:nowrap;margin-left:auto;font-variant-numeric:tabular-nums}
+       color:var(--text);white-space:nowrap;margin-left:auto;font-variant-numeric:tabular-nums;
+       min-width:11ch;text-align:right}
   details.compbloco .cbarra{margin:0 14px 6px}
   details.compbloco .hab{margin:0 14px;grid-template-columns:34px 1fr}
   /* a regra generica .hab .pos perde aqui por especificidade: a cor
@@ -195,6 +198,13 @@
   .linha-gab .erro{grid-column:2/-1;font-size:var(--fs-200);color:var(--alert);margin-top:-4px}
   .linha-gab .ok{grid-column:2/-1;font-size:var(--fs-200);color:var(--tip);margin-top:-4px}
   @media(max-width:700px){
+    /* valor e seta em cima, descricao embaixo em toda a largura -- lado a
+       lado, a descricao ficava numa coluna de ~20 caracteres */
+    details.compbloco summary{flex-wrap:wrap;gap:6px}
+    details.compbloco summary .cval{order:1;min-width:0;text-align:left;
+         margin-left:0;margin-right:auto}
+    details.compbloco summary .seta{order:1}
+    details.compbloco summary .ctit{order:2;flex:1 1 100%}
     .linha-gab{grid-template-columns:1fr 1fr;}
     .linha-gab .rot{grid-column:1/-1;padding-bottom:0}
     .linha-gab .campo-resp{grid-column:1/-1}
@@ -1477,8 +1487,16 @@ function cartaoArea(a){
   const sharesC = reparte(lista.map(c=>c.teto), gTotal.pts);
 
   const maxAgora = Math.max(...lista.map(c=>c.agora), 1e-9);
+  // no maximo TRES marcadas, e so as do topo: o limiar sozinho deixava 48% da
+  // lista com selo (90% em varios cartoes), e selo em quase tudo nao marca
+  // nada. Tres e o tamanho que a medicao sustenta -- o bootstrap da 46 a 86%
+  // de confianca ao 1o lugar contra 14 a 17% de acaso, o que autoriza um
+  // punhado de apostas, nao meia lista
+  const TOPO_SELO = 3;
+  const doTopo = new Set([...lista].sort((x,y)=>y.agora-x.agora)
+                                   .slice(0, TOPO_SELO).map(c=>c.c));
   const grupoDe = c => (temResp && Math.round(c.teto)===0) ? 3
-    : c.agora >= 0.55*maxAgora ? 0
+    : (c.agora >= 0.55*maxAgora && doTopo.has(c.c)) ? 0
     : c.agora >= 0.22*maxAgora ? 1 : 2;
   const TITULO_GRUPO = {
     0: "Comece por aqui",
@@ -1563,8 +1581,10 @@ function cartaoArea(a){
 
     return `${cabecalho}<details class="compbloco" ${abre?"open":""}>
       <summary>
-        <span class="ctit"><span class="cod" title="competência ${c.c} de ${a.sig}">C${c.c}</span>${c.desc}</span>
-        ${!manutencao && g===0 && gTotal.pts>=1 ? '<span class="badge rende" title="no seu nível, é onde o mesmo tempo de estudo vira ponto mais rápido">comece por aqui</span>' : ""}
+        <span class="ctit"><span class="cod" title="competência ${c.c} de ${a.sig}">C${c.c}</span>${
+          !manutencao && g===0 && gTotal.pts>=1
+            ? '<span class="badge rende" title="no seu nível, é onde o mesmo tempo de estudo vira ponto mais rápido">comece por aqui</span>'
+            : ""}${c.desc}</span>
         ${cval}
         <span class="seta">▶</span>
       </summary>
