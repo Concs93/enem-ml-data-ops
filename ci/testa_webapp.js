@@ -494,6 +494,47 @@ function passoDaArea(a) {
       `${achados.length} caractere(s) de controle: ${[...new Set(achados.map(c => "0x" + c.charCodeAt(0).toString(16)))].join(", ")}`);
   });
 
+  // A lista tem de DESCER pelo numero exibido. Antes a posicao vinha do passo
+  // e o numero era o teto: em 60% dos cartoes aparecia um "+37" acima de um
+  // "+82" (pior caso, MT 500: 76 · 72 · 66 · 37 · 82 · 73 · 50). Ordem que
+  // contradiz o numero ao lado e lida como erro, nao como sutileza
+  caso("a lista de competencias desce pelo numero exibido, sem inversao", () => {
+    let cartoes = 0, ruins = 0, pior = "";
+    for (const [sig, lin] of [["MT", null], ["CH", null], ["CN", null], ["LC", 0]]) {
+      for (let nota = 400; nota <= 880; nota += 40) {
+        const a = areaDe(sig, nota, lin);
+        if (!a.perfil.length) continue;
+        const h = X.cartaoArea(a);
+        const vals = [...h.matchAll(/class="cval">até \+(\d+) ponto/g)].map(m => Number(m[1]));
+        if (vals.length < 3) continue;
+        cartoes++;
+        for (let i = 1; i < vals.length; i++) {
+          if (vals[i] > vals[i - 1]) { ruins++; pior = `${sig} ${nota}: ${vals.join(" · ")}`; break; }
+        }
+      }
+    }
+    espera(cartoes >= 30, `poucos cartoes avaliados (${cartoes})`);
+    espera(ruins === 0, `${ruins} de ${cartoes} cartoes com inversao — ex.: ${pior}`);
+  });
+  caso("o selo 'comece por aqui' marca parte da lista, nao tudo nem nada", () => {
+    // o que a medicao sustenta e um GRUPO de boas apostas (~metade), nao um
+    // vencedor unico. Selo em tudo nao informa; em nada, perde o sinal
+    let comSelo = 0, total = 0;
+    for (const [sig, nota] of [["MT", 500], ["MT", 613], ["CH", 565], ["CN", 600], ["LC", 600]]) {
+      const a = areaDe(sig, nota, sig === "LC" ? 0 : null);
+      if (!a.perfil.length) continue;
+      const h = X.cartaoArea(a);
+      const n = (h.match(/class="cval">até \+/g) || []).length;
+      const sel = (h.match(/badge rende/g) || []).length;
+      if (n < 3) continue;
+      total += n; comSelo += sel;
+      espera(sel >= 1 && sel < n,
+        `${sig} ${nota}: ${sel} selos em ${n} competencias`);
+    }
+    espera(total > 0, "nenhum cartao avaliado");
+    espera(comSelo / total <= 0.7, `selo em ${(100 * comSelo / total).toFixed(0)}% — perde o sinal`);
+  });
+
   // Nota fora da faixa real da edicao: antes, faixaDisponivel() encostava na
   // faixa mais proxima e o mapa saia calculado para outra pessoa, em silencio
   caso("limites de nota saem dos dados: 1a faixa calibrada e maior nota real", () => {

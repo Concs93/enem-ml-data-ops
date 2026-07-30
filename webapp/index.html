@@ -107,6 +107,7 @@
        background:var(--accent-soft);padding:1px 7px;border-radius:var(--r-chip);margin-right:6px}
   .badge{font-family:var(--sans);font-size:var(--fs-100);font-weight:700;padding:1px 8px;border-radius:var(--r-pill);background:var(--chip);color:var(--muted)}
   .badge.fragil{background:var(--chip);color:var(--muted);border:1px solid var(--border)}
+  .badge.rende{background:var(--accent-soft);color:var(--accent-deep)}
   .badge.comp{background:var(--accent-soft);color:var(--accent-deep)}
   .barra{height:5px;border-radius:3px;background:var(--chip);margin-top:7px;overflow:hidden}
   .barra i{display:block;height:100%;background:var(--accent);border-radius:3px}
@@ -1362,10 +1363,20 @@ function cartaoArea(a){
     2: "Mais distante por enquanto",
     3: "Você já fechou — mantenha em dia",
   };
+  // A LISTA DESCE PELO NUMERO EXIBIDO. Antes a posicao vinha do grupo (o
+  // rendimento do passo) e o numero era o teto -- duas medidas diferentes, e
+  // em 60% dos cartoes isso produzia inversao visivel, com salto de ate 45
+  // pontos (MT 500 mostrava 76 · 72 · 66 · 37 · 82 · 73 · 50). Ordem que
+  // contradiz o numero ao lado nao e lida como sutileza, e lida como erro.
+  //
+  // O sinal de rendimento NAO se perde: ele sai da posicao e vira selo. E a
+  // mesma medicao de sempre que o sustenta -- o que ela autoriza e um GRUPO de
+  // boas apostas (~3,5 de 7,5 competencias), nao um ranking de 1a a 7a. Selo
+  // diz exatamente isso; posicao dizia mais do que o dado aguenta.
   const ordenada = manutencao
     ? lista.map(c=>({c, g:null, t:{pts:0,alem:false}}))
     : lista.map((c,i)=>({c, g:grupoDe(c), t:{pts:sharesC[i], alem:false}}))
-        .sort((x,y)=> x.g-y.g || y.t.pts-x.t.pts);
+        .sort((x,y)=> y.t.pts-x.t.pts || x.g-y.g);
 
   // a linha que responde "e se eu fizer tudo?": o total unico, conferivel
   const chegada = Math.round(Number(a.nota) + gTotal.pts);
@@ -1430,14 +1441,14 @@ function cartaoArea(a){
     const cval = manutencao ? "" :
       `<span class="cval">${g===3 ? "✓" : t.pts>=1 ? `até +${t.pts} pontos${t.alem?" ou mais":""}` : "—"}</span>`;
 
-    const cabecalho = (!manutencao && g!==grupoAnterior)
-      ? `<div class="grupo-titulo">${TITULO_GRUPO[g]}</div>` : "";
+    const cabecalho = "";
     grupoAnterior = g;
     const abre = primeiro && !manutencao; primeiro = false;
 
     return `${cabecalho}<details class="compbloco" ${abre?"open":""}>
       <summary>
         <span class="ctit"><span class="cod" title="competência ${c.c} de ${a.sig}">C${c.c}</span>${resumoDesc(c.desc)}</span>
+        ${!manutencao && g===0 ? '<span class="badge rende" title="no seu nível, é onde o mesmo tempo de estudo vira ponto mais rápido">comece por aqui</span>' : ""}
         ${cval}
         <span class="seta">▶</span>
       </summary>
