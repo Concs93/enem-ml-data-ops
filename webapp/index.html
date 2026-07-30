@@ -381,6 +381,13 @@ function questoesTxt(sig, lin, hab){
   return `<div class="qrefs" title="posições no caderno azul — nas outras cores a mesma questão tem outro número">${itens}</div>`;
 }
 
+// O PDF da Matriz traz UM asterisco, em LC C2 ("...grupos sociais*."), e
+// NENHUMA nota de rodape nas 24 paginas -- conferido caractere a caractere. O
+// marcador aponta para nada. O seed continua fiel a fonte (regra da casa:
+// derivar, nao editar); quem limpa e a tela, porque na tela ele so levanta a
+// pergunta "o que e isso?" e nao ha resposta
+const semAsterisco = t => String(t || "").replace(/\*(?=\.?$)/, "");
+
 const _limites = {};
 function limitesNota(area, lingua){
   const ch = k(area, area==="LC" ? lingua : null);
@@ -1262,12 +1269,11 @@ function cartaoEstudo(a){
     const abre = prim; prim = false;
     return `${cab}<details class="compbloco" ${abre?"open":""}>
       <summary>
-        <span class="ctit"><span class="cod" title="competência ${c.c} de ${a.sig}">C${c.c}</span>${resumoDesc(c.desc)}</span>
+        <span class="ctit"><span class="cod" title="competência ${c.c} de ${a.sig}">C${c.c}</span>${resumoDesc(semAsterisco(c.desc))}</span>
         ${top25.has(c.c) ? '<span class="badge comp" title="também rendia na prova de 2025 — as duas leituras concordam">✓ também em 2025</span>' : ''}
         <span class="cval">${qTxt(c.itens)} questões</span>
         <span class="seta">▶</span>
       </summary>
-      <p class="cdesc">${c.desc}</p>
       <div class="cmeta">das 45 da prova</div>
       ${habs}
       <div style="height:12px"></div>
@@ -1478,12 +1484,11 @@ function cartaoArea(a){
 
     return `${cabecalho}<details class="compbloco" ${abre?"open":""}>
       <summary>
-        <span class="ctit"><span class="cod" title="competência ${c.c} de ${a.sig}">C${c.c}</span>${resumoDesc(c.desc)}</span>
+        <span class="ctit"><span class="cod" title="competência ${c.c} de ${a.sig}">C${c.c}</span>${resumoDesc(semAsterisco(c.desc))}</span>
         ${!manutencao && g===0 ? '<span class="badge rende" title="no seu nível, é onde o mesmo tempo de estudo vira ponto mais rápido">comece por aqui</span>' : ""}
         ${cval}
         <span class="seta">▶</span>
       </summary>
-      <p class="cdesc">${c.desc}</p>
       <div class="cmeta">${cmeta}</div>
       ${habs}
       <div style="height:12px"></div>
@@ -1546,12 +1551,12 @@ function cartaoArea(a){
     partes.push(`Em ${a.nome}, ${plural(nFora,"questão ficou","questões ficaram")}`
       + ` fora da correção do INEP${trechos.length ? ` (${trechos.join(", ")})` : ""}.`);
     if(daContagem.length){
-      const lista = daContagem.map(x=>`<b>${x.cod}</b> (${resumoDesc(x.nome, 7).replace(/\.$/, "")})`).join(" e ");
+      const lista = daContagem.map(x=>`<b>${x.cod}</b> (${resumoDesc(semAsterisco(x.nome), 7).replace(/\.$/, "")})`).join(" e ");
       partes.push(`Com isso, ${lista} ${daContagem.length===1?"ficou":"ficaram"} sem medida em 2025.`);
     }
   }
   for(const x of daLingua){
-    partes.push(`<b>${x.cod}</b> (${resumoDesc(x.nome, 7).replace(/\.$/, "")}) só aparece em questões de espanhol.`);
+    partes.push(`<b>${x.cod}</b> (${resumoDesc(semAsterisco(x.nome), 7).replace(/\.$/, "")}) só aparece em questões de espanhol.`);
   }
   const rodape = partes.length
     ? `<p class="rodape-cartao">${partes.join(" ")}</p>`

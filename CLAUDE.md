@@ -1298,6 +1298,20 @@ contagem exposta em `n_prova_em_branco`.
 Provas em branco por área: **CH 2.489 · LC 663 · MT 221 · CN 163** (na população
 do diagnóstico).
 
+### O asterisco órfão da Matriz (LC C2)
+
+A descrição da Competência 2 de LC termina em `grupos sociais*.` — e o
+asterisco aparece **uma única vez nas 24 páginas** do PDF oficial, sem nota de
+rodapé nenhuma. Conferido caractere a caractere: o marcador não tem referente.
+
+A extração está correta e o seed continua **fiel à fonte** (regra da casa:
+derivar do artefato, não editá-lo). Quem limpa é a **tela** — ali o asterisco
+só levanta a pergunta "o que é isso?" e não existe resposta para dar.
+
+Lição de método: nem todo defeito no dado é erro do pipeline. Este veio
+pronto do documento oficial, e a resposta certa não foi consertar a origem
+nem repetir o ruído — foi separar fidelidade (seed) de leitura (tela).
+
 ### Extração de PDF quebra palavras
 
 Extratores que **inferem** o espaço comparando a distância entre glifos com uma
