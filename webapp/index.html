@@ -1291,8 +1291,9 @@ function cartaoEstudo(a){
 
   return `<div class="cartao">
     <h2>O que estudar para a próxima <span class="nota">${a.nome}</span></h2>
-    <p class="sub">Pesamos <b>quanto cada conteúdo costuma cair</b> (2020 a 2025) e <b>quanto ele rende no seu nível</b> — a ordem é o que mais tende a virar ponto na próxima prova. ${notaConf} <span class="cor-caderno">Questões numeradas pelo caderno azul.</span></p>
+    <p class="sub">Pesamos <b>quanto cada conteúdo costuma cair</b> (2020 a 2025) e <b>quanto ele rende no seu nível</b>.</p>
     ${blocos}
+    <p class="rodape-cartao">${notaConf} Questões numeradas pelo caderno azul — nas outras cores o número muda.</p>
   </div>`;
 }
 
