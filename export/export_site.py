@@ -51,18 +51,23 @@ def exporta(cur):
     # crescente (4,11 -> 7,28 no piso de MT) e e o que o site deve inverter.
     cur.execute("""
         select area, cod_lingua, nota_faixa, theta_efetivo, n, acertos_medio,
+               nota_minima_area,
                nota_maxima_area
         from marts.mart_calibracao_nota
     """)
-    cal, maxn = {}, {}
-    for area, lingua, faixa, theta, n, ac_medio, nmax in cur.fetchall():
+    cal, minn, maxn = {}, {}, {}
+    for area, lingua, faixa, theta, n, ac_medio, nmin, nmax in cur.fetchall():
         cal[k(area, lingua, faixa)] = [float(theta), int(n), float(ac_medio)]
+        if nmin is not None:
+            minn[k(area, lingua)] = float(nmin)
         if nmax is not None:
             maxn[k(area, lingua)] = float(nmax)
     pacote["calibracao"] = cal
-    # o teto FISICO da escala por area: a curva calibravel termina onde acaba
-    # a amostra (n >= 100 por faixa), mas notas maiores existem -- CH vai a
-    # 856,4 com a curva terminando em ~770. O site limita o "ou mais" por aqui
+    # os extremos FISICOS da escala por area: a curva calibravel comeca e
+    # termina onde acaba a amostra (n >= 100 por faixa), mas notas fora dela
+    # existem -- CH vai a 856,4 com a curva terminando em ~770. O site limita
+    # o "ou mais" pelo maximo e RECUSA nota fora da faixa pelos dois
+    pacote["minNota"] = minn
     pacote["maxNota"] = maxn
 
     # ------------------------------------------------------- perfil
@@ -202,10 +207,12 @@ def valida(cur, pacote):
     # o teto fisico precisa existir para os 5 grupos e nunca ficar ABAIXO da
     # ultima faixa calibravel -- senao o cap cortaria a propria curva
     ultimas = {}
+    primeiras = {}
     for chave, (theta, n, ac) in pacote["calibracao"].items():
         area, lingua, faixa = chave.rsplit("|", 2)
         kk = f"{area}|{lingua}"
         ultimas[kk] = max(ultimas.get(kk, 0), int(faixa))
+        primeiras[kk] = min(primeiras.get(kk, 9999), int(faixa))
     for kk, topo in ultimas.items():
         nmax = pacote["maxNota"].get(kk)
         if nmax is None:
@@ -213,6 +220,19 @@ def valida(cur, pacote):
         elif nmax < topo:
             erros.append(f"maxNota: teto {nmax} abaixo da ultima faixa "
                          f"calibravel ({topo}) em {kk}")
+    # o piso tem de existir, ficar ACIMA de zero (senao o sentinela de prova em
+    # branco vazou) e nao pode estar acima da primeira faixa calibravel -- se
+    # estiver, a faixa aceita cortaria gente que a propria curva atende
+    for kk, base in primeiras.items():
+        nmin = pacote["minNota"].get(kk)
+        if nmin is None:
+            erros.append(f"minNota: falta o piso da escala para {kk}")
+        elif nmin <= 0:
+            erros.append(f"minNota: piso {nmin} em {kk} -- o zero e sentinela "
+                         f"de prova em branco e nao pode entrar")
+        elif nmin > base + 10:
+            erros.append(f"minNota: piso {nmin} acima da primeira faixa "
+                         f"calibravel ({base}) em {kk}")
 
     cur.execute("""
         select count(distinct (area, cod_lingua, theta))

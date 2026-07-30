@@ -545,13 +545,22 @@ function passoDaArea(a) {
       const chave = X.k(sig, sig === "LC" ? lin : null);
       espera(Math.abs(l.max - X.M.maxNota[chave]) <= 0.05,
         `${sig}: max ${l.max} != maxNota ${X.M.maxNota[chave]}`);
-      // o minimo e a menor faixa que existe na calibracao
-      let menor = Infinity;
-      for (const ch in X.M.calibracao) {
-        const [a, ll, f] = ch.split("|");
-        if (a === sig && ll === (sig === "LC" ? String(lin) : "_")) menor = Math.min(menor, Number(f));
+      // o minimo sai de minNota quando ele existe (o piso REAL da edicao);
+      // sem ele, cai na primeira faixa calibrada -- que e mais alta, entao o
+      // fallback recusa gente que existe. So vale enquanto o motor.json nao
+      // for reexportado
+      if (X.M.minNota && X.M.minNota[chave] != null) {
+        espera(Math.abs(l.min - X.M.minNota[chave]) <= 0.05,
+          `${sig}: min ${l.min} != minNota ${X.M.minNota[chave]}`);
+        espera(l.min > 0, `${sig}: piso ${l.min} -- o zero e sentinela e nao pode entrar`);
+      } else {
+        let menor = Infinity;
+        for (const ch in X.M.calibracao) {
+          const [a, ll, f] = ch.split("|");
+          if (a === sig && ll === (sig === "LC" ? String(lin) : "_")) menor = Math.min(menor, Number(f));
+        }
+        espera(l.min === menor, `${sig}: sem minNota, min ${l.min} != primeira faixa ${menor}`);
       }
-      espera(l.min === menor, `${sig}: min ${l.min} != primeira faixa ${menor}`);
       espera(l.min >= 250 && l.min <= 400, `${sig}: minimo implausivel (${l.min})`);
       espera(l.max >= 700 && l.max <= 1000, `${sig}: maximo implausivel (${l.max})`);
     }

@@ -370,9 +370,10 @@ as faixas raras, então **a curva calibrável termina onde acaba a amostra**
 (~770 em CH), mas a escala vai além. O site limitava o "ou mais" no fim da
 curva — dizendo *menos* do que a escala realmente pagou.
 
-Correção na estrutura, não no texto: `int_nota_maxima` (uma varredura, 5
+Correção na estrutura, não no texto: `int_nota_extremos` (uma varredura, 5
 linhas) leva a maior nota real por área/língua ao `mart_calibracao_nota`
-(coluna `nota_maxima_area`), que viaja no motor.json (`maxNota`) e vira o
+(colunas `nota_minima_area` e `nota_maxima_area`), que viajam no motor.json
+(`minNota`/`maxNota`) e viram o
 teto físico das extrapolações. Os máximos reais de 2025, prova regular:
 **MT 980,3 · CN 858,7 · CH 856,4 · LC 794,5**. A página do método agora cita
 esses números e explica a diferença entre curva calibrável e escala.

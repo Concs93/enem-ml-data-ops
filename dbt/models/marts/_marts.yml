@@ -139,6 +139,14 @@ models:
     columns:
       - name: theta_efetivo
         tests: [not_null]
+      - name: nota_minima_area
+        description: >
+          O piso FISICO da escala na edicao - a MENOR nota real em prova
+          regular, excluindo o zero (sentinela de prova entregue em branco).
+          Populacao: todas as pessoas em prova regular, a mesma do maximo -
+          usar populacoes diferentes nas duas pontas daria uma faixa que nao
+          existe em lugar nenhum.
+        tests: [not_null]
       - name: nota_maxima_area
         description: >
           O teto FISICO da escala na edicao - a maior nota real em prova

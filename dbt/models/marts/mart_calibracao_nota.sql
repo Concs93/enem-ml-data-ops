@@ -67,15 +67,18 @@ select
     t.theta                   as theta_efetivo,
     round(t.acertos_esperados::numeric, 1) as acertos_na_curva,
 
-    -- o teto FISICO da escala na edicao (maior nota real em prova regular).
-    -- Diferente do topo da curva: o having n >= 100 corta as faixas raras,
-    -- entao a curva termina onde acaba a AMOSTRA (~770 em CH), mas a escala
-    -- vai alem (856,4 em CH). O site usa este valor para limitar o "ou mais"
+    -- os extremos FISICOS da escala na edicao (menor e maior nota real em
+    -- prova regular, zero fora por ser sentinela de prova em branco).
+    -- Diferentes das pontas da curva: o having n >= 100 corta as faixas raras,
+    -- entao a curva comeca e termina onde acaba a AMOSTRA (~770 em CH), mas a
+    -- escala vai alem (856,4 em CH). O site usa estes valores para limitar o
+    -- "ou mais" e para recusar nota fora do que a edicao produziu
+    mx.nota_minima            as nota_minima_area,
     mx.nota_maxima            as nota_maxima_area
 
 from faixas f
 
-left join {{ ref('int_nota_maxima') }} mx
+left join {{ ref('int_nota_extremos') }} mx
   on mx.area = f.area
  and mx.cod_lingua is not distinct from f.cod_lingua
 

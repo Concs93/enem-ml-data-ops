@@ -356,15 +356,23 @@ const _limites = {};
 function limitesNota(area, lingua){
   const ch = k(area, area==="LC" ? lingua : null);
   if(_limites[ch]) return _limites[ch];
-  let min = Infinity;
-  for(const chave in M.calibracao){
-    const [a,l,f] = chave.split("|");
-    if(a!==area || l!==(area==="LC"? String(lingua):"_")) continue;
-    min = Math.min(min, Number(f));
-  }
   const max = (M.maxNota||{})[ch];
+  // o piso REAL da edicao, da mesma populacao do teto (todas as provas
+  // regulares, zero fora por ser sentinela de prova em branco). O fallback e
+  // a primeira faixa calibrada, que e mais ALTA -- serve enquanto o motor.json
+  // nao for reexportado, mas recusa gente que existe entre os dois valores
+  let min = (M.minNota||{})[ch];
+  if(min == null){
+    min = Infinity;
+    for(const chave in M.calibracao){
+      const [a,l,f] = chave.split("|");
+      if(a!==area || l!==(area==="LC"? String(lingua):"_")) continue;
+      min = Math.min(min, Number(f));
+    }
+  }
   if(!isFinite(min) || !max) return null;
-  return (_limites[ch] = {min, max: Math.round(max*10)/10});
+  const arred = v => Math.round(v*10)/10;
+  return (_limites[ch] = {min: arred(min), max: arred(max)});
 }
 
 function faixaDisponivel(area, lingua, nota){
