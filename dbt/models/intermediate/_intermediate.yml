@@ -48,11 +48,23 @@ models:
 
   - name: int_acerto_item_municipio
     description: >
-      Acertos por municipio x area x item - o agregado reaproveitavel da
-      geografia. Regiao imediata, UF, regiao e pais somam por cima disto.
+      Acertos por municipio x REDE x area x item - o agregado reaproveitavel
+      da geografia. Regiao imediata, UF, regiao e pais somam por cima disto.
+      A rede 'Todas' e uma LINHA (grouping sets), nao conta do consumidor -
+      quem somar sem filtrar rede conta cada resposta duas vezes.
     tests:
       - dbt_utils.unique_combination_of_columns:
-          combination_of_columns: [co_municipio, area, co_item]
+          combination_of_columns: [co_municipio, rede, area, co_item]
+    columns:
+      - name: rede
+        description: >
+          Dependencia administrativa da escola de conclusao (Federal,
+          Estadual, Municipal, Privada) mais a linha 'Todas'.
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['Todas', 'Federal', 'Estadual', 'Municipal',
+                       'Privada', 'Sem cadastro']
 
   - name: int_acerto_item_nacional
     description: >

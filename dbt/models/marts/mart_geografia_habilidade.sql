@@ -33,6 +33,11 @@ with base as (
     from {{ ref('int_acerto_item_municipio') }} i
     left join {{ ref('int_municipio_geografia') }} geo
       on geo.co_municipio = i.co_municipio
+    -- a origem passou a ter uma linha por rede MAIS uma com todas somadas;
+    -- este mart nao usa a dimensao, entao pega so o agregado. Sem este
+    -- filtro toda resposta entraria duas vezes -- e o teste de conservacao
+    -- municipio x pais nao acusaria, porque os dois lados dobrariam juntos
+    where i.rede = 'Todas'
 
 ),
 
@@ -135,6 +140,7 @@ left join agregado a
 -- a governanca viaja: quem consome so este mart recebe o gate do N minimo
 left join {{ ref('mart_geografia_area') }} ga
   on ga.nivel = g.nivel and ga.codigo = g.codigo and ga.area = g.area
+ and ga.rede = 'Todas'   -- mesma razao do filtro la em cima
 
 -- left join: habilidade sem correspondencia na Matriz nao pode sumir
 left join {{ ref('matriz_referencia') }} m

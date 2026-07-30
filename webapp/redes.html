@@ -52,6 +52,14 @@
   .abas button:hover{border-color:var(--accent)}
   .abas button[aria-pressed=true]{background:var(--accent-fill);color:var(--sobre-accent);
        border-color:var(--accent-fill)}
+  /* a rede e o recorte secundario: mesma familia de controle, peso menor,
+     para que a area continue sendo a primeira decisao da tela */
+  .abas.redes{margin:-8px 0 18px;align-items:center;gap:6px}
+  .abas.redes .rot{font-size:var(--fs-100);color:var(--muted);margin-right:4px}
+  .abas.redes button{font-weight:500;font-size:var(--fs-100);padding:5px 12px;
+       background:var(--bg)}
+  .abas.redes button[aria-pressed=true]{background:var(--chip);color:var(--accent-deep);
+       border-color:var(--accent);font-weight:700}
 
   /* ---- o painel de duas colunas ---- */
   .painel{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);
@@ -114,6 +122,8 @@
   ul.lista li.grupo i{font-style:normal;font-weight:400;letter-spacing:0;
        text-transform:none;font-variant-numeric:tabular-nums}
   ul.lista li.grupo + li{border-top:0}
+  ul.lista li.vazio{font-family:var(--sans);font-size:var(--fs-200);color:var(--muted);
+       padding:14px 6px;line-height:1.55}
 
   .nota{font-family:var(--sans);font-size:var(--fs-200);color:var(--muted);
        background:var(--chip);border-radius:var(--r-card);padding:13px 16px;
@@ -153,6 +163,8 @@
     <button type="button" data-area="LC" aria-pressed="false">Linguagens</button>
     <button type="button" data-area="MT" aria-pressed="false">Matemática</button>
   </div>
+
+  <div class="abas redes" role="group" aria-label="Rede de ensino" id="abas-rede"></div>
 
   <div class="painel">
     <div class="cartao">
@@ -221,6 +233,19 @@ const LIM = 3.5;
 // UFs e 1,14 pp, entao 1 pp separa o que se destaca do que so oscila -- e e um
 // numero que uma pessoa le sem precisar de nota de rodape.
 const CORTE = 1.0;
+
+// A PRECISAO NAO E A MESMA EM TODA REDE, e isso muda o que a tela pode
+// afirmar. O erro-padrao da taxa e sqrt(p(1-p)/n) -- 0,13 pp com todas as
+// redes juntas, 1,47 pp na municipal, que tem 205 escolas no pais inteiro.
+// Quando o erro passa do CORTE, a diferenca entre um grupo e o vizinho cabe
+// dentro da propria margem: a lista deixa de ser prioridade e vira
+// inventario, com a margem declarada. Mesmo principio do "modo manutencao"
+// da tela do estudante -- quando o dado nao sustenta ordem, parar de ordenar.
+const erroPadrao = l => {
+  const p = l[3] / 100, n = l[6];
+  return n > 0 ? 100 * Math.sqrt(p * (1 - p) / n) : Infinity;
+};
+const impreciso = l => erroPadrao(l) > CORTE;
 // atras do proprio patamar -> ambar (a cor de "oportunidade" no resto do site);
 // a frente -> teal. Vermelho fica fora: no vocabulario deste projeto ele marca
 // so erro em conteudo de entrada, e nao e disso que o mapa fala.
@@ -234,8 +259,14 @@ function cor(v){
 const sinal = v => (v > 0 ? "+" : v < 0 ? "−" : "") +
                    Math.abs(v).toFixed(1).replace(".", ",");
 
+const ROT_REDE = {Todas:"Todas as redes", Estadual:"Estadual", Privada:"Privada",
+                  Federal:"Federal", Municipal:"Municipal"};
+// como a rede aparece no meio de uma frase
+const DE_REDE = {Todas:"", Estadual:"da rede estadual", Privada:"da rede privada",
+                 Federal:"da rede federal", Municipal:"da rede municipal"};
+
 let G = null, MALHA = null;
-let area = "MT", comp = null, uf = null;
+let area = "MT", comp = null, uf = null, rede = "Todas";
 
 // ---------------------------------------------------------------- geometria
 // A projecao sai da propria malha (derivar, nunca transcrever): o enquadramento
@@ -318,8 +349,12 @@ function colocaRotulos(cands, fonte){
 }
 
 // ------------------------------------------------------------------- dados
-const linhas = (u, a) => G.mapa[`${u}|${a}`] || [];
-const daComp = (u, a, c) => linhas(u, a).find(l => l[0] === c);
+// a chave carrega a rede: unidade que nao passa o gate de publicacao naquela
+// rede simplesmente nao esta no pacote, e a tela declara isso em vez de
+// pintar cinza sem explicacao
+const linhas = (u, a, r) => G.mapa[`${u}|${a}|${r || rede}`] || [];
+const daComp = (u, a, c, r) => linhas(u, a, r).find(l => l[0] === c);
+const contexto = (u, a, r) => G.area[`${u}|${a}|${r || rede}`];
 
 // A sigla precisa medir ~10px NA TELA, e o viewBox e fixo -- entao o
 // font-size sai da razao entre os dois. Abaixo de 420px de largura nem 10px
@@ -335,6 +370,9 @@ function desenhaMapa(){
   const svg = $("mapa");
   svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
   const fonte = tamanhoFonte(svg);
+  // a dica guarda o ultimo estado sob o cursor; trocar de rede ou de area
+  // deixaria na tela um numero da selecao anterior, ao lado da lista nova
+  $("dica").textContent = "Passe o cursor por um estado.";
   let s = "";
   const cands = [];
   for(const f of MALHA.features){
@@ -368,7 +406,9 @@ function desenhaMapa(){
         ? `<b>${G.ufs[u][1]}</b> — ${sinal(l[1])} pp do próprio patamar · `
           + `acerto ${l[3].toFixed(1).replace(".",",")}% contra `
           + `${l[4].toFixed(1).replace(".",",")}% no Brasil`
-        : `<b>${G.ufs[u][1]}</b> — sem medida nesta competência`;
+        // cinza tem UMA causa aqui, e ela e declarada: o gate de publicacao
+        : `<b>${G.ufs[u][1]}</b> — a rede ${ROT_REDE[rede].toLowerCase()} deste `
+          + `estado não atinge o mínimo para publicar (3 escolas e 50 participantes)`;
     };
     p.addEventListener("mouseenter", mostra);
     p.addEventListener("focus", mostra);
@@ -379,7 +419,8 @@ function desenhaMapa(){
   $("esc-max").textContent = "vai à frente";
 
   const d = G.comp[`${area}|${comp}`] || "";
-  $("mapa-tit").textContent = `C${comp} · ${NOME_AREA[area]}`;
+  $("mapa-tit").textContent = `C${comp} · ${NOME_AREA[area]}`
+    + (rede === "Todas" ? "" : ` · rede ${ROT_REDE[rede].toLowerCase()}`);
   $("mapa-sub").textContent = d;
 }
 
@@ -396,7 +437,12 @@ function desenhaLista(){
     // entre vizinhos na lista costuma ser decimo, que nao sustenta posicao.
     cam.innerHTML = "<span>Brasil</span>";
     $("lista-tit").textContent = "Quem compartilha esta lacuna";
-    $("lista-sub").textContent = "Clique num estado para ver a lista dele.";
+    const fora = Object.keys(G.ufs).length
+               - Object.keys(G.ufs).filter(u => daComp(u, area, comp)).length;
+    $("lista-sub").textContent = "Clique num estado para ver a lista dele."
+      + (fora ? ` ${fora} ${fora === 1 ? "estado não aparece" : "estados não aparecem"}`
+              + `: a rede ${ROT_REDE[rede].toLowerCase()} deles não atinge o mínimo `
+              + `para publicar.` : "");
     const grupos = [
       [ "Fica para trás do próprio patamar", v => v <= -CORTE ],
       [ "Perto do próprio patamar",          v => v > -CORTE && v < CORTE ],
@@ -406,6 +452,27 @@ function desenhaLista(){
       .map(u => ({u, l: daComp(u, area, comp)}))
       .filter(o => o.l)
       .sort((a,b) => a.l[1] - b.l[1]);
+
+    // mesma guarda da lista do estado, e aqui ela pesa mais: e esta visao que
+    // tem grupos, e separar em faixas de 1 pp com margem de 2 pp e inventar
+    // fronteira. Sem grupos, sem cor de prioridade -- so o inventario
+    const vagas = todos.filter(o => impreciso(o.l)).length;
+    const frouxa = todos.length > 0 && vagas > todos.length / 2;
+    if(frouxa){
+      const margem = todos.reduce((s,o) => s + erroPadrao(o.l), 0) / todos.length;
+      $("lista-sub").textContent += ` A margem de cada número aqui é de cerca `
+        + `de ±${margem.toFixed(1).replace(".",",")} pp, maior que a distância `
+        + `entre eles — por isso sem faixas de prioridade.`;
+      for(const {u, l} of todos){
+        ul.appendChild(item({
+          rot: `${G.ufs[u][1]} <i>· ${G.ufs[u][2]}</i>`,
+          val: sinal(l[1]), v: 0,
+          onClick: () => selecionaUf(u),
+        }));
+      }
+      return;
+    }
+
     for(const [titulo, dentro] of grupos){
       const membros = todos.filter(o => dentro(o.l[1]));
       if(!membros.length) continue;
@@ -422,18 +489,50 @@ function desenhaLista(){
         }));
       }
     }
+    if(!todos.length){
+      const li = document.createElement("li");
+      li.className = "vazio";
+      li.textContent = `Nenhum estado publica ${DE_REDE[rede]} nesta área — `
+        + `são poucas escolas para o mínimo de 3 escolas e 50 participantes.`;
+      ul.appendChild(li);
+    }
   } else {
     // com UF: a pergunta e "o que esta rede precisa ensinar"
     cam.innerHTML = `<button type="button" id="volta">Brasil</button>`
                   + `<span>▸ ${G.ufs[uf][1]}</span>`;
     $("volta").addEventListener("click", () => selecionaUf(null));
-    const pat = G.patamar[`${uf}|${area}`];
-    const ctx = G.area[`${uf}|${area}`] || [0];
-    $("lista-tit").textContent = `${G.ufs[uf][1]} — ${NOME_AREA[area]}`;
+    const pat = G.patamar[`${uf}|${area}|${rede}`];
+    const ctx = contexto(uf, area);
+    $("lista-tit").textContent = `${G.ufs[uf][1]} — ${NOME_AREA[area]}`
+      + (rede === "Todas" ? "" : ` · rede ${ROT_REDE[rede].toLowerCase()}`);
+    if(!ctx){
+      $("lista-sub").textContent = "";
+      const li = document.createElement("li");
+      li.className = "vazio";
+      li.textContent = `A rede ${ROT_REDE[rede].toLowerCase()} de `
+        + `${G.ufs[uf][1]} não atinge o mínimo para publicar nesta área `
+        + `(3 escolas e 50 participantes).`;
+      ul.appendChild(li);
+      return;
+    }
+    const lista = linhas(uf, area).slice().sort((a,b) => a[1] - b[1]);
+    // se a maioria das medidas cabe dentro da propria margem, a ordem nao
+    // significa nada: some com os grupos e declare a margem
+    const vagas = lista.filter(impreciso).length;
+    const frouxa = vagas > lista.length / 2;
+    const margem = lista.length
+      ? lista.reduce((s,l) => s + erroPadrao(l), 0) / lista.length : 0;
+
     $("lista-sub").textContent =
-      `${ctx[0].toLocaleString("pt-BR")} participantes · a rede está `
-      + `${sinal(pat)} pp do Brasil nesta área. A lista desconta isso.`;
-    for(const l of linhas(uf, area).slice().sort((a,b) => a[1] - b[1])){
+      `${ctx[1].toLocaleString("pt-BR")} escolas · `
+      + `${ctx[0].toLocaleString("pt-BR")} participantes · `
+      + `${sinal(pat)} pp do Brasil nesta área. A lista desconta isso.`
+      + (frouxa ? ` São poucos participantes para ordenar por prioridade: `
+                + `a margem de cada número é de cerca de `
+                + `±${margem.toFixed(1).replace(".",",")} pp, maior que a `
+                + `distância entre eles. Leia como inventário.` : "");
+
+    for(const l of lista){
       ul.appendChild(item({
         rot: `<b>C${l[0]}</b> ${G.comp[`${area}|${l[0]}`] || ""}`,
         val: sinal(l[1]),
@@ -442,8 +541,10 @@ function desenhaLista(){
         // espanhol --, e cada participante responde 5
         pista: `medido em ${l[5]} ${l[5] === 1 ? "questão" : "questões"} · `
              + `acerto ${l[3].toFixed(1).replace(".",",")}% contra `
-             + `${l[4].toFixed(1).replace(".",",")}% no Brasil`,
-        v: l[1],
+             + `${l[4].toFixed(1).replace(".",",")}% no Brasil`
+             + (impreciso(l) && !frouxa
+                ? ` · margem ±${erroPadrao(l).toFixed(1).replace(".",",")} pp` : ""),
+        v: frouxa ? 0 : l[1],          // sem cor de prioridade quando e inventario
         sel: l[0] === comp,
         onClick: () => { comp = l[0]; render(); },
       }));
@@ -464,22 +565,44 @@ function item({rot, val, pista, v, sel, onClick}){
   return li;
 }
 
-function selecionaUf(u){ uf = u; render(); }
-function render(){ desenhaMapa(); desenhaLista(); }
+function selecionaUf(u){ uf = u; escolheCompetencia(); render(); }
+function render(){ desenhaMapa(); desenhaLista(); pintaBotoes(); }
 
-function trocaArea(a){
-  area = a;
-  // a competencia de maior lacuna da area entra selecionada -- e a resposta
-  // que a pessoa veio buscar, nao a C1 por ordem de numeracao
-  const alvo = uf !== null ? uf : null;
-  const base = alvo !== null ? linhas(alvo, area)
+// a competencia de maior lacuna entra selecionada -- e a resposta que a
+// pessoa veio buscar, nao a C1 por ordem de numeracao
+function escolheCompetencia(){
+  const base = uf !== null ? linhas(uf, area)
              : Object.keys(G.ufs).flatMap(u => linhas(u, area));
   let pior = null;
   for(const l of base) if(pior === null || l[1] < pior[1]) pior = l;
-  comp = pior ? pior[0] : (linhas(Object.keys(G.ufs)[0], area)[0] || [1])[0];
-  for(const b of document.querySelectorAll(".abas button"))
-    b.setAttribute("aria-pressed", String(b.dataset.area === a));
-  render();
+  if(pior){ comp = pior[0]; return; }
+  // a rede escolhida nao publica aqui: mantem a competencia atual se ela
+  // existir na area, senao a primeira -- a tela explica o vazio na lista
+  const qualquer = Object.keys(G.comp)
+    .filter(k => k.startsWith(area + "|")).map(k => +k.split("|")[1]).sort((a,b)=>a-b);
+  if(!qualquer.includes(comp)) comp = qualquer[0];
+}
+
+function trocaArea(a){ area = a; escolheCompetencia(); render(); }
+function trocaRede(r){ rede = r; escolheCompetencia(); render(); }
+
+function pintaBotoes(){
+  for(const b of document.querySelectorAll(".abas:not(.redes) button"))
+    b.setAttribute("aria-pressed", String(b.dataset.area === area));
+  for(const b of document.querySelectorAll("#abas-rede button"))
+    b.setAttribute("aria-pressed", String(b.dataset.rede === rede));
+}
+
+function montaBotoesRede(){
+  const cx = $("abas-rede");
+  cx.innerHTML = `<span class="rot">Rede:</span>`;
+  for(const r of G.redes){
+    const b = document.createElement("button");
+    b.type = "button"; b.dataset.rede = r; b.textContent = ROT_REDE[r] || r;
+    b.setAttribute("aria-pressed", String(r === rede));
+    b.addEventListener("click", () => trocaRede(r));
+    cx.appendChild(b);
+  }
 }
 
 Promise.all([
@@ -499,13 +622,14 @@ Promise.all([
     return;
   }
   preparaProjecao();
+  montaBotoesRede();
   trocaArea("MT");
 }).catch(e => {
   $("dica").innerHTML = "<b>Não foi possível carregar os dados.</b>";
   console.error(e);
 });
 
-for(const b of document.querySelectorAll(".abas button"))
+for(const b of document.querySelectorAll(".abas:not(.redes) button"))
   b.addEventListener("click", () => trocaArea(b.dataset.area));
 
 // o tamanho da sigla depende da largura renderizada: girar o telefone ou

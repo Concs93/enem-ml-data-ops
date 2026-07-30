@@ -934,15 +934,91 @@ E a rede federal, que fica entre as duas em desempenho (38,6% contra 26,8% e
 44,0%), **divide o 1º lugar 13/12 entre as duas competências**. É a tese do
 produto — *a prioridade muda com o nível* — reaparecendo pelo lado do gestor.
 
-Decisão: a dimensão de rede entra **junto com região imediata e município**, e
-não antes. Dois motivos: na UF o mix de redes é estável (~75% estadual em toda
-parte) e no município não é, que é onde o filtro passa a valer; e a mesma
-mudança de modelo serve os dois níveis. Enquanto isso a página declara de quem
-é o número.
+**Correção de rumo, registrada porque o erro é instrutivo:** essa medição
+respondeu *"o mapa muda?"* e eu tratei a resposta como se fosse *"o filtro
+serve?"*. Não é a mesma pergunta. O valor do filtro não está em mudar o mapa da
+rede estadual — está em **tornar a comparação visível**: ver que no mesmo
+estado a prioridade da estadual é C6 e a da privada é C2 é um achado que não
+existia em lugar nenhum da tela. E o gestor não tem como conferir o ρ 0,94;
+ver *"rede estadual"* escrito é legitimidade, não redundância. O filtro foi
+construído em seguida.
 
-**Próximo: região imediata, município e a dimensão de rede** no mesmo formato
-(o `export_gestor.py` já filtra por `publicavel`, que no nível UF é redundante
-e no de município corta 5.570 para 1.942), página de apoio e o Volume 9.
+### Filtro de rede — construído, e a precisão virou parte do produto
+
+`dbt test` verde: **101/101** (39 modelos). O filtro está na tela, com cinco
+opções, e ele muda a resposta:
+
+| Maranhão · Matemática | maior lacuna | vs nacional na área |
+|---|---|---|
+| Estadual | **C6** gráficos e tabelas | −7,9 pp |
+| Privada | **C2** geometria | +7,9 pp |
+| Federal | **C2** geometria | +1,4 pp |
+| Todas | C6 | −5,9 pp |
+
+A privada está **acima** da média nacional em geometria e mesmo assim é o
+ponto mais fraco dela — que é exatamente para isso que o `perfil` existe.
+
+**A rede saiu de graça no modelo.** `TP_DEPENDENCIA_ADM_ESC` está na própria
+base de resultados, viaja em `stg_resultados`, e o `int_acerto_item_municipio`
+já juntava a `dim_escola` para achar o município. A dimensão nova é **uma
+coluna a mais no `group by`** — nenhum dos modelos caros (`int_acerto_item_*`,
+minutos cada) foi tocado. O agregado foi de 1,03 mi para 2,45 mi de linhas.
+
+**`'Todas'` é linha, não conta do consumidor** (`grouping sets`). Dois ganhos:
+o gate de publicação vale igual para o agregado e para cada rede, e o roll-up
+para UF/região/país funciona sozinho — somar as linhas `'Todas'` dos municípios
+de um estado dá o `'Todas'` do estado.
+
+**A armadilha que isso cria, e que só se vê pensando:** quem somar sem filtrar
+rede conta cada resposta **duas vezes** — e o teste `geografia_cobre_populacao`
+**não pegaria**, porque município e país dobrariam juntos e a igualdade
+continuaria de pé. Três lugares precisaram do filtro explícito
+(`mart_geografia_habilidade`, o join do gate, e o próprio teste). É a família
+"linha ausente é omissão silenciosa" ao contrário: aqui é **linha a mais**, e a
+conservação relativa não denuncia.
+
+**A precisão não é a mesma em toda rede — e isso mudou o desenho.** Erro-padrão
+médio da taxa por célula publicada, no nível UF:
+
+| rede | erro-padrão | células com EP > 1 pp |
+|---|---|---|
+| **Municipal** | **1,47 pp** | **168 de 240 (70%)** |
+| Federal | 0,52 pp | 50 de 810 |
+| Privada | 0,37 pp | 30 de 810 |
+| Estadual | 0,14 pp | 0 |
+| Todas | 0,13 pp | 0 |
+
+O desvio-padrão do próprio `perfil` entre as UFs é **1,14 pp**. Na rede
+municipal **o ruído é maior que o sinal** — e faz sentido: ensino médio é
+responsabilidade do estado por constituição, então as 205 escolas municipais
+do país são resíduo, não uma rede que alguém gere.
+
+O gate de publicação (3 escolas E 50 participantes) foi desenhado para a
+**nota no nível de área**, e não protege a **taxa por competência**: 50
+participantes × 4 itens = 200 respostas = ±3,5 pp.
+
+Solução no padrão da casa — preservar a linha, expor a precisão, e **parar de
+ordenar quando o dado não sustenta ordem**: o `n_respostas` viaja no
+`geografia.json`, o site calcula `sqrt(p(1−p)/n)`, e quando a maioria das
+medidas cabe dentro da própria margem os grupos de prioridade somem, a cor de
+prioridade some e a tela diz *"a margem de cada número é de cerca de ±2,2 pp,
+maior que a distância entre eles. Leia como inventário."* É o mesmo "modo
+manutenção" da face do aluno.
+
+**Próximo: região imediata e município.** O mart já tem os cinco níveis
+construídos (1.966 municípios e as 510 regiões imediatas publicáveis) — falta
+geometria, export e tela. Medido: a malha do IBGE em qualidade mínima dá
+**853 KB** para as 510 regiões e **2,6 MB** para os 5.570 municípios, que
+quebra em ~100 KB por UF, carregado ao clicar.
+
+**E o mapa não deve ser o seletor nesse nível** (levantado pelo dono do
+produto): num mapa de 459px — 304px no celular — 5.570 municípios são
+polígonos de poucos pixels. O desenho proposto é **busca por nome** como
+seletor, a **lista** como resposta, e o mapa reduzido à **região imediata da
+cidade** (mediana de 9 municípios, p90 de 19) como contexto. Isso também
+resolve a geometria: 5 a 10 KB por vez em vez de 2,6 MB. Os 3.615 municípios
+que não publicam deixam de ser buracos cinzas — recebem a região imediata
+deles, que publica sempre.
 
 ### Etapa 4 — o que ficou de pé
 

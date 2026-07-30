@@ -25,6 +25,7 @@
 with base as (
 
     select
+        i.rede,
         i.area, i.co_item, i.habilidade, i.item_anulado, i.item_abandonado,
         i.n_respostas, i.n_acertos,
         i.co_municipio,
@@ -49,6 +50,7 @@ unidade_item as (
         '{{ nivel }}'   as nivel,
         {{ codigo }}    as codigo,
         max({{ nome }}) as nome,
+        g.rede,
         g.area, g.co_item, g.habilidade, g.item_anulado, g.item_abandonado,
         sum(g.n_respostas) as n_respostas,
         sum(g.n_acertos)   as n_acertos
@@ -56,7 +58,9 @@ unidade_item as (
     {% if nivel == 'regiao_imediata' %}
     where g.co_regiao_imediata is not null
     {% endif %}
-    group by 2, 4, 5, 6, 7, 8
+    -- a linha 'Todas' ja vem pronta do municipio, entao somar por cima dela
+    -- reconstroi o agregado de cada nivel sem grouping sets aqui
+    group by 2, 4, 5, 6, 7, 8, 9
     {% if not loop.last %}union all{% endif %}
     {% endfor %}
 
@@ -77,7 +81,7 @@ item_comp as (
 agregado as (
 
     select
-        nivel, codigo, max(nome) as nome, area, competencia,
+        nivel, codigo, max(nome) as nome, rede, area, competencia,
         count(*) filter (where not item_anulado and not item_abandonado)
             as n_itens_validos,
         sum(n_respostas) filter (where not item_anulado and not item_abandonado)
@@ -85,18 +89,19 @@ agregado as (
         sum(n_acertos) filter (where not item_anulado and not item_abandonado)
             as n_acertos
     from item_comp
-    group by 1, 2, 4, 5
+    group by 1, 2, 4, 5, 6
 
 ),
 
 -- o patamar da unidade na area inteira: a media ponderada de todas as
--- competencias. E o que o `perfil` desconta
+-- competencias. E o que o `perfil` desconta -- e ele e POR REDE, senao o
+-- perfil da rede estadual carregaria de volta o nivel geral do municipio
 patamar as (
 
-    select nivel, codigo, area,
+    select nivel, codigo, rede, area,
            100.0 * sum(n_acertos) / nullif(sum(n_respostas), 0) as taxa_area
     from agregado
-    group by 1, 2, 3
+    group by 1, 2, 3, 4
 
 ),
 
@@ -130,8 +135,8 @@ patamar_nacional as (
 -- competencias da area
 grade as (
 
-    select p.nivel, p.codigo, p.nome, p.area, n.competencia
-    from (select distinct nivel, codigo, nome, area from agregado) p
+    select p.nivel, p.codigo, p.nome, p.rede, p.area, n.competencia
+    from (select distinct nivel, codigo, nome, rede, area from agregado) p
     join nacional n
       on n.area = p.area
 
@@ -143,6 +148,7 @@ calculado as (
         g.nivel,
         g.codigo,
         g.nome,
+        g.rede,
         g.area,
         g.competencia,
         m.descricao_competencia,
@@ -169,18 +175,22 @@ calculado as (
       on n.area = g.area and n.competencia = g.competencia
 
     left join agregado a
-      on a.nivel = g.nivel and a.codigo = g.codigo
+      on a.nivel = g.nivel and a.codigo = g.codigo and a.rede = g.rede
      and a.area = g.area and a.competencia = g.competencia
 
     left join patamar p
-      on p.nivel = g.nivel and p.codigo = g.codigo and p.area = g.area
+      on p.nivel = g.nivel and p.codigo = g.codigo and p.rede = g.rede
+     and p.area = g.area
 
     join patamar_nacional pn
       on pn.area = g.area
 
-    -- a governanca viaja: quem consome so este mart recebe o gate do N minimo
+    -- a governanca viaja: quem consome so este mart recebe o gate do N minimo,
+    -- e ele e por rede -- a rede municipal reprova em quase toda UF, o que e
+    -- a regra funcionando
     left join {{ ref('mart_geografia_area') }} ga
-      on ga.nivel = g.nivel and ga.codigo = g.codigo and ga.area = g.area
+      on ga.nivel = g.nivel and ga.codigo = g.codigo and ga.rede = g.rede
+     and ga.area = g.area
 
     -- left join: competencia sem descricao na Matriz nao pode sumir
     left join (
@@ -192,7 +202,7 @@ calculado as (
 )
 
 select
-    nivel, codigo, nome, area, competencia, descricao_competencia,
+    nivel, codigo, nome, rede, area, competencia, descricao_competencia,
     n_itens_validos, n_itens_validos_nacional, n_respostas, publicavel, status,
 
     round(taxa, 2)                          as taxa_acerto,

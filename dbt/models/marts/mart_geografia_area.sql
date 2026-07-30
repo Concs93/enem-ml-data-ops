@@ -10,7 +10,14 @@
 -- declarar o motivo).
 --
 -- Aplicada em TODO nivel, honestamente: ate UF e pais passam pela mesma
--- conta em vez de ganhar isencao.
+-- conta em vez de ganhar isencao. E aplicada tambem POR REDE: a rede
+-- municipal tem 205 escolas no pais inteiro, entao ela reprova o gate na
+-- maior parte das UFs -- isso e a regra funcionando, nao defeito.
+--
+-- REDE: 'Todas' e uma linha como as outras (grouping sets no fim), pelo mesmo
+-- motivo do int_acerto_item_municipio -- o gate precisa valer igual para o
+-- agregado e para cada rede. Quem consome sem filtrar rede conta duas vezes;
+-- o teste geografia_cobre_populacao filtra 'Todas' de proposito.
 --
 -- Caso de borda real: Boa Esperanca do Norte/MT, municipio instalado em
 -- 2025, existe no ENEM mas nao no Censo 2024 -- logo nao tem regiao
@@ -35,6 +42,7 @@ with base as (
         m.n_prova_em_branco,
         m.media_nota,
 
+        d.dependencia as rede,
         d.co_municipio,
         coalesce(geo.municipio, d.municipio) as municipio,
         geo.co_regiao_imediata,
@@ -55,29 +63,52 @@ with base as (
 
 )
 
-{% for nivel, codigo, nome, pai in niveis %}
+-- os cinco niveis empilhados AINDA no grao da escola: a agregacao acontece
+-- uma vez so, depois, para que o grouping sets da rede nao precise ser
+-- repetido cinco vezes (e para nao esbarrar no `0` do nivel pais, que num
+-- GROUP BY seria lido como referencia posicional, nao como constante)
+, expandido as (
+
+    {% for nivel, codigo, nome, pai in niveis %}
+    select
+        '{{ nivel }}' as nivel,
+        {{ codigo }}  as codigo,
+        {{ nome }}    as nome,
+        {{ pai }}     as codigo_pai,
+        g.area, g.rede,
+        g.n_presentes, g.n_com_nota, g.n_prova_em_branco, g.media_nota
+    from base g
+    {% if nivel == 'regiao_imediata' %}
+    where g.co_regiao_imediata is not null
+    {% endif %}
+    {% if not loop.last %}union all{% endif %}
+    {% endfor %}
+
+)
+
 select
-    '{{ nivel }}'            as nivel,
-    {{ codigo }}             as codigo,
-    max({{ nome }})          as nome,
-    max({{ pai }})           as codigo_pai,
-    g.area,
+    nivel,
+    codigo,
+    max(nome)      as nome,
+    max(codigo_pai) as codigo_pai,
+    area,
+
+    case when grouping(rede) = 1 then 'Todas'
+         else coalesce(rede, 'Sem cadastro') end as rede,
 
     count(*)                                as n_escolas,
-    sum(g.n_presentes)                      as n_presentes,
-    sum(g.n_com_nota)                       as n_com_nota,
-    sum(g.n_prova_em_branco)                as n_prova_em_branco,
+    sum(n_presentes)                        as n_presentes,
+    sum(n_com_nota)                         as n_com_nota,
+    sum(n_prova_em_branco)                  as n_prova_em_branco,
     -- ponderada por quem TEM nota, nunca por presentes: o sentinela da
     -- prova em branco ja esta fora da media de cada escola (Etapa 5)
-    round(sum(g.n_com_nota * g.media_nota)
-        / nullif(sum(g.n_com_nota), 0), 1)  as media_nota,
+    round(sum(n_com_nota * media_nota)
+        / nullif(sum(n_com_nota), 0), 1)    as media_nota,
 
-    count(*) >= 3 and sum(g.n_presentes) >= 50 as publicavel
+    count(*) >= 3 and sum(n_presentes) >= 50 as publicavel
 
-from base g
-{% if nivel == 'regiao_imediata' %}
-where g.co_regiao_imediata is not null
-{% endif %}
-group by 2, 5
-{% if not loop.last %}union all{% endif %}
-{% endfor %}
+from expandido
+group by grouping sets (
+    (nivel, codigo, area, rede),
+    (nivel, codigo, area)
+)

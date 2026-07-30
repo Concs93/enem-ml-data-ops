@@ -11,12 +11,12 @@ with esperado as (
 ),
 
 observado as (
-    select nivel, codigo, area, count(*) as n
+    select nivel, codigo, rede, area, count(*) as n
     from {{ ref('mart_geografia_competencia') }}
-    group by 1, 2, 3
+    group by 1, 2, 3, 4
 )
 
-select o.nivel, o.codigo, o.area, o.n as tem, e.n as deveria_ter
+select o.nivel, o.codigo, o.rede, o.area, o.n as tem, e.n as deveria_ter
 from observado o
 join esperado e on e.area = o.area
 where o.n <> e.n

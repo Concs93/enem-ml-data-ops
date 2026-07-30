@@ -16,7 +16,11 @@ with esperado as (
 por_nivel as (
     select nivel, area, sum(n_presentes) as presentes
     from {{ ref('mart_geografia_area') }}
-    where nivel in ('pais', 'municipio', 'uf', 'regiao')
+    -- o mart passou a ter uma linha por rede MAIS uma com todas somadas;
+    -- somar sem filtrar contaria cada participante duas vezes nos DOIS lados
+    -- da comparacao, e o teste passaria verde escondendo o defeito
+    where rede = 'Todas'
+      and nivel in ('pais', 'municipio', 'uf', 'regiao')
     group by 1, 2
 )
 select n.nivel, n.area, n.presentes, e.presentes as esperado

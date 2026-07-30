@@ -10,9 +10,9 @@
 -- unidades inteiras, nao em centesimos.
 
 select
-    nivel, codigo, area,
+    nivel, codigo, rede, area,
     round(sum(perfil * n_respostas) / nullif(sum(n_respostas), 0), 4) as residuo
 from {{ ref('mart_geografia_competencia') }}
 where status = 'ok'
-group by 1, 2, 3
+group by 1, 2, 3, 4
 having abs(sum(perfil * n_respostas) / nullif(sum(n_respostas), 0)) > 0.05

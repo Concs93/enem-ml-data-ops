@@ -297,7 +297,7 @@ models:
       nao o continha.
     tests:
       - dbt_utils.unique_combination_of_columns:
-          combination_of_columns: [nivel, codigo, area]
+          combination_of_columns: [nivel, codigo, area, rede]
     columns:
       - name: nivel
         tests:
@@ -338,7 +338,7 @@ models:
       qual competencia fica desproporcionalmente para tras.
     tests:
       - dbt_utils.unique_combination_of_columns:
-          combination_of_columns: [nivel, codigo, area, competencia]
+          combination_of_columns: [nivel, codigo, area, rede, competencia]
     columns:
       - name: status
         tests:
