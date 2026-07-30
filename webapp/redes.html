@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>O que cada rede precisa ensinar — ENEM em foco</title>
+<style>
+  :root{
+    --bg:#fbfaf7; --surface:#ffffff; --text:#20211f; --muted:#5f625d;
+    --accent:#0d9488; --accent-deep:#115e59; --accent-soft:#e6f4f1;
+    --accent-fill:#0f766e; --sobre-accent:#ffffff;
+    --border:#e6e4dc; --chip:#f5f7f6;
+    --warn:#b45309; --warn-soft:#fdf3e3; --tip:#3b6d11; --tip-soft:#eef6e2;
+    --alert:#b91c1c; --alert-soft:#fdeeee;
+    --fs-100:12px; --fs-200:13px; --fs-300:15px; --fs-400:17px;
+    --fs-500:20px; --fs-600:clamp(26px,4vw,36px);
+    --r-card:14px; --r-ctrl:10px; --r-chip:6px; --r-pill:999px;
+    --serif:Georgia,'Iowan Old Style','Times New Roman',serif;
+    --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    --mono:'SFMono-Regular',Consolas,Menlo,monospace;
+  }
+  :root{color-scheme:light}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--serif);
+       line-height:1.7;font-size:var(--fs-400);-webkit-font-smoothing:antialiased}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:.01ms !important;transition-duration:.01ms !important;scroll-behavior:auto !important}
+  }
+  header{border-bottom:1px solid var(--border);background:var(--surface)}
+  .nav{max-width:1040px;margin:0 auto;padding:14px 24px;display:flex;gap:18px;
+       align-items:baseline;flex-wrap:wrap;font-family:var(--sans);font-size:var(--fs-200)}
+  .nav .brand{font-weight:700;font-size:var(--fs-300);margin-right:auto}
+  .nav a{color:var(--accent-deep);text-decoration:underline;text-underline-offset:2px}
+  .nav a.on{color:var(--text);text-decoration:none;font-weight:700}
+  .nav .breve{color:var(--muted);opacity:.7}
+  main{max-width:1040px;margin:0 auto;padding:32px 24px 90px}
+  main a,footer a{color:var(--accent-deep);text-decoration:underline;text-underline-offset:2px}
+  h1{font-family:var(--sans);font-weight:700;font-size:var(--fs-600);line-height:1.15;
+     margin:0 0 10px;text-wrap:balance}
+  p{max-width:68ch}
+  .lede{font-size:19px;color:var(--muted);margin:0 0 22px;max-width:640px}
+  footer{border-top:1px solid var(--border);margin-top:48px;padding-top:18px;
+         font-family:var(--sans);font-size:var(--fs-200);color:var(--muted);max-width:68ch}
+
+  /* ---- controles ---- */
+  .abas{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 18px;font-family:var(--sans)}
+  .abas button{font-weight:600;font-size:var(--fs-200);padding:8px 16px;cursor:pointer;
+       border:1px solid var(--border);border-radius:var(--r-pill);
+       background:var(--surface);color:var(--accent-deep);
+       transition:border-color .12s,background .12s,color .12s}
+  .abas button:hover{border-color:var(--accent)}
+  .abas button[aria-pressed=true]{background:var(--accent-fill);color:var(--sobre-accent);
+       border-color:var(--accent-fill)}
+
+  /* ---- o painel de duas colunas ---- */
+  .painel{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);
+       gap:22px;align-items:start}
+  /* a lista e bem mais alta que o mapa; grudado, o mapa acompanha a leitura
+     em vez de sair da tela no terceiro grupo */
+  .painel > :first-child{position:sticky;top:16px}
+  .cartao{background:var(--surface);border:1px solid var(--border);
+       border-radius:var(--r-card);padding:16px 18px}
+  .cartao h2{font-family:var(--sans);font-weight:700;font-size:var(--fs-300);
+       margin:0 0 2px;text-wrap:balance}
+  .cartao .sub{font-family:var(--sans);font-size:var(--fs-100);color:var(--muted);
+       margin:0 0 12px}
+
+  /* ---- mapa ---- */
+  #mapa{display:block;width:100%;height:auto}
+  #mapa path{stroke:var(--surface);stroke-width:.6;cursor:pointer;
+       transition:opacity .12s}
+  #mapa path:hover{opacity:.75}
+  #mapa path.sel{stroke:var(--text);stroke-width:1.8}
+  /* o tamanho vem do JS: com viewBox fixo, "9px" e 9 unidades do viewBox, nao
+     9px na tela -- no celular isso rendia ~5px. Mesmo defeito ja corrigido no
+     grafico do metodo.html */
+  #mapa text{font-family:var(--sans);font-weight:600;
+       pointer-events:none;fill:#20211f;opacity:.65}
+  #mapa text.claro{fill:#ffffff;opacity:.92}
+  .escala{display:flex;align-items:center;gap:10px;margin-top:10px;
+       font-family:var(--sans);font-size:var(--fs-100);color:var(--muted)}
+  .escala .barra{flex:1;height:9px;border-radius:var(--r-pill);min-width:80px}
+  .dica{font-family:var(--sans);font-size:var(--fs-100);color:var(--muted);
+       margin:8px 0 0;min-height:1.4em}
+  .dica b{color:var(--text)}
+
+  /* ---- lista ---- */
+  .caminho{font-family:var(--sans);font-size:var(--fs-100);color:var(--muted);
+       margin:0 0 10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .caminho button{font-family:inherit;font-size:inherit;border:1px solid var(--border);
+       background:var(--chip);color:var(--accent-deep);border-radius:var(--r-pill);
+       padding:3px 10px;cursor:pointer}
+  .caminho button:hover{border-color:var(--accent)}
+  ul.lista{list-style:none;margin:0;padding:0}
+  ul.lista li{border-top:1px solid var(--border)}
+  ul.lista li:first-child{border-top:0}
+  ul.lista button{width:100%;display:grid;grid-template-columns:1fr auto;
+       gap:4px 14px;align-items:baseline;text-align:left;cursor:pointer;
+       background:none;border:0;padding:9px 6px;font-family:var(--sans);
+       border-radius:var(--r-ctrl)}
+  ul.lista button:hover{background:var(--chip)}
+  ul.lista button[aria-pressed=true]{background:var(--accent-soft)}
+  ul.lista .rot{font-size:var(--fs-200);color:var(--text);line-height:1.4}
+  ul.lista .rot i{font-style:normal;color:var(--muted)}
+  ul.lista .val{font-size:var(--fs-300);font-weight:700;
+       font-variant-numeric:tabular-nums;white-space:nowrap}
+  ul.lista .pista{grid-column:1/-1;font-size:var(--fs-100);color:var(--muted)}
+  ul.lista li.grupo{display:flex;justify-content:space-between;align-items:baseline;
+       gap:12px;font-family:var(--sans);font-size:var(--fs-100);font-weight:700;
+       letter-spacing:.03em;text-transform:uppercase;color:var(--muted);
+       padding:16px 6px 5px;border-top:1px solid var(--border)}
+  ul.lista li.grupo:first-child{padding-top:2px}
+  ul.lista li.grupo i{font-style:normal;font-weight:400;letter-spacing:0;
+       text-transform:none;font-variant-numeric:tabular-nums}
+  ul.lista li.grupo + li{border-top:0}
+
+  .nota{font-family:var(--sans);font-size:var(--fs-200);color:var(--muted);
+       background:var(--chip);border-radius:var(--r-card);padding:13px 16px;
+       margin:22px 0 0;max-width:none}
+  .nota b{color:var(--text)}
+  details.metodo{margin-top:16px;font-family:var(--sans);font-size:var(--fs-200)}
+  details.metodo summary{cursor:pointer;color:var(--accent-deep);font-weight:600}
+  details.metodo p{font-size:var(--fs-200);color:var(--muted);margin:10px 0 0}
+
+  /* 940 e nao 800: abaixo disso a coluna do mapa cai para ~350px, largura em
+     que as 24 siglas nao cabem. Empilhado, o mapa usa a largura toda e volta
+     a ter rotulo */
+  @media(max-width:940px){
+    .painel{grid-template-columns:1fr}
+    .painel > :first-child{position:static}   /* empilhado, grudar esconderia a lista */
+  }
+</style>
+</head>
+<body>
+<header>
+  <nav class="nav">
+    <span class="brand">ENEM em foco</span>
+    <a href="index.html">Para o estudante</a>
+    <a href="metodo.html">Como funciona</a>
+    <a class="on" href="#">Para escolas e redes</a>
+    <span class="breve" title="em construção">Apoie</span>
+  </nav>
+</header>
+<main>
+  <h1>O que cada rede precisa ensinar</h1>
+  <p class="lede">Não é um ranking de estados. É onde cada rede fica para trás
+  <b>do próprio patamar</b> — a pergunta que tem resposta pedagógica.</p>
+
+  <div class="abas" role="group" aria-label="Área de conhecimento">
+    <button type="button" data-area="CH" aria-pressed="false">Humanas</button>
+    <button type="button" data-area="CN" aria-pressed="false">Natureza</button>
+    <button type="button" data-area="LC" aria-pressed="false">Linguagens</button>
+    <button type="button" data-area="MT" aria-pressed="false">Matemática</button>
+  </div>
+
+  <div class="painel">
+    <div class="cartao">
+      <h2 id="mapa-tit">—</h2>
+      <p class="sub" id="mapa-sub">—</p>
+      <svg id="mapa" role="img" aria-labelledby="mapa-tit"></svg>
+      <div class="escala">
+        <span id="esc-min">—</span>
+        <span class="barra" id="esc-barra"></span>
+        <span id="esc-max">—</span>
+      </div>
+      <p class="dica" id="dica">Passe o cursor por um estado.</p>
+    </div>
+
+    <div class="cartao">
+      <p class="caminho" id="caminho"></p>
+      <h2 id="lista-tit">—</h2>
+      <p class="sub" id="lista-sub">—</p>
+      <ul class="lista" id="lista"></ul>
+    </div>
+  </div>
+
+  <p class="nota"><b>Por que descontar o patamar.</b> Uma rede que vai abaixo da
+  média nacional em tudo apareceria no vermelho no mapa inteiro — e isso não diz
+  o que ensinar, só repete o que todo mundo já sabe. Medido no ENEM 2025,
+  <b>80% da distância</b> de uma rede até a média nacional é exatamente isso: o
+  nível geral dela. O que sobra depois de descontar é o que dá para agir.</p>
+
+  <details class="metodo">
+    <summary>Como este número é calculado</summary>
+    <p>Cada questão do ENEM 2025 é ligada a uma <b>competência</b> da Matriz de
+    Referência do INEP. Somamos acertos e respostas de todos os participantes de
+    cada estado por competência, e comparamos com o Brasil. Depois subtraímos a
+    distância geral daquele estado naquela área — o que resta é o
+    <b>perfil</b>.</p>
+    <p>O grão é competência, não habilidade: 62 das 120 habilidades do ENEM 2025
+    são medidas por <b>um único item</b>, e aí a medida é daquele item — do
+    enunciado, do tema —, não da habilidade. Por competência são de
+    <b>4 a 11 questões</b> por medida.</p>
+    <p>Só provas regulares e participantes presentes com escola de conclusão
+    identificada. Fontes: <a href="https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/microdados/enem">microdados
+    do ENEM 2025</a>, <a href="https://download.inep.gov.br/download/enem/matriz_referencia.pdf">Matriz
+    de Referência</a> e malha territorial do IBGE.</p>
+  </details>
+</main>
+<footer>
+  Dados públicos do INEP e do IBGE. Nenhum dado pessoal é usado ou coletado.
+</footer>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const NOME_AREA = {CH:"Ciências Humanas", CN:"Ciências da Natureza",
+                   LC:"Linguagens e Códigos", MT:"Matemática"};
+
+// A escala do mapa e FIXA em +-3,5 de proposito. Normalizar por selecao faria
+// uma competencia sem diferenca nenhuma parecer tao contrastada quanto a de
+// maior lacuna do pais -- e o contraste seria puro arredondamento.
+const LIM = 3.5;
+// Corte dos grupos: 1 ponto percentual. O desvio-padrao do perfil entre as 27
+// UFs e 1,14 pp, entao 1 pp separa o que se destaca do que so oscila -- e e um
+// numero que uma pessoa le sem precisar de nota de rodape.
+const CORTE = 1.0;
+// atras do proprio patamar -> ambar (a cor de "oportunidade" no resto do site);
+// a frente -> teal. Vermelho fica fora: no vocabulario deste projeto ele marca
+// so erro em conteudo de entrada, e nao e disso que o mapa fala.
+const FRIO = [15, 118, 110], NEUTRO = [237, 235, 228], QUENTE = [180, 83, 9];
+function cor(v){
+  const t = Math.max(-1, Math.min(1, (v || 0) / LIM));
+  const [a, b] = t < 0 ? [NEUTRO, QUENTE] : [NEUTRO, FRIO];
+  const f = Math.pow(Math.abs(t), 0.75);       // gama: o miolo nao vira papel
+  return `rgb(${a.map((c,i)=>Math.round(c+(b[i]-c)*f)).join(",")})`;
+}
+const sinal = v => (v > 0 ? "+" : v < 0 ? "−" : "") +
+                   Math.abs(v).toFixed(1).replace(".", ",");
+
+let G = null, MALHA = null;
+let area = "MT", comp = null, uf = null;
+
+// ---------------------------------------------------------------- geometria
+// A projecao sai da propria malha (derivar, nunca transcrever): o enquadramento
+// acompanha o arquivo se um dia a malha mudar de recorte.
+const W = 560, H = 540, PAD = 10;
+let proj = null;
+
+function preparaProjecao(){
+  let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
+  for(const f of MALHA.features) for(const [x,y] of pontos(f.geometry)){
+    if(x < x0) x0 = x; if(x > x1) x1 = x;
+    if(y < y0) y0 = y; if(y > y1) y1 = y;
+  }
+  // equirretangular com a correcao do paralelo medio: sem ela o Brasil sai
+  // esticado na horizontal (o erro cresce com a latitude, e aqui vale ~3,5%)
+  const kx = Math.cos((y0 + y1) / 2 * Math.PI / 180);
+  const larg = (x1 - x0) * kx, alt = y1 - y0;
+  const s = Math.min((W - 2*PAD) / larg, (H - 2*PAD) / alt);
+  const dx = (W - larg*s) / 2, dy = (H - alt*s) / 2;
+  proj = ([x,y]) => [dx + (x - x0)*kx*s, dy + (y1 - y)*s];
+}
+function* pontos(g){
+  const aneis = g.type === "Polygon" ? g.coordinates
+                                     : g.coordinates.flat();
+  for(const anel of aneis) for(const p of anel) yield p;
+}
+function caminho(g){
+  const aneis = g.type === "Polygon" ? g.coordinates : g.coordinates.flat();
+  let d = "";
+  for(const anel of aneis){
+    d += "M" + anel.map(p => proj(p).map(n => n.toFixed(1)).join(",")).join("L") + "Z";
+  }
+  return d;
+}
+// centroide do MAIOR anel (nao do conjunto): com o anel medio, um estado de
+// muitas ilhas recebe rotulo no mar
+function rotulo(g, fonte){
+  const aneis = g.type === "Polygon" ? g.coordinates : g.coordinates.flat();
+  let melhor = null, maior = -1;
+  for(const anel of aneis){
+    let a = 0, cx = 0, cy = 0;
+    for(let i = 0; i < anel.length - 1; i++){
+      const [x0,y0] = anel[i], [x1,y1] = anel[i+1];
+      const f = x0*y1 - x1*y0;
+      a += f; cx += (x0+x1)*f; cy += (y0+y1)*f;
+    }
+    a = a/2;
+    if(Math.abs(a) > maior){ maior = Math.abs(a); melhor = [cx/(6*a), cy/(6*a), anel]; }
+  }
+  const [cx, cy, anel] = melhor;
+  // O criterio e AREA projetada, nao caixa envolvente. A caixa aprova faixas
+  // finas: Paraiba, RN e Alagoas passavam nela e a sigla saia flutuando fora
+  // do proprio estado, sobre o mar ou sobre o vizinho. Area em unidades do
+  // viewBox, porque o que decide e o tamanho na tela, nao em graus.
+  const pts = anel.map(proj);
+  let a2 = 0;
+  for(let i = 0; i < pts.length - 1; i++)
+    a2 += pts[i][0]*pts[i+1][1] - pts[i+1][0]*pts[i][1];
+  const areaPx = Math.abs(a2 / 2);
+  const caixa = (2*0.62 + 0.5) * fonte * (fonte * 1.15);   // a sigla ocupa isto
+  return {p: proj([cx, cy]), area: areaPx, cabe: areaPx > 3.0 * caixa};
+}
+
+// Colocacao gulosa: os estados grandes rotulam primeiro, e quem colidiria com
+// um rotulo ja posto fica sem o seu. Sem isso, RN/PB/PE/AL se empilham no
+// canto do Nordeste e as quatro siglas ficam ilegiveis -- pior que nenhuma.
+// A rejeicao por colisao e o que vai sustentar o nivel de municipio, onde os
+// candidatos passam de 27 para centenas.
+function colocaRotulos(cands, fonte){
+  const postos = [];
+  for(const c of cands.sort((a,b) => b.area - a.area)){
+    const w = (c.sigla.length * 0.62 + 0.5) * fonte, h = fonte * 1.15;
+    const cx = c.p[0], cy = c.p[1];
+    const cai = postos.some(q =>
+      Math.abs(cx - q.cx) < (w + q.w)/2 && Math.abs(cy - q.cy) < (h + q.h)/2);
+    if(cai) continue;
+    postos.push({cx, cy, w, h, sigla: c.sigla, claro: c.claro});
+  }
+  return postos;
+}
+
+// ------------------------------------------------------------------- dados
+const linhas = (u, a) => G.mapa[`${u}|${a}`] || [];
+const daComp = (u, a, c) => linhas(u, a).find(l => l[0] === c);
+
+// A sigla precisa medir ~10px NA TELA, e o viewBox e fixo -- entao o
+// font-size sai da razao entre os dois. Abaixo de 420px de largura nem 10px
+// resolve: 24 siglas se sobrepoem e o mapa vira borrao. Ali o rotulo sai, e
+// quem quer o nome toca no estado.
+const ALVO_PX = 10, LARG_MIN_ROTULO = 420;
+function tamanhoFonte(svg){
+  const larg = svg.getBoundingClientRect().width || W;
+  return larg < LARG_MIN_ROTULO ? 0 : ALVO_PX * (W / larg);
+}
+
+function desenhaMapa(){
+  const svg = $("mapa");
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  const fonte = tamanhoFonte(svg);
+  let s = "";
+  const cands = [];
+  for(const f of MALHA.features){
+    const u = String(f.properties.uf);
+    const l = daComp(u, area, comp);
+    const v = l ? l[1] : null;
+    const nome = (G.ufs[u] || ["", u])[1];
+    s += `<path d="${caminho(f.geometry)}" fill="${v === null ? "var(--chip)" : cor(v)}"`
+      + ` data-uf="${u}" tabindex="0" role="button"`
+      + ` class="${u === uf ? "sel" : ""}"`
+      + ` aria-label="${nome}: ${v === null ? "sem medida" : sinal(v) + " pontos percentuais"}">`
+      + `<title>${nome}</title></path>`;
+    const r = fonte ? rotulo(f.geometry, fonte) : {cabe:false};
+    // sobre o ambar mais fundo, tinta escura a 65% nao se le
+    if(r.cabe) cands.push({...r, sigla: (G.ufs[u] || [u])[0],
+                           claro: Math.abs(v || 0) > 2.2});
+  }
+  const rot = colocaRotulos(cands, fonte).map(q =>
+    `<text x="${q.cx.toFixed(1)}" y="${(q.cy + fonte*0.35).toFixed(1)}" `
+    + `font-size="${fonte.toFixed(1)}" class="${q.claro ? "claro" : ""}" `
+    + `text-anchor="middle">${q.sigla}</text>`).join("");
+  svg.innerHTML = s + rot;
+  for(const p of svg.querySelectorAll("path")){
+    p.addEventListener("click", () => selecionaUf(p.dataset.uf));
+    p.addEventListener("keydown", e => {
+      if(e.key === "Enter" || e.key === " "){ e.preventDefault(); selecionaUf(p.dataset.uf); }
+    });
+    const mostra = () => {
+      const u = p.dataset.uf, l = daComp(u, area, comp);
+      $("dica").innerHTML = l
+        ? `<b>${G.ufs[u][1]}</b> — ${sinal(l[1])} pp do próprio patamar · `
+          + `acerto ${l[3].toFixed(1).replace(".",",")}% contra `
+          + `${l[4].toFixed(1).replace(".",",")}% no Brasil`
+        : `<b>${G.ufs[u][1]}</b> — sem medida nesta competência`;
+    };
+    p.addEventListener("mouseenter", mostra);
+    p.addEventListener("focus", mostra);
+  }
+  $("esc-barra").style.background =
+    `linear-gradient(90deg, ${cor(-LIM)}, ${cor(0)}, ${cor(LIM)})`;
+  $("esc-min").textContent = "fica para trás";
+  $("esc-max").textContent = "vai à frente";
+
+  const d = G.comp[`${area}|${comp}`] || "";
+  $("mapa-tit").textContent = `C${comp} · ${NOME_AREA[area]}`;
+  $("mapa-sub").textContent = d;
+}
+
+// -------------------------------------------------------------- as listas
+function desenhaLista(){
+  const ul = $("lista");
+  ul.innerHTML = "";
+  const cam = $("caminho");
+
+  if(uf === null){
+    // Sem UF: quem mais compartilha esta lacuna. Em GRUPOS, nao em fila de 1o
+    // a 27o -- uma coluna de 27 numeros descendo le como tabela de
+    // classificacao, que e exatamente o que esta pagina nao e. E a diferenca
+    // entre vizinhos na lista costuma ser decimo, que nao sustenta posicao.
+    cam.innerHTML = "<span>Brasil</span>";
+    $("lista-tit").textContent = "Quem compartilha esta lacuna";
+    $("lista-sub").textContent = "Clique num estado para ver a lista dele.";
+    const grupos = [
+      [ "Fica para trás do próprio patamar", v => v <= -CORTE ],
+      [ "Perto do próprio patamar",          v => v > -CORTE && v < CORTE ],
+      [ "Vai à frente do próprio patamar",   v => v >= CORTE ],
+    ];
+    const todos = Object.keys(G.ufs)
+      .map(u => ({u, l: daComp(u, area, comp)}))
+      .filter(o => o.l)
+      .sort((a,b) => a.l[1] - b.l[1]);
+    for(const [titulo, dentro] of grupos){
+      const membros = todos.filter(o => dentro(o.l[1]));
+      if(!membros.length) continue;
+      const cab = document.createElement("li");
+      cab.className = "grupo";
+      cab.innerHTML = `<span>${titulo}</span><i>${membros.length}</i>`;
+      ul.appendChild(cab);
+      for(const {u, l} of membros){
+        ul.appendChild(item({
+          rot: `${G.ufs[u][1]} <i>· ${G.ufs[u][2]}</i>`,
+          val: sinal(l[1]),
+          v: l[1],
+          onClick: () => selecionaUf(u),
+        }));
+      }
+    }
+  } else {
+    // com UF: a pergunta e "o que esta rede precisa ensinar"
+    cam.innerHTML = `<button type="button" id="volta">Brasil</button>`
+                  + `<span>▸ ${G.ufs[uf][1]}</span>`;
+    $("volta").addEventListener("click", () => selecionaUf(null));
+    const pat = G.patamar[`${uf}|${area}`];
+    const ctx = G.area[`${uf}|${area}`] || [0];
+    $("lista-tit").textContent = `${G.ufs[uf][1]} — ${NOME_AREA[area]}`;
+    $("lista-sub").textContent =
+      `${ctx[0].toLocaleString("pt-BR")} participantes · a rede está `
+      + `${sinal(pat)} pp do Brasil nesta área. A lista desconta isso.`;
+    for(const l of linhas(uf, area).slice().sort((a,b) => a[1] - b[1])){
+      ul.appendChild(item({
+        rot: `<b>C${l[0]}</b> ${G.comp[`${area}|${l[0]}`] || ""}`,
+        val: sinal(l[1]),
+        // "medido em N questoes" e nao "N questoes": o numero e o lastro da
+        // medida na edicao. Em LC C2 sao 10 -- as 5 de ingles e as 5 de
+        // espanhol --, e cada participante responde 5
+        pista: `medido em ${l[5]} ${l[5] === 1 ? "questão" : "questões"} · `
+             + `acerto ${l[3].toFixed(1).replace(".",",")}% contra `
+             + `${l[4].toFixed(1).replace(".",",")}% no Brasil`,
+        v: l[1],
+        sel: l[0] === comp,
+        onClick: () => { comp = l[0]; render(); },
+      }));
+    }
+  }
+}
+function item({rot, val, pista, v, sel, onClick}){
+  const li = document.createElement("li");
+  const b = document.createElement("button");
+  b.type = "button";
+  if(sel) b.setAttribute("aria-pressed", "true");
+  b.innerHTML = `<span class="rot">${rot}</span>`
+    + `<span class="val" style="color:${v <= -CORTE ? "var(--warn)"
+       : v >= CORTE ? "var(--accent-deep)" : "var(--muted)"}">${val}</span>`
+    + (pista ? `<span class="pista">${pista}</span>` : "");
+  b.addEventListener("click", onClick);
+  li.appendChild(b);
+  return li;
+}
+
+function selecionaUf(u){ uf = u; render(); }
+function render(){ desenhaMapa(); desenhaLista(); }
+
+function trocaArea(a){
+  area = a;
+  // a competencia de maior lacuna da area entra selecionada -- e a resposta
+  // que a pessoa veio buscar, nao a C1 por ordem de numeracao
+  const alvo = uf !== null ? uf : null;
+  const base = alvo !== null ? linhas(alvo, area)
+             : Object.keys(G.ufs).flatMap(u => linhas(u, area));
+  let pior = null;
+  for(const l of base) if(pior === null || l[1] < pior[1]) pior = l;
+  comp = pior ? pior[0] : (linhas(Object.keys(G.ufs)[0], area)[0] || [1])[0];
+  for(const b of document.querySelectorAll(".abas button"))
+    b.setAttribute("aria-pressed", String(b.dataset.area === a));
+  render();
+}
+
+Promise.all([
+  fetch("dados/geografia.json").then(r => r.json()),
+  fetch("dados/malha_uf.json").then(r => r.json()),
+]).then(([g, m]) => {
+  G = g; MALHA = m;
+  // toda UF do mapa precisa existir nos dados e vice-versa: um estado cinza
+  // por falta de junta pareceria "sem participantes", que e outra coisa
+  const noMapa = new Set(MALHA.features.map(f => String(f.properties.uf)));
+  const nosDados = new Set(Object.keys(G.ufs));
+  const orfas = [...noMapa].filter(u => !nosDados.has(u))
+          .concat([...nosDados].filter(u => !noMapa.has(u)));
+  if(orfas.length){
+    $("dica").innerHTML = `<b>Erro:</b> ${orfas.length} unidade(s) sem par `
+      + `entre a malha e os dados (${orfas.join(", ")}).`;
+    return;
+  }
+  preparaProjecao();
+  trocaArea("MT");
+}).catch(e => {
+  $("dica").innerHTML = "<b>Não foi possível carregar os dados.</b>";
+  console.error(e);
+});
+
+for(const b of document.querySelectorAll(".abas button"))
+  b.addEventListener("click", () => trocaArea(b.dataset.area));
+
+// o tamanho da sigla depende da largura renderizada: girar o telefone ou
+// arrastar a janela muda a conta
+let esperando = null;
+addEventListener("resize", () => {
+  if(!G) return;
+  clearTimeout(esperando);
+  esperando = setTimeout(desenhaMapa, 150);
+});
+</script>
+</body>
+</html>

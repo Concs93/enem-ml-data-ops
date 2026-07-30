@@ -326,6 +326,30 @@ models:
       - name: publicavel
         tests: [not_null]
 
+  - name: mart_geografia_competencia
+    description: >
+      A face do gestor no grao que sustenta decisao: competencia de area, com
+      4 a 11 itens por medida em vez de 1 (62 das 120 habilidades tem um item
+      so). Traz `perfil` - a diferenca contra o nacional DEPOIS de descontar
+      o patamar da propria unidade na area. A diferenca crua e 80% "esta rede
+      vai melhor/pior em tudo" (dp 3,52 de 3,93 no nivel UF); pintar um mapa
+      com ela seria ranking disfarcado e daria a toda rede o mesmo conselho.
+      O perfil responde o que da para agir: dado o nivel geral desta rede,
+      qual competencia fica desproporcionalmente para tras.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: [nivel, codigo, area, competencia]
+    columns:
+      - name: status
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['ok', 'nao_administrada', 'nao_avaliada']
+      - name: descricao_competencia
+        tests: [not_null]
+      - name: publicavel
+        tests: [not_null]
+
   - name: mart_diagnostico_competencia
     description: >
       Diagnostico no grao da competencia de area. Mesma pergunta do mart de

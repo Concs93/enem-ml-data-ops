@@ -842,8 +842,75 @@ ENEM, a fácil move **3,5×** mais. **A assimetria inteira é o parâmetro de ac
 casual.** Corolário: a frase original não é só imprecisa — sob Rasch é *vazia*,
 sob 3PL é *invertida*.
 
-**Próximo: face do gestor** (exportar `mart_geografia_*`), página de apoio e o
-Volume 9.
+### Face do gestor — o mapa, e a medida que o salvou de ser ranking
+
+`dbt test` verde: **99/99** (38 modelos). `webapp/redes.html` é a primeira
+página da face do gestor: escolhe a área, o mapa do Brasil pinta as 27 UFs por
+competência, e clicar num estado devolve o que aquela rede precisa ensinar.
+São **34 KB** de dados (`export/export_gestor.py`) e **76 KB** de geometria.
+
+**A decisão de produto veio de uma medição, não de uma intenção.** O INEP
+publicou o "ENEM por Escola" de 2005 a 2015 e o descontinuou pelo *"uso
+inadequado feito pela mídia e alguns gestores educacionais que buscavam
+ranquear escolas"*. Dizer "não vamos ranquear" é barato; o mapa desmentiria
+sozinho. Medido no nível UF:
+
+| | desvio-padrão |
+|---|---|
+| `diferenca` crua contra o nacional | 3,93 |
+| só o patamar da UF (o nível geral dela) | 3,52 |
+| o que sobra depois de descontar | **1,75** |
+
+**80% da variância da diferença crua é "este estado vai melhor/pior em tudo".**
+Um mapa pintado por ela é ranking disfarçado e dá a toda rede o mesmo conselho
+— *"você está atrás em tudo"* —, que não é conselho.
+
+Daí a coluna `perfil` no `mart_geografia_competencia`: a diferença contra o
+nacional **depois** de descontar o patamar da própria unidade na área. Ela
+zera por construção dentro de cada unidade × área (invariante travado em
+`geografia_perfil_soma_zero`) e responde o que dá para agir.
+
+**A prova de que funcionou está na tela.** Em MT, a C6 (interpretar gráficos e
+tabelas) pinta o Norte/Nordeste de âmbar; a **C2** (geometria) pinta o **inverso
+exato** — Norte à frente do próprio patamar, São Paulo no âmbar mais fundo. Um
+mapa de ranking nunca faria isso. E os extremos contam uma história coerente:
+MT C6 é a maior lacuna de MA, PA, AM e AP, os quatro; LC C2 (língua
+estrangeira) em MA e PA. A dispersão dentro da região (0,49–0,76) é bem menor
+que a total (0,86–1,35): é estrutura, não ruído.
+
+**Grão de competência, não habilidade.** No nível UF a precisão nunca é o
+problema (milhões de respostas por item), mas a validade de conteúdo é: 62 das
+120 habilidades são medidas por **um item só**. Por competência são 4 a 11 —
+a mesma decisão da Etapa 5.
+
+**A lista de 27 estados era uma tabela de classificação.** A tela de entrada
+listava as UFs em ordem decrescente de `perfil`, o que contradizia a tese da
+página no lugar mais visível. Virou **três grupos** (fica para trás · perto ·
+vai à frente, corte de 1 pp contra dp de 1,14) — a mesma solução que a face do
+aluno já usa e pelo mesmo motivo: a diferença entre vizinhos na lista é
+décimo, e décimo não sustenta posição.
+
+Dois defeitos de mapa, ambos da família "o certo parece com o errado":
+
+- **`viewBox` fixo faz "9px" não ser 9px na tela.** O rótulo rendia ~5px no
+  celular. Já tinha mordido no gráfico do `metodo.html`. O tamanho agora sai da
+  razão entre o `viewBox` e a largura renderizada, e abaixo de 420px os
+  rótulos saem de vez — 24 siglas sobrepostas são piores que nenhuma.
+- **Caixa envolvente aprova faixa fina.** Paraíba, RN e Alagoas passavam no
+  teste de largura×altura e a sigla saía flutuando fora do próprio estado. O
+  critério virou **área projetada** contra a área da sigla, mais rejeição por
+  colisão — que é o que vai sustentar o nível de município, onde os candidatos
+  passam de 27 para centenas.
+
+`ingestion/baixa_malha.py` traz a malha do IBGE em qualidade **mínima** (a
+intermediária gasta 2,5× mais bytes para desenhar detalhe abaixo de um pixel),
+arredonda a 2 casas (~1 km, contra ~6 km por pixel) e valida 27 UFs com código
+na faixa 11–53. O `Accept-Encoding` mordeu: o serviço responde gzip mesmo sem
+pedir, e o `urllib` não descomprime sozinho.
+
+**Próximo: região imediata e município** no mesmo formato (o `export_gestor.py`
+já filtra por `publicavel`, que no nível UF é redundante e no de município corta
+5.570 para 1.942), página de apoio e o Volume 9.
 
 ### Etapa 4 — o que ficou de pé
 
