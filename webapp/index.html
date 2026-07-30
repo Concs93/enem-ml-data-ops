@@ -258,19 +258,13 @@
     </div>
     <div id="cards-areas"></div>
     <div class="cartao">
-      <details class="metodo"><summary>Como o cálculo é feito — e o que ele não promete</summary>
-        <p>Cada questão do ENEM tem uma ficha técnica pública: o quanto é difícil e o
-        quanto separa níveis de preparo. Sua nota diz em que degrau você está, e daí
-        olhamos as questões <b>logo acima dele</b> — nem fáceis demais, nem
-        impossíveis. É a mesma matemática que o INEP usa para corrigir a prova.</p>
-        <p><b>O número</b> é quanto dá para ganhar fechando aquele conteúdo, e é uma
-        fatia do total — por isso as somas fecham. <b>O grupo</b> responde outra coisa:
-        onde o mesmo esforço rende mais rápido no seu nível. Um conteúdo de prêmio
-        grande pode aparecer em “mais distante”: há bastante ali, mas converte devagar
-        até você avançar nos primeiros.</p>
-        <p>Sem as suas respostas, isto é um mapa do terreno, não uma bola de cristal.
-        Com elas, a correção roda no seu próprio aparelho — nada é enviado — e o mapa
-        passa a contar o seu caso.</p>
+      <details class="metodo"><summary>Como o cálculo é feito</summary>
+        <p>Sua nota diz em que nível você está. Daí olhamos as questões
+        <b>logo acima dele</b> — nem fáceis demais, nem impossíveis. É a mesma
+        matemática que o INEP usa para corrigir a prova.</p>
+        <p><b>C</b> é competência e <b>H</b> é habilidade, os códigos da
+        ${linkMatriz("Matriz do ENEM")}. Sem as suas respostas, isto é um mapa do
+        terreno; com elas, a correção roda no seu aparelho e nada é enviado.</p>
         <p><a href="metodo.html">Como funciona</a> — a explicação completa, em dois
         minutos.</p>
       </details>
@@ -1193,7 +1187,7 @@ function cartaoEstudo(a){
         <span class="seta">▶</span>
       </summary>
       <p class="cdesc">${c.desc}</p>
-      <div class="cmeta">das 45 da prova · acerto típico no seu nível: ~${espC==null?"—":espC+"%"}</div>
+      <div class="cmeta">das 45 da prova · ${espC==null?"—":"~"+espC+"% típico"}</div>
       ${habs}
       <div style="height:12px"></div>
     </details>`;
@@ -1203,15 +1197,15 @@ function cartaoEstudo(a){
   // rho(2020-24 -> 2025) por area sobre APENAS 6-9 competencias, entao os
   // intervalos se sobrepoem; a leitura honesta e tendencia, nunca ranking
   const notaConf = {
-    LC: "Em Linguagens esta ordem <b>tendeu a se repetir</b> entre as edições.",
-    CN: "Em Ciências da Natureza a ordem <b>se repetiu em parte</b>.",
-    MT: "Em Matemática a ordem <b>varia bastante</b> entre edições — confie no conteúdo, não na posição.",
-    CH: "Em Humanas a ordem <b>quase não se repete</b> entre edições — leia como panorama, não como fila."
+    LC: "A ordem <b>tendeu a se repetir</b> entre edições.",
+    CN: "A ordem <b>se repetiu em parte</b>.",
+    MT: "A ordem <b>varia bastante</b> entre edições.",
+    CH: "A ordem <b>quase não se repete</b> entre edições — leia como panorama."
   }[a.sig];
 
   return `<div class="cartao">
     <h2>O que estudar para a próxima <span class="nota">${a.nome}</span></h2>
-    <p class="sub"><b>Quanto cada conteúdo costuma valer</b> numa prova de 45 questões, na média de <b>2020 a 2025</b> — peso do conteúdo e rendimento no seu nível, juntos. ${notaConf}</p>
+    <p class="sub"><b>Peso típico de cada conteúdo</b>, na média de <b>2020 a 2025</b>. ${notaConf}</p>
     ${blocos}
   </div>`;
 }
@@ -1374,7 +1368,7 @@ function cartaoArea(a){
         : `até +${plural(shares[j],"ponto","pontos")}`;
       const situacao = temResp
         ? `você: ${qs.filter(o=>o.valido&&o.acertou).length} de ${qs.filter(o=>o.valido).length}`
-        : `acerto típico no seu nível: ~${e==null?"—":Math.round(e)+"%"}`;
+        : `${e==null?"—":"~"+Math.round(e)+"% típico"}`;
       const qHtml = qs.length ? `<div class="qlista">${qs.map(tagQ).join("")}</div>` : "";
       return `<div class="hab">
         <div class="pos" title="habilidade ${hab} da Matriz de Referência">H${hab}</div>
@@ -1394,7 +1388,7 @@ function cartaoArea(a){
       ? (Math.round(c.teto)===0
           ? `✓ tudo certo aqui`
           : `você acertou ${c.habs.reduce((s,h)=>s+((porHab[h[0]]||[]).filter(o=>o.valido&&o.acertou).length),0)} de ${c.habs.reduce((s,h)=>s+((porHab[h[0]]||[]).filter(o=>o.valido).length),0)}`)
-      : `${plural(c.itens,"questão","questões")} na prova · acerto típico no seu nível: ~${espC==null?"—":espC+"%"}`;
+      : `${plural(c.itens,"questão","questões")} · ${espC==null?"—":"~"+espC+"% típico"}`;
     const cval = manutencao ? "" :
       `<span class="cval">${g===3 ? "✓" : t.pts>=1 ? `até +${t.pts} pontos${t.alem?" ou mais":""}` : "—"}</span>`;
 
@@ -1432,7 +1426,7 @@ function cartaoArea(a){
 
   const sub = manutencao
     ? `Você acertou todas as questões desta área — não há fila de prioridade, só o <b>inventário do que sustenta a sua nota</b>.`
-    : `${temResp ? "Questão por questão, o que aconteceu na <b>sua prova</b>." : "O que rendia <b>na prova de 2025</b>, no seu nível."} Quanto cada conteúdo pode render, e por onde começar. <b>C</b> competência · <b>H</b> habilidade (${linkMatriz("Matriz do ENEM")}).`;
+    : `${temResp ? "Questão por questão, o que aconteceu na <b>sua prova</b>." : ""}`;
 
   // A CONTA TEM DE FECHAR NA TELA. Antes o cabecalho mostrava "45 questões ·
   // 43 valem ponto · 1 anulada" -- e 43+1 da 44. Faltava a questao cuja
@@ -1452,8 +1446,8 @@ function cartaoArea(a){
   return `<div class="cartao">
     <h2>${temResp ? "Diagnóstico da sua prova de 2025" : "Como foi a prova de 2025"} <span class="nota">${a.nome} · sua nota: ${a.nota}</span></h2>
     <p class="sub">${contagem}. ${sub}</p>
-    ${piso ? `<div class="percentil atencao">Nesta faixa a prova de 2025 <b>não separa níveis</b>: de 310 a 360 os acertos são muito parecidos. Os pontos abaixo são aproximados. O maior ganho aqui está fora do que o mapa mede — <b>responder todas as questões</b>, mesmo sem certeza.</div>` : ""}
-    ${medidaLarga && !manutencao && !noAlto ? `<div class="percentil">Aqui a prova de 2025 tem <b>poucas questões no seu nível</b>, então ela mede com folga${seEmPontos ? ` de uns ${Math.round(seEmPontos)} pontos` : ""}. O mapa já considera isso: trate os primeiros conteúdos como um <b>conjunto de boas apostas</b>, não como ordem exata.</div>` : ""}
+    ${piso ? `<div class="percentil atencao">Nesta faixa a prova <b>não separa níveis</b> — os pontos abaixo são aproximados. O maior ganho está fora do que o mapa mede: <b>responder todas as questões</b>, mesmo sem certeza.</div>` : ""}
+    ${medidaLarga && !manutencao && !noAlto ? `<div class="percentil">Nesta faixa a prova mede com folga${seEmPontos ? ` de uns <b>${Math.round(seEmPontos)} pontos</b>` : " maior"} — trate os primeiros como um <b>conjunto de boas apostas</b>, não como ordem exata.</div>` : ""}
     ${insightHtml}
     ${percentilHtml}
     ${totalHtml}

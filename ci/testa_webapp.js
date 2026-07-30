@@ -428,7 +428,7 @@ function passoDaArea(a) {
       `seEmPontos (${mot.seEmPontos.toFixed(1)}) igual a 100*SE (${ingenuo.toFixed(1)}) — `
       + "a conversao pela curva empirica nao esta sendo usada");
     const h = X.cartaoArea(a);
-    const m = h.match(/de uns (\d+) pontos/);
+    const m = h.match(/de uns (?:<b>)?(\d+) pontos/);
     espera(m, "ressalva sem o numero de pontos");
     espera(Math.abs(Number(m[1]) - mot.seEmPontos) <= 1,
       `tela mostra ${m[1]}, motor calcula ${mot.seEmPontos.toFixed(1)}`);
