@@ -89,6 +89,9 @@
   .escala{display:flex;align-items:center;gap:10px;margin-top:10px;
        font-family:var(--sans);font-size:var(--fs-100);color:var(--muted)}
   .escala .barra{flex:1;height:9px;border-radius:var(--r-pill);min-width:80px}
+  .unidade{font-family:var(--sans);font-size:var(--fs-100);color:var(--muted);
+       margin:10px 0 0;line-height:1.5}
+  .unidade b{color:var(--text)}
   .dica{font-family:var(--sans);font-size:var(--fs-100);color:var(--muted);
        margin:8px 0 0;min-height:1.4em}
   .dica b{color:var(--text)}
@@ -113,6 +116,9 @@
   ul.lista .rot i{font-style:normal;color:var(--muted)}
   ul.lista .val{font-size:var(--fs-300);font-weight:700;
        font-variant-numeric:tabular-nums;white-space:nowrap}
+  /* a unidade acompanha o numero sem competir com ele */
+  ul.lista .val em{font-style:normal;font-weight:500;font-size:var(--fs-100);
+       margin-left:2px;opacity:.7}
   ul.lista .pista{grid-column:1/-1;font-size:var(--fs-100);color:var(--muted)}
   ul.lista li.grupo{display:flex;justify-content:space-between;align-items:baseline;
        gap:12px;font-family:var(--sans);font-size:var(--fs-100);font-weight:700;
@@ -176,6 +182,8 @@
         <span class="barra" id="esc-barra"></span>
         <span id="esc-max">—</span>
       </div>
+      <p class="unidade"><b>pp</b> = pontos percentuais de <b>acerto</b> —
+      quantas questões a mais ou a menos, de cada 100. Não é ponto de nota.</p>
       <p class="dica" id="dica">Passe o cursor por um estado.</p>
     </div>
 
@@ -557,8 +565,12 @@ function item({rot, val, pista, v, sel, onClick}){
   b.type = "button";
   if(sel) b.setAttribute("aria-pressed", "true");
   b.innerHTML = `<span class="rot">${rot}</span>`
+    // a unidade VIAJA COM O NUMERO. Sem ela, "-5,2" ao lado de um "+76
+    // pontos" da tela do estudante parece a mesma moeda, e nao e: la e nota,
+    // aqui e ponto percentual de ACERTO
     + `<span class="val" style="color:${v <= -CORTE ? "var(--warn)"
-       : v >= CORTE ? "var(--accent-deep)" : "var(--muted)"}">${val}</span>`
+       : v >= CORTE ? "var(--accent-deep)" : "var(--muted)"}">${val}`
+    + `<em>pp</em></span>`
     + (pista ? `<span class="pista">${pista}</span>` : "");
   b.addEventListener("click", onClick);
   li.appendChild(b);
