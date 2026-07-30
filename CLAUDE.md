@@ -1298,19 +1298,30 @@ contagem exposta em `n_prova_em_branco`.
 Provas em branco por área: **CH 2.489 · LC 663 · MT 221 · CN 163** (na população
 do diagnóstico).
 
-### O asterisco órfão da Matriz (LC C2)
+### Dois defeitos que o `limpa()` deveria pegar e não pegava
 
-A descrição da Competência 2 de LC termina em `grupos sociais*.` — e o
-asterisco aparece **uma única vez nas 24 páginas** do PDF oficial, sem nota de
-rodapé nenhuma. Conferido caractere a caractere: o marcador não tem referente.
+Apareceram ao mostrar a descrição completa da competência na tela — enquanto
+ela vinha truncada, os dois ficavam escondidos no fim da frase.
 
-A extração está correta e o seed continua **fiel à fonte** (regra da casa:
-derivar do artefato, não editá-lo). Quem limpa é a **tela** — ali o asterisco
-só levanta a pergunta "o que é isso?" e não existe resposta para dar.
+**O asterisco órfão (LC C2).** A descrição terminava em `grupos sociais*.` e o
+asterisco aparece **uma única vez nas 24 páginas** do PDF, sem nota de rodapé
+nenhuma — marcador sem referente. O `limpa()` já tinha a regra
+(`rstrip("*")`), mas ela só pegava o asterisco em **última** posição, e aqui
+vinha a pontuação depois. Não foi decisão editorial nova: foi consertar onde a
+intenção já estava escrita.
 
-Lição de método: nem todo defeito no dado é erro do pipeline. Este veio
-pronto do documento oficial, e a resposta certa não foi consertar a origem
-nem repetir o ruído — foi separar fidelidade (seed) de leitura (tela).
+**A palavra composta partida (CN C6 e C7).** O PDF quebra a linha em
+`científico-` e continua `tecnológicas.` na seguinte; juntar com espaço dava
+**`científico- tecnológicas`**, e assim chegou à tela. Colar é seguro *neste*
+documento: as 6 linhas terminadas em hífen foram conferidas uma a uma e todas
+são compostos (`histórico-geográficos`, `científico-tecnológicas` ×3,
+`lógico-semânticas`). **Não há hifenização de sílaba aqui** — se houvesse, a
+regra teria de decidir se o hífen fica ou sai, e não daria para automatizar.
+
+Lição de método: a correção foi para o **gerador do seed**, não para a tela. Eu
+tinha começado remendando na exibição, e estava errado — quando a regra já
+existe na origem, o remendo a jusante esconde o bug em vez de resolvê-lo. O
+seed continua derivado do artefato; o que mudou foi a limpeza ficar completa.
 
 ### Extração de PDF quebra palavras
 

@@ -89,10 +89,28 @@ def extrai_texto(caminho):
 
 
 def limpa(texto):
-    """Normaliza espacos e remove marcadores de nota de rodape."""
+    """Normaliza espacos, recola palavra composta partida e tira marcador."""
     texto = re.sub(r"\s+", " ", texto).strip()
-    texto = texto.rstrip("*").strip()
-    return texto
+
+    # PALAVRA COMPOSTA PARTIDA NA LINHA. O PDF quebra "cientifico-tecnologicas"
+    # em "cientifico-" + "tecnologicas", e juntar as linhas com espaco produzia
+    # "cientifico- tecnologicas" -- que aparecia assim na tela.
+    #
+    # Colar e seguro NESTE documento: as 6 linhas que terminam em hifen foram
+    # conferidas uma a uma e todas sao compostos (historico-geograficos,
+    # cientifico-tecnologicas x3, logico-semanticas). Nao ha hifenizacao de
+    # silaba, que exigiria decidir se o hifen fica ou sai. A exigencia de letra
+    # dos DOIS lados evita colar o travessao solto do anexo ("- Quimica").
+    texto = re.sub(r"(\w)-\s+(\w)", r"\1-\2", texto)
+
+    # MARCADOR DE NOTA DE RODAPE. O rstrip("*") anterior so pegava o asterisco
+    # em ULTIMA posicao, e o unico caso do documento tem pontuacao depois
+    # ("...grupos sociais*."), entao ele passava direto para o seed e chegava a
+    # tela. Pior: o PDF nao traz nota de rodape nenhuma nas 24 paginas -- o
+    # marcador nao tem referente, e so levanta uma pergunta sem resposta.
+    texto = re.sub(r"\*(?=\W*$)", "", texto)
+
+    return texto.strip()
 
 
 def parse(texto):
