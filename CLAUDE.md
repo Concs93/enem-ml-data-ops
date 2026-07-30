@@ -908,9 +908,41 @@ arredonda a 2 casas (~1 km, contra ~6 km por pixel) e valida 27 UFs com código
 na faixa 11–53. O `Accept-Encoding` mordeu: o serviço responde gzip mesmo sem
 pedir, e o `urllib` não descomprime sozinho.
 
-**Próximo: região imediata e município** no mesmo formato (o `export_gestor.py`
-já filtra por `publicavel`, que no nível UF é redundante e no de município corta
-5.570 para 1.942), página de apoio e o Volume 9.
+### Filtro de rede: decidido pela medida, agendado com o município
+
+Pergunta do dono do produto: *"vamos ter o filtro de rede? se é privada,
+pública, etc"*. Medido antes de construir — a mesma disciplina que produziu o
+`perfil`. A distribuição no diagnóstico é **Estadual 74,7% · Privada 19,4% ·
+Federal 5,3% · Municipal 0,5%**.
+
+**Quanto o mapa filtrado difere do mapa misto de hoje** (concordância do 1º
+lugar da lista, em 108 células = 27 UFs × 4 áreas):
+
+| rede | 1º lugar igual ao mapa atual |
+|---|---|
+| Estadual | **85 de 108 (79%)** — ρ 0,94, diferença média **0,3 pp** |
+| Federal | 57 de 108 |
+| Privada | 53 de 108 |
+| Municipal | 16 de 56 |
+
+Para 3 de cada 4 participantes o mapa que já está no ar **é** o mapa da rede
+deles: 0,3 pp de diferença contra um desvio-padrão de 1,14.
+
+**Onde diverge, a causa é o nível e não a administração.** Em MT, a maior
+lacuna da rede estadual é a **C7** em 27/27 UFs; da privada, a **C2** em 25/27.
+E a rede federal, que fica entre as duas em desempenho (38,6% contra 26,8% e
+44,0%), **divide o 1º lugar 13/12 entre as duas competências**. É a tese do
+produto — *a prioridade muda com o nível* — reaparecendo pelo lado do gestor.
+
+Decisão: a dimensão de rede entra **junto com região imediata e município**, e
+não antes. Dois motivos: na UF o mix de redes é estável (~75% estadual em toda
+parte) e no município não é, que é onde o filtro passa a valer; e a mesma
+mudança de modelo serve os dois níveis. Enquanto isso a página declara de quem
+é o número.
+
+**Próximo: região imediata, município e a dimensão de rede** no mesmo formato
+(o `export_gestor.py` já filtra por `publicavel`, que no nível UF é redundante
+e no de município corta 5.570 para 1.942), página de apoio e o Volume 9.
 
 ### Etapa 4 — o que ficou de pé
 
@@ -1271,6 +1303,49 @@ As duas têm exatamente 4.810.772 linhas, o que tenta a ligá-las pela ordem.
 **Não fazer isso** — a ordem não é garantida e reconstruir o vínculo contorna
 uma proteção intencional. Qualquer análise cruzando perfil socioeconômico com
 desempenho individual está fora do escopo desta edição.
+
+### O filtro de "quem está concluindo agora" já está aplicado — e não há outro
+
+Pergunta do dono do produto (30/07/2026): dá para recortar só quem está
+terminando o ensino médio naquela edição? A resposta tem duas metades, e as
+duas importam.
+
+**Não daria para fazer pela coluna certa.** `TP_ST_CONCLUSAO` mora em
+**PARTICIPANTES**, e PARTICIPANTES não é relacionável com RESULTADOS (a
+armadilha acima). Um recorte por situação de conclusão é literalmente
+inalcançável a partir do lado onde estão as notas e as respostas.
+
+**Mas o recorte já existe, por outro caminho.** O `CO_ESCOLA` do RESULTADOS é
+a escola de **conclusão** vinculada ao Censo — só quem está concluindo agora
+tem. Comparando as marginais (que é o que se pode comparar sem ligar registro):
+
+| | pessoas |
+|---|---|
+| PARTICIPANTES · "concluirei o Ensino Médio em 2025" | 1.811.344 |
+| **RESULTADOS · tem `CO_ESCOLA`** (a população do diagnóstico) | **1.739.028** |
+| já concluí o Ensino Médio | 1.888.320 |
+| concluirei após 2025 | 1.030.113 |
+| treineiro (`IN_TREINEIRO`) | 987.650 |
+
+**96% de coincidência** (72 mil de diferença, coerente com escola sem vínculo
+no Censo). Treineiro e quem já concluiu ficam de fora sozinhos. A exigência de
+`CO_ESCOLA` não é só o gate de atribuição a uma escola — é o recorte de
+concluinte, e é o único disponível.
+
+Marginais não provam identidade de conjunto, e isso é consequência da mesma
+desidentificação: dá para dizer "os dois grupos têm quase o mesmo tamanho",
+não "são as mesmas pessoas".
+
+### A rede vem do RESULTADOS, não de uma junta
+
+`TP_DEPENDENCIA_ADM_ESC` está na própria base de resultados e já viaja em
+`stg_resultados` (`cod_dependencia_escola`). Conferido contra a
+`dim_escola.dependencia`: casamento **4 a 4 sem célula fora da diagonal** —
+Federal 74.649 · Estadual 1.382.565 · Municipal 9.015 · Privada 272.799.
+
+Consequência prática: acrescentar a rede aos agregados de geografia é
+**carregar uma coluna**, não juntar uma dimensão. E a rede é sempre a da escola
+de **conclusão**, pela seção acima.
 
 ### `CO_POSICAO` não é a posição na prova
 
