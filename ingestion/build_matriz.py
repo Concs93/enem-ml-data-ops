@@ -109,8 +109,21 @@ def limpa(texto):
     # tela. Pior: o PDF nao traz nota de rodape nenhuma nas 24 paginas -- o
     # marcador nao tem referente, e so levanta uma pergunta sem resposta.
     texto = re.sub(r"\*(?=\W*$)", "", texto)
+    texto = texto.strip()
 
-    return texto.strip()
+    # PONTO FINAL AUSENTE NA FONTE. Duas entradas das 150 nao terminam em
+    # pontuacao no PDF oficial -- CH C1 ("...que constituem as identidades") e
+    # CH H7 ("...de poder entre as nacoes"). O texto esta COMPLETO; falta so o
+    # ponto, e conferido contra o PDF: a linha seguinte ja e a proxima
+    # habilidade. Na tela, ao lado de 148 frases pontuadas, a falta lia como
+    # descricao cortada -- foi assim que apareceu.
+    #
+    # Fechar a frase e normalizacao, nao edicao: nao muda o sentido nem
+    # acrescenta palavra. Diferente do asterisco, aqui nao ha o que interpretar.
+    if texto and texto[-1] not in ".?!":
+        texto += "."
+
+    return texto
 
 
 def parse(texto):
@@ -227,6 +240,27 @@ def valida(linhas, nao_mapeadas):
         erros.append(
             f"descricoes longas demais (>{MAX_DESCRICAO} chars) - o PDF "
             f"provavelmente emendou outra secao: {sorted(set(longas))[:5]}")
+
+    # RUIDO DE EXTRACAO QUE SOBREVIVE AO limpa(). Nenhum destes derruba o
+    # script, porque nao invalidam o dado -- mas todos ja chegaram a tela, e
+    # todos ficaram escondidos enquanto a descricao aparecia truncada. O limpa()
+    # trata os tres casos conhecidos; este bloco existe para o caso NOVO, na
+    # proxima edicao do PDF.
+    suspeitos = []
+    for l in linhas:
+        for rotulo, txt in ((f"C{l[1]}", l[3]), (f"H{l[2]}", l[4])):
+            if not txt:
+                continue
+            if re.search(r"\w-\s+\w", txt):
+                suspeitos.append((l[0], rotulo, "hifen solto"))
+            if "*" in txt:
+                suspeitos.append((l[0], rotulo, "marcador de nota"))
+            if txt[-1] not in ".?!":
+                suspeitos.append((l[0], rotulo, "sem pontuacao final"))
+    if suspeitos:
+        erros.append(
+            f"ruido de extracao que o limpa() nao pegou: "
+            f"{sorted(set(suspeitos))[:6]}")
 
     return erros
 

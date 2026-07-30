@@ -1298,30 +1298,40 @@ contagem exposta em `n_prova_em_branco`.
 Provas em branco por área: **CH 2.489 · LC 663 · MT 221 · CN 163** (na população
 do diagnóstico).
 
-### Dois defeitos que o `limpa()` deveria pegar e não pegava
+### Três defeitos que a truncagem escondia
 
-Apareceram ao mostrar a descrição completa da competência na tela — enquanto
-ela vinha truncada, os dois ficavam escondidos no fim da frase.
+Todos apareceram no mesmo dia, ao mostrar a descrição **completa** da
+competência na tela. Enquanto ela vinha cortada em 12 palavras, os três
+moravam no fim da frase, fora do campo de visão.
 
-**O asterisco órfão (LC C2).** A descrição terminava em `grupos sociais*.` e o
-asterisco aparece **uma única vez nas 24 páginas** do PDF, sem nota de rodapé
-nenhuma — marcador sem referente. O `limpa()` já tinha a regra
-(`rstrip("*")`), mas ela só pegava o asterisco em **última** posição, e aqui
-vinha a pontuação depois. Não foi decisão editorial nova: foi consertar onde a
-intenção já estava escrita.
+| defeito | onde | o que era |
+|---|---|---|
+| asterisco órfão | LC C1 | marcador de nota que aparece **uma vez em 24 páginas**, sem nota nenhuma |
+| palavra composta partida | CN C6, C7 | `científico-` + `tecnológicas` juntados com espaço |
+| ponto final ausente | CH C1, CH H7 | 2 de 150 entradas sem pontuação **no PDF oficial** |
 
-**A palavra composta partida (CN C6 e C7).** O PDF quebra a linha em
-`científico-` e continua `tecnológicas.` na seguinte; juntar com espaço dava
-**`científico- tecnológicas`**, e assim chegou à tela. Colar é seguro *neste*
-documento: as 6 linhas terminadas em hífen foram conferidas uma a uma e todas
-são compostos (`histórico-geográficos`, `científico-tecnológicas` ×3,
-`lógico-semânticas`). **Não há hifenização de sílaba aqui** — se houvesse, a
-regra teria de decidir se o hífen fica ou sai, e não daria para automatizar.
+Os três eram do `limpa()` do `build_matriz`, não da tela. E o primeiro é o mais
+instrutivo: a regra **já existia** (`rstrip("*")`), só que pegava o asterisco
+em última posição e o caso real tinha pontuação depois.
 
-Lição de método: a correção foi para o **gerador do seed**, não para a tela. Eu
-tinha começado remendando na exibição, e estava errado — quando a regra já
-existe na origem, o remendo a jusante esconde o bug em vez de resolvê-lo. O
-seed continua derivado do artefato; o que mudou foi a limpeza ficar completa.
+Sobre colar o hífen: só é seguro porque **este PDF não hifeniza sílabas**. As 6
+linhas terminadas em hífen foram conferidas uma a uma e todas são compostos
+(`histórico-geográficos`, `científico-tecnológicas` ×3, `lógico-semânticas`).
+Com hifenização de sílaba a regra teria de decidir se o hífen fica ou sai, e
+isso não se automatiza às cegas.
+
+Sobre fechar a frase: é normalização, não edição — não muda sentido nem
+acrescenta palavra. Diferente do asterisco, aqui não há o que interpretar.
+
+**Correção de rumo registrada:** comecei remendando na *tela* (uma função
+`semAsterisco` no webapp) e estava errado. Quando a regra já existe na origem,
+o remendo a jusante esconde o bug em vez de resolvê-lo.
+
+**A guarda que ficou.** O `valida()` passou a acusar hífen solto, marcador de
+nota e frase sem pontuação — não para derrubar o script, mas para que o caso
+*novo* da próxima edição apareça no resumo em vez de chegar à tela. Verificado
+do jeito que importa: **desligando o `limpa()`, a guarda acusa**; com ele, não.
+Guarda que não pode falhar não guarda nada.
 
 ### Extração de PDF quebra palavras
 
