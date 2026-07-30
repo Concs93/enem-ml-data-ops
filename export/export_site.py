@@ -140,13 +140,18 @@ def exporta(cur):
     # todas as edicoes (o stg_itens_banco elege essa versao), e a cor importa
     # -- as outras sao a mesma prova reordenada
     cur.execute("""
-        select area, cod_lingua, habilidade, edicao, posicao
+        select area, cod_lingua, habilidade, edicao, posicao, lingua_item
         from marts.mart_itens_habilidade
         order by area, cod_lingua, habilidade, ordem
     """)
     qhab = {}
-    for area, lingua, hab, edicao, pos in cur.fetchall():
-        qhab.setdefault(k(area, lingua, hab), []).append([int(edicao), int(pos)])
+    for area, lingua, hab, edicao, pos, ling_item in cur.fetchall():
+        # o terceiro elemento so existe em LC: 0 = ingles, 1 = espanhol, e
+        # ausente quando a questao e uma das 40 comuns as duas linguas
+        item = [int(edicao), int(pos)]
+        if ling_item is not None:
+            item.append(int(ling_item))
+        qhab.setdefault(k(area, lingua, hab), []).append(item)
     pacote["questoes"] = qhab
 
     # -------------------------------------------------------- provas

@@ -35,15 +35,21 @@ with valido as (
 
 ),
 
+-- lingua_item preserva o que a uniao apagaria: se a questao e da secao de
+-- lingua estrangeira (5 por prova) ou uma das 40 comuns. A pessoa precisa
+-- disso para saber o que esta abrindo -- "Q3 ENEM 2024" em LC pode ser de
+-- ingles, de espanhol ou comum, e sao coisas diferentes
 por_lingua as (
 
-    select edicao, area, null::int as cod_lingua, habilidade, posicao, b
+    select edicao, area, null::int as cod_lingua, habilidade, posicao, b,
+           null::int as lingua_item
     from valido
     where area != 'LC'
 
     union all
 
-    select v.edicao, v.area, l.cod_lingua, v.habilidade, v.posicao, v.b
+    select v.edicao, v.area, l.cod_lingua, v.habilidade, v.posicao, v.b,
+           v.cod_lingua as lingua_item
     from valido v
     join (values (0), (1)) l(cod_lingua)
       on v.cod_lingua is null
@@ -58,6 +64,7 @@ select
     habilidade,
     edicao,
     posicao,
+    lingua_item,
     round(b, 2) as param_dificuldade,
     -- ordena da mais recente para a mais antiga, e dentro do ano pela posicao:
     -- prova recente e mais parecida com a proxima, e e mais facil de achar

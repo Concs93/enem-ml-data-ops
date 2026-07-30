@@ -525,6 +525,25 @@ function passoDaArea(a) {
     }
     espera(n > 1000, `so ${n} questoes no banco de enderecos`);
   });
+  caso("em LC as questoes de lingua vem marcadas ING/ESP", () => {
+    // as 5 questoes da secao de lingua sao diferentes entre ingles e espanhol;
+    // sem marca, "Q4 ENEM 2025" em LC nao diz qual caderno abrir
+    for (const [lin, marca] of [[0, "ING"], [1, "ESP"]]) {
+      const qs = X.M.questoes[X.k("LC", lin, 8)] || [];   // H8: so itens de lingua
+      espera(qs.length >= 5, `LC/${lin} H8: so ${qs.length} questoes`);
+      espera(qs.every(q => q[2] === lin),
+        `LC/${lin} H8: questao sem a marca de lingua correta`);
+      // o motor le a lingua do DOM, nao do objeto da area -- sem isto o
+      // sandbox renderiza sempre ingles e o teste passa por engano
+      documento.getElementById("lingua").value = String(lin);
+      const h = X.cartaoEstudo(areaDe("LC", 600, lin));
+      espera(h.includes(marca), `cartao de LC/${lin} nao mostra ${marca}`);
+    }
+    // as comuns NAO levam marca -- marcar tudo faria a distincao perder sentido
+    documento.getElementById("lingua").value = "0";
+    const comuns = (X.M.questoes[X.k("LC", 0, 16)] || []).filter(q => q[2] != null);
+    espera(comuns.length === 0, `H16 (comum) tem ${comuns.length} questoes marcadas`);
+  });
   caso("a tela declara a cor do caderno (numero sem cor e endereco errado)", () => {
     // as quatro cores sao a mesma prova reordenada: Q7 do azul e outra questao
     // no amarelo. Citar o numero sem a cor erra em tres de quatro cadernos

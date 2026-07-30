@@ -115,6 +115,7 @@
   .qref{font-family:var(--sans);font-size:var(--fs-100);font-variant-numeric:tabular-nums;
         background:var(--chip);color:var(--text);border-radius:var(--r-chip);
         padding:2px 7px;white-space:nowrap}
+  .qref em{font-style:normal;font-weight:700;color:var(--accent-deep);margin-left:4px;font-size:.9em}
   .qref i{font-style:normal;color:var(--muted);margin-left:5px}
   .qmais{font-family:var(--sans);font-size:var(--fs-100);color:var(--muted);
          align-self:center}
@@ -372,17 +373,21 @@ const notaTxt = v => (Math.round(v*10)/10).toString().replace(".", ",");
 // "Q7 - ENEM 2022": o endereco concreto de cada habilidade nas seis edicoes.
 // Caderno AZUL em todas -- as outras cores sao a mesma prova reordenada,
 // entao o numero sem a cor seria endereco errado em tres de quatro cadernos
-function questoesDaHab(sig, lin, hab, quantas){
-  const lista = (M.questoes||{})[k(sig, sig==="LC" ? lin : null, hab)] || [];
-  return lista.slice(0, quantas || 4);
-}
-function questoesTxt(sig, lin, hab, quantas){
-  const qs = questoesDaHab(sig, lin, hab, quantas);
+// TODAS as questoes, nao uma amostra: a lista E o material de estudo, e cortar
+// em quatro obrigava a pessoa a procurar o resto em outro lugar.
+//
+// Em LC o terceiro elemento marca a secao de lingua estrangeira (5 questoes
+// por prova). As 40 comuns nao levam marca -- elas valem para as duas linguas,
+// e marcar tudo faria a distincao perder o sentido
+const LING_CURTA = {0: "ING", 1: "ESP"};
+function questoesTxt(sig, lin, hab){
+  const qs = (M.questoes||{})[k(sig, sig==="LC" ? lin : null, hab)] || [];
   if(!qs.length) return "";
-  const total = ((M.questoes||{})[k(sig, sig==="LC" ? lin : null, hab)] || []).length;
-  const itens = qs.map(([ed, pos]) => `<span class="qref">Q${pos}<i>ENEM ${ed}</i></span>`).join("");
-  const resto = total > qs.length ? `<span class="qmais">+${total - qs.length}</span>` : "";
-  return `<div class="qrefs" title="posições no caderno azul — nas outras cores a mesma questão tem outro número">${itens}${resto}</div>`;
+  const itens = qs.map(q => {
+    const marca = q[2] != null ? `<em>${LING_CURTA[q[2]]||""}</em>` : "";
+    return `<span class="qref">Q${q[1]}${marca}<i>ENEM ${q[0]}</i></span>`;
+  }).join("");
+  return `<div class="qrefs" title="posições no caderno azul — nas outras cores a mesma questão tem outro número">${itens}</div>`;
 }
 
 const _limites = {};
@@ -477,24 +482,37 @@ function analisar(){
   for(const a of ULTIMA){
     const mot = motorArea(a);
     let dE = 0, dT = 0;
+    const porComp = {};
     for(const h of a.perfil) if(h[4]>0){
-      dE += mot.agoraHab(h[0], h[4], h[1]);
-      dT += mot.tetoHab(h[0], h[4], h[1]);
+      const e = mot.agoraHab(h[0], h[4], h[1]);
+      const t = mot.tetoHab(h[0], h[4], h[1]);
+      dE += e; dT += t;
+      const c = (M.matriz[k(a.sig, h[0])]||{}).comp;
+      if(c){ porComp[c] = porComp[c] || {e:0, t:0}; porComp[c].e += e; porComp[c].t += t; }
     }
-    a.ptsAgora = mot.ganho(dE).pts;   // ordena e decide o selo
-    a.ptsTeto  = mot.ganho(dT).pts;   // e o que aparece
+    a.ptsAgora = mot.ganho(dE).pts;
+    a.ptsTeto  = mot.ganho(dT).pts;
+    // a MELHOR competencia da area, pela mesma conta do cartao: o teto da area
+    // repartido na proporcao das questoes recuperaveis. E este numero que
+    // ordena as areas -- a pessoa comeca por UM conteudo, nao pela area toda
+    let topo = 0;
+    for(const c in porComp){
+      const pts = dT > 1e-9 ? Math.round(a.ptsTeto * porComp[c].t / dT) : 0;
+      if(pts > topo) topo = pts;
+    }
+    a.ptsTop = topo;
     a.piso = mot.piso;
   }
   // area no piso da calibracao nao disputa o "comece aqui": naquela regiao a
   // relacao acertos-nota de 2025 nao distingue faixas, e um ranking fingiria
   // precisao que nao existe (auditoria adversarial)
-  ULTIMA.sort((x,y)=>(x.piso?1:0)-(y.piso?1:0) || y.ptsAgora-x.ptsAgora);
+  ULTIMA.sort((x,y)=>(x.piso?1:0)-(y.piso?1:0) || y.ptsTop-x.ptsTop);
   const rank = {}; ULTIMA.forEach((a,i)=>rank[a.sig]=i+1);
 
   // Sem ponto a recuperar em area nenhuma: nao existe "comece por". Ordenar
   // quatro zeros daria o selo de ouro a quem estivesse primeiro no array --
   // uma colocacao inventada. O cartao vira orientacao de manutencao
-  const tudoZero = ULTIMA.length>0 && ULTIMA.every(x=>x.ptsTeto===0);
+  const tudoZero = ULTIMA.length>0 && ULTIMA.every(x=>x.ptsTop===0);
   $("titulo-comparativo").textContent = tudoZero
     ? "Você não deixou pontos na mesa" : "Se você só tiver tempo para uma área, comece por:";
   $("sub-comparativo").innerHTML = tudoZero
@@ -511,7 +529,7 @@ function analisar(){
       <div class="val">sua nota: ${a.nota}</div>
       <div class="val">${a.piso
         ? "nesta faixa a prova de 2025 não separa níveis — veja o cartão da área"
-        : a.ptsTeto>=1 ? ""
+        : a.ptsTop>=1 ? ""
           : "sem pontos a recuperar — modo manutenção"}</div>
     </button>`).join("");
   $("card-comparativo").style.display = ULTIMA.length>1 ? "" : "none";
@@ -1251,9 +1269,8 @@ function cartaoEstudo(a){
           <div class="desc">${h.desc||("Habilidade "+h.hab)}</div>
           <div class="meta">
             <span title="média nas seis edições, a partir de ${h.nbanco} questões do banco"><b>${qTxt(h.ipp)} ${h.ipp>=1.05?"questões":"questão"} por prova</b></span>
-            <span>${h.esp==null?"—":"~"+Math.round(h.esp)+"% típico"}</span>
           </div>
-          ${questoesTxt(a.sig, lin, h.hab, 4)}
+          ${questoesTxt(a.sig, lin, h.hab)}
         </div>
       </div>`).join("");
 
@@ -1268,7 +1285,7 @@ function cartaoEstudo(a){
         <span class="seta">▶</span>
       </summary>
       <p class="cdesc">${c.desc}</p>
-      <div class="cmeta">das 45 da prova · ${espC==null?"—":"~"+espC+"% típico"}</div>
+      <div class="cmeta">das 45 da prova</div>
       ${habs}
       <div style="height:12px"></div>
     </details>`;
@@ -1458,7 +1475,7 @@ function cartaoArea(a){
         : `até +${plural(shares[j],"ponto","pontos")}`;
       const situacao = temResp
         ? `você: ${qs.filter(o=>o.valido&&o.acertou).length} de ${qs.filter(o=>o.valido).length}`
-        : `${e==null?"—":"~"+Math.round(e)+"% típico"}`;
+        : "";
       const qHtml = qs.length ? `<div class="qlista">${qs.map(tagQ).join("")}</div>` : "";
       return `<div class="hab">
         <div class="pos" title="habilidade ${hab} da Matriz de Referência">H${hab}</div>
@@ -1478,7 +1495,7 @@ function cartaoArea(a){
       ? (Math.round(c.teto)===0
           ? `✓ tudo certo aqui`
           : `você acertou ${c.habs.reduce((s,h)=>s+((porHab[h[0]]||[]).filter(o=>o.valido&&o.acertou).length),0)} de ${c.habs.reduce((s,h)=>s+((porHab[h[0]]||[]).filter(o=>o.valido).length),0)}`)
-      : `${plural(c.itens,"questão","questões")} · ${espC==null?"—":"~"+espC+"% típico"}`;
+      : `${plural(c.itens,"questão","questões")} na prova`;
     const cval = manutencao ? "" :
       `<span class="cval">${g===3 ? "✓" : t.pts>=1 ? `até +${t.pts} pontos${t.alem?" ou mais":""}` : "—"}</span>`;
 
