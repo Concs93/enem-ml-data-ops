@@ -559,6 +559,39 @@ function passoDaArea(a) {
     }
   });
 
+  // NOTA MAXIMA DA EDICAO: nao ha ponto acima, entao a tela nao pode oferecer
+  // nenhum. Oferecia: o piso de 1 da reparticao rodava mesmo com o total
+  // zerado e inventava "+1 ponto" em CADA competencia -- sete pontos do nada,
+  // para quem ja tirou a maior nota que a edicao produziu
+  caso("na nota maxima a tela nao oferece ponto nenhum", () => {
+    for (const [sig, lin] of [["MT", null], ["CH", null], ["CN", null], ["LC", 0]]) {
+      const max = X.M.maxNota[X.k(sig, sig === "LC" ? lin : null)];
+      const a = areaDe(sig, Math.floor(max), lin);
+      if (!a.perfil.length) continue;
+      const h = X.cartaoArea(a);
+      const vals = [...h.matchAll(/até \+(\d+) ponto/g)].map(m => Number(m[1]));
+      espera(vals.length === 0,
+        `${sig} ${max}: oferece ${vals.length} valores (${vals.slice(0, 4).join(", ")})`);
+      espera(!/\+0 ponto/.test(h), `${sig} ${max}: escreve "+0 pontos"`);
+      // e tem de dizer o que fazer, senao a pessoa fica sem resposta
+      espera(/já está no alto|lapidar|manter em dia/.test(h),
+        `${sig} ${max}: sem orientacao para quem esta no topo`);
+    }
+  });
+  caso("nota do miolo continua oferecendo pontos (a guarda nao pode zerar tudo)", () => {
+    const h = X.cartaoArea(areaDe("MT", 613, null));
+    const vals = [...h.matchAll(/até \+(\d+) ponto/g)].map(m => Number(m[1]));
+    espera(vals.length >= 5, `MT 613: so ${vals.length} valores`);
+    espera(vals.every(v => v >= 1), `MT 613: valor zero na lista (${vals.join(", ")})`);
+  });
+  caso("plural: nunca 'até +1 pontos'", () => {
+    for (const [sig, nota] of [["MT", 613], ["MT", 940], ["CH", 800], ["CN", 830]]) {
+      const a = areaDe(sig, nota, null);
+      if (!a.perfil.length) continue;
+      espera(!/\+1 pontos/.test(X.cartaoArea(a)), `${sig} ${nota}: "+1 pontos"`);
+    }
+  });
+
   // A lista tem de DESCER pelo numero exibido. Antes a posicao vinha do passo
   // e o numero era o teto: em 60% dos cartoes aparecia um "+37" acima de um
   // "+82" (pior caso, MT 500: 76 · 72 · 66 · 37 · 82 · 73 · 50). Ordem que

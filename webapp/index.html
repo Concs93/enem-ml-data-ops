@@ -913,6 +913,12 @@ function montaPercentil(a){
 function reparte(tetos, totalPts){
   const soma = tetos.reduce((s,v)=>s+v, 0);
   if(!(soma > 1e-9)) return tetos.map(()=>0);
+  // NADA A REPARTIR: o piso de 1 existe para a fatia que arredonda a zero nao
+  // sumir da lista -- mas ele so faz sentido quando ha um total. No topo real
+  // da escala (MT 980,3, a maior nota de 2025) o total e zero e o piso
+  // inventava "+1 ponto" em CADA competencia: sete pontos saidos do nada,
+  // oferecidos a quem ja esta no maximo que a edicao produziu
+  if(!(totalPts >= 1)) return tetos.map(()=>0);
   let fatias = tetos.map(t => Math.round(totalPts*t/soma));
   fatias = fatias.map((v,i)=> tetos[i] > 1e-9 ? Math.max(v,1) : 0);
   const excesso = fatias.reduce((s,v)=>s+v,0) - totalPts;
@@ -1411,7 +1417,7 @@ function cartaoArea(a){
   // a linha que responde "e se eu fizer tudo?": o total unico, conferivel
   const chegada = Math.round(Number(a.nota) + gTotal.pts);
   const totalHtml = (!manutencao && gTotal.pts>=1)
-    ? `<div class="percentil" style="font-variant-numeric:tabular-nums"><b>Fechando tudo: até +${gTotal.pts} pontos</b> — da sua nota ${a.nota} para ~${chegada}${gTotal.alem?", o topo da área":""}.</div>`
+    ? `<div class="percentil" style="font-variant-numeric:tabular-nums"><b>Fechando tudo: até +${plural(gTotal.pts,"ponto","pontos")}</b> — da sua nota ${a.nota} para ~${chegada}${gTotal.alem?", o topo da área":""}.</div>`
     : "";
 
   let grupoAnterior = null, primeiro = true;
@@ -1419,32 +1425,25 @@ function cartaoArea(a){
     const espC = c.itens ? Math.round(c.espPond/c.itens) : null;
 
     // partilha do teto da competencia entre as habilidades, proporcional as
-    // questoes recuperaveis -- com o ajuste de arredondamento no maior, para
-    // que a soma FECHE no numero do cabecalho (e o que o leitor confere)
+    // questoes recuperaveis. TERCEIRA copia da mesma conta, agora tambem na
+    // funcao unica -- era ela que ainda oferecia "+1 ponto" a quem esta na
+    // nota maxima, porque o piso de 1 rodava mesmo com o total zerado
     const habRows = [...c.habs]
       .map(h=>({h, dA: tetoHab(h[0],h[4],h[1])}))
       .sort((x,y)=>y.dA-x.dA);
-    const dAtot = habRows.reduce((s,x)=>s+x.dA, 0);
-    let shares = habRows.map(x=> dAtot>1e-9 ? Math.round(t.pts*x.dA/dAtot) : 0);
-    // piso de 1 nas recuperaveis SEM quebrar a soma: os zeros sobem para 1 e
-    // o excesso sai da maior fatia (nunca abaixo de 1). Sem isto, "+1" de
-    // cortesia fazia as habilidades somarem mais que o teto do cabecalho
-    shares = shares.map((v,ix)=> habRows[ix].dA>1e-9 ? Math.max(v,1) : 0);
-    if(shares.length && dAtot>1e-9){
-      const excesso = shares.reduce((s,v)=>s+v,0) - t.pts;
-      if(excesso !== 0){
-        const imax = shares.indexOf(Math.max(...shares));
-        shares[imax] = Math.max(1, shares[imax] - excesso);
-      }
-    }
+    const shares = reparte(habRows.map(x=>x.dA), t.pts);
 
     const habs = habRows.map(({h, dA}, j)=>{
       const [hab,e,info,pri,nItens] = h;
       const mtz = M.matriz[k(a.sig,hab)]||{};
       const qs = porHab[hab]||[];
+      // tres estados, nao dois. O do meio faltava: ha folga residual (dA > 0)
+      // mas ela nao chega a um ponto -- caso de quem esta no topo da escala.
+      // Sem ele a tela escrevia "até +0 pontos", que e pior que nao dizer nada
       const valor = dA<=1e-9
         ? (temResp ? "✓ você acertou todas" : "✓ nível já dominado")
-        : `até +${plural(shares[j],"ponto","pontos")}`;
+        : shares[j] >= 1 ? `até +${plural(shares[j],"ponto","pontos")}`
+        : "—";
       const situacao = temResp
         ? `você: ${qs.filter(o=>o.valido&&o.acertou).length} de ${qs.filter(o=>o.valido).length}`
         : "";
@@ -1469,7 +1468,7 @@ function cartaoArea(a){
           : `você acertou ${c.habs.reduce((s,h)=>s+((porHab[h[0]]||[]).filter(o=>o.valido&&o.acertou).length),0)} de ${c.habs.reduce((s,h)=>s+((porHab[h[0]]||[]).filter(o=>o.valido).length),0)}`)
       : `${plural(c.itens,"questão","questões")} na prova`;
     const cval = manutencao ? "" :
-      `<span class="cval">${g===3 ? "✓" : t.pts>=1 ? `até +${t.pts} pontos${t.alem?" ou mais":""}` : "—"}</span>`;
+      `<span class="cval">${g===3 ? "✓" : t.pts>=1 ? `até +${plural(t.pts,"ponto","pontos")}${t.alem?" ou mais":""}` : "—"}</span>`;
 
     const cabecalho = "";
     grupoAnterior = g;
@@ -1478,7 +1477,7 @@ function cartaoArea(a){
     return `${cabecalho}<details class="compbloco" ${abre?"open":""}>
       <summary>
         <span class="ctit"><span class="cod" title="competência ${c.c} de ${a.sig}">C${c.c}</span>${c.desc}</span>
-        ${!manutencao && g===0 ? '<span class="badge rende" title="no seu nível, é onde o mesmo tempo de estudo vira ponto mais rápido">comece por aqui</span>' : ""}
+        ${!manutencao && g===0 && gTotal.pts>=1 ? '<span class="badge rende" title="no seu nível, é onde o mesmo tempo de estudo vira ponto mais rápido">comece por aqui</span>' : ""}
         ${cval}
         <span class="seta">▶</span>
       </summary>
