@@ -135,6 +135,20 @@ def exporta(cur):
         ])
     pacote["estudo"] = estudo
 
+    # ------------------------------------------- questoes por habilidade
+    # o endereco concreto para praticar: "Q7 - ENEM 2022". Caderno Azul em
+    # todas as edicoes (o stg_itens_banco elege essa versao), e a cor importa
+    # -- as outras sao a mesma prova reordenada
+    cur.execute("""
+        select area, cod_lingua, habilidade, edicao, posicao
+        from marts.mart_itens_habilidade
+        order by area, cod_lingua, habilidade, ordem
+    """)
+    qhab = {}
+    for area, lingua, hab, edicao, pos in cur.fetchall():
+        qhab.setdefault(k(area, lingua, hab), []).append([int(edicao), int(pos)])
+    pacote["questoes"] = qhab
+
     # -------------------------------------------------------- provas
     # o caderno de cada prova regular (nivel 3): com ele o site corrige o
     # cartao do participante no proprio navegador. Parametros so viajam no
@@ -233,6 +247,19 @@ def valida(cur, pacote):
         elif nmin > base + 10:
             erros.append(f"minNota: piso {nmin} acima da primeira faixa "
                          f"calibravel ({base}) em {kk}")
+
+    # toda habilidade que o cartao de estudo pontua precisa de endereco: sem
+    # isso a tela recomenda um conteudo e nao diz onde pratica-lo
+    cur.execute("""
+        select count(*) from (
+            select distinct area, cod_lingua, habilidade
+            from marts.mart_perfil_estudo where itens_por_prova > 0
+        ) t
+    """)
+    esperadas = cur.fetchone()[0]
+    if len(pacote["questoes"]) < esperadas:
+        erros.append(f"questoes: {len(pacote['questoes'])} habilidades com "
+                     f"endereco, {esperadas} pontuam no cartao de estudo")
 
     cur.execute("""
         select count(distinct (area, cod_lingua, theta))

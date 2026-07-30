@@ -110,6 +110,14 @@
        background:var(--accent-soft);padding:1px 7px;border-radius:var(--r-chip);margin-right:6px}
   .badge{font-family:var(--sans);font-size:var(--fs-100);font-weight:700;padding:1px 8px;border-radius:var(--r-pill);background:var(--chip);color:var(--muted)}
   .badge.fragil{background:var(--chip);color:var(--muted);border:1px solid var(--border)}
+  .cor-caderno{color:var(--muted)}
+  .qrefs{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+  .qref{font-family:var(--sans);font-size:var(--fs-100);font-variant-numeric:tabular-nums;
+        background:var(--chip);color:var(--text);border-radius:var(--r-chip);
+        padding:2px 7px;white-space:nowrap}
+  .qref i{font-style:normal;color:var(--muted);margin-left:5px}
+  .qmais{font-family:var(--sans);font-size:var(--fs-100);color:var(--muted);
+         align-self:center}
   .badge.rende{background:var(--accent-soft);color:var(--accent-deep)}
   .badge.comp{background:var(--accent-soft);color:var(--accent-deep)}
   .barra{height:5px;border-radius:3px;background:var(--chip);margin-top:7px;overflow:hidden}
@@ -361,6 +369,22 @@ function faixaAcertos(sig, lin, nota){
 // "856,4" na mesma frase
 const notaTxt = v => (Math.round(v*10)/10).toString().replace(".", ",");
 
+// "Q7 - ENEM 2022": o endereco concreto de cada habilidade nas seis edicoes.
+// Caderno AZUL em todas -- as outras cores sao a mesma prova reordenada,
+// entao o numero sem a cor seria endereco errado em tres de quatro cadernos
+function questoesDaHab(sig, lin, hab, quantas){
+  const lista = (M.questoes||{})[k(sig, sig==="LC" ? lin : null, hab)] || [];
+  return lista.slice(0, quantas || 4);
+}
+function questoesTxt(sig, lin, hab, quantas){
+  const qs = questoesDaHab(sig, lin, hab, quantas);
+  if(!qs.length) return "";
+  const total = ((M.questoes||{})[k(sig, sig==="LC" ? lin : null, hab)] || []).length;
+  const itens = qs.map(([ed, pos]) => `<span class="qref">Q${pos}<i>ENEM ${ed}</i></span>`).join("");
+  const resto = total > qs.length ? `<span class="qmais">+${total - qs.length}</span>` : "";
+  return `<div class="qrefs" title="posições no caderno azul — nas outras cores a mesma questão tem outro número">${itens}${resto}</div>`;
+}
+
 const _limites = {};
 function limitesNota(area, lingua){
   const ch = k(area, area==="LC" ? lingua : null);
@@ -487,8 +511,7 @@ function analisar(){
       <div class="val">sua nota: ${a.nota}</div>
       <div class="val">${a.piso
         ? "nesta faixa a prova de 2025 não separa níveis — veja o cartão da área"
-        : a.ptsTeto>=1
-          ? `dá para ganhar <b>até +${plural(a.ptsTeto,"ponto","pontos")}</b>`
+        : a.ptsTeto>=1 ? ""
           : "sem pontos a recuperar — modo manutenção"}</div>
     </button>`).join("");
   $("card-comparativo").style.display = ULTIMA.length>1 ? "" : "none";
@@ -1228,8 +1251,9 @@ function cartaoEstudo(a){
           <div class="desc">${h.desc||("Habilidade "+h.hab)}</div>
           <div class="meta">
             <span title="média nas seis edições, a partir de ${h.nbanco} questões do banco"><b>${qTxt(h.ipp)} ${h.ipp>=1.05?"questões":"questão"} por prova</b></span>
-            <span>acerto típico no seu nível: ~${h.esp==null?"—":Math.round(h.esp)+"%"}</span>
+            <span>${h.esp==null?"—":"~"+Math.round(h.esp)+"% típico"}</span>
           </div>
+          ${questoesTxt(a.sig, lin, h.hab, 4)}
         </div>
       </div>`).join("");
 
@@ -1262,7 +1286,7 @@ function cartaoEstudo(a){
 
   return `<div class="cartao">
     <h2>O que estudar para a próxima <span class="nota">${a.nome}</span></h2>
-    <p class="sub">Pesamos <b>quanto cada conteúdo costuma cair</b> (2020 a 2025) e <b>quanto ele rende no seu nível</b> — a ordem é o que mais tende a virar ponto na próxima prova. ${notaConf}</p>
+    <p class="sub">Pesamos <b>quanto cada conteúdo costuma cair</b> (2020 a 2025) e <b>quanto ele rende no seu nível</b> — a ordem é o que mais tende a virar ponto na próxima prova. ${notaConf} <span class="cor-caderno">Questões numeradas pelo caderno azul.</span></p>
     ${blocos}
   </div>`;
 }

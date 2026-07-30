@@ -494,6 +494,44 @@ function passoDaArea(a) {
       `${achados.length} caractere(s) de controle: ${[...new Set(achados.map(c => "0x" + c.charCodeAt(0).toString(16)))].join(", ")}`);
   });
 
+  // As questoes concretas do cartao de estudo: recomendar conteudo sem dizer
+  // onde pratica-lo deixa o trabalho todo para a pessoa
+  caso("toda habilidade que pontua no cartao de estudo tem questao citada", () => {
+    let semEndereco = [];
+    for (const chave in X.M.estudo) {
+      const [area, lingua, theta] = chave.split("|");
+      if (Math.abs(Number(theta) - 1.0) > 1e-9) continue;   // um nivel basta
+      for (const linha of X.M.estudo[chave]) {
+        const [hab, esp, ganho, pri, ipp] = linha;
+        if (!(ipp > 0)) continue;
+        const qs = X.M.questoes[X.k(area, lingua === "_" ? null : Number(lingua), hab)];
+        if (!qs || !qs.length) semEndereco.push(`${area}/${lingua} H${hab}`);
+      }
+    }
+    espera(semEndereco.length === 0,
+      `${semEndereco.length} habilidades sem questao: ${semEndereco.slice(0, 5).join(", ")}`);
+  });
+  caso("as questoes citadas existem no caderno: edicao 2020-2025 e posicao valida", () => {
+    let n = 0;
+    for (const chave in X.M.questoes) {
+      const [area] = chave.split("|");
+      const limite = area === "LC" ? 50 : 45;
+      for (const [ed, pos] of X.M.questoes[chave]) {
+        n++;
+        espera(ed >= 2020 && ed <= 2025, `${chave}: edicao ${ed} fora de 2020-2025`);
+        espera(pos >= 1 && pos <= limite,
+          `${chave}: posicao ${pos} fora de 1-${limite} (${area})`);
+      }
+    }
+    espera(n > 1000, `so ${n} questoes no banco de enderecos`);
+  });
+  caso("a tela declara a cor do caderno (numero sem cor e endereco errado)", () => {
+    // as quatro cores sao a mesma prova reordenada: Q7 do azul e outra questao
+    // no amarelo. Citar o numero sem a cor erra em tres de quatro cadernos
+    const h = X.cartaoEstudo(areaDe("MT", 613, null));
+    espera(/caderno azul/i.test(h), "cartao de estudo nao diz a cor do caderno");
+  });
+
   // A lista tem de DESCER pelo numero exibido. Antes a posicao vinha do passo
   // e o numero era o teto: em 60% dos cartoes aparecia um "+37" acima de um
   // "+82" (pior caso, MT 500: 76 · 72 · 66 · 37 · 82 · 73 · 50). Ordem que

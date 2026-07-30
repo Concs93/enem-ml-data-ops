@@ -16,9 +16,16 @@
 -- sustenta a correcao do cartao de respostas); este responde "o que costuma
 -- cair", que e outra pergunta. Ver mart_perfil_estudo.
 --
--- Aqui NAO ha posicao na prova: o grao e o item, nao o item-dentro-do-caderno.
--- Posicao so faz sentido para casar com o vetor de respostas, que existe
--- unicamente para 2025.
+-- A POSICAO entra, e o motivo mudou. Antes ela nao existia aqui porque so
+-- servia para casar com o vetor de respostas (que so ha para 2025). Agora o
+-- cartao de estudo cita a questao concreta ("Q7 - ENEM 2022"), e para isso a
+-- posicao no caderno e o endereco que a pessoa usa para achar a questao.
+--
+-- Ela e contada sobre TODOS os itens do caderno, inclusive anulados: e a
+-- numeracao impressa, e pular os anulados desalinharia tudo depois deles.
+-- Vale para o caderno AZUL, que e o que o distinct on abaixo elege em todas
+-- as seis edicoes (verificado) -- as outras cores sao a mesma prova
+-- reordenada, entao a posicao muda com a cor.
 
 {% set edicoes = [2020, 2021, 2022, 2023, 2024, 2025] %}
 
@@ -27,6 +34,7 @@ with fonte as (
 {% for ano in edicoes %}
     select
         {{ ano }}                            as edicao,
+        {{ inteiro('"CO_POSICAO"') }}        as co_posicao,
         {{ inteiro('"CO_ITEM"') }}           as co_item,
         {{ inteiro('"CO_PROVA"') }}          as co_prova,
         "SG_AREA"                            as area,
@@ -51,10 +59,20 @@ with fonte as (
 -- ha versoes no ITENS_PROVA que nao aparecem no script do R por nao terem
 -- participante na base de resultados (contingencia, PPL). Sao nao-regulares
 -- por construcao -- o seed valida 16 regulares por edicao, o conjunto completo
+-- CO_POSICAO e um id sequencial GLOBAL do item (comeca em centenas), nao a
+-- posicao na prova: o numero impresso sai do row_number dentro do caderno
+posicionado as (
+
+    select f.*,
+           row_number() over (partition by f.co_prova order by f.co_posicao) as posicao
+    from fonte f
+
+),
+
 classificado as (
 
     select f.*, p.tipo_aplicacao, p.is_regular
-    from fonte f
+    from posicionado f
     left join {{ ref('co_prova_banco') }} p
       on p.co_prova = f.co_prova
     where f.co_item is not null
@@ -72,7 +90,7 @@ classificado as (
 distintos as (
 
     select distinct on (edicao, co_item)
-        edicao, co_item, co_prova, area, cod_lingua, gabarito, habilidade,
+        edicao, co_item, co_prova, posicao, area, cod_lingua, gabarito, habilidade,
         param_discriminacao, param_dificuldade, param_acerto_casual,
         item_abandonado, item_adaptado, item_anulado,
         tipo_aplicacao, is_regular
