@@ -1480,15 +1480,7 @@ function cartaoArea(a){
   // e some da tela. Quem conferia MT contava 44 das 45 e nao achava a outra.
   // Declarar a habilidade sem dizer QUAL questao era continua sendo omissao:
   // a pessoa respondeu aquela questao e tem direito de saber onde ela foi
-  const naoMedHtml = naoMed.length ? `<div class="nao-med">${naoMed.length===1?"Conteúdo que não dá para medir neste ano":"Conteúdos que não dão para medir neste ano"}: ${
-    naoMed.map(h=>{
-      const motivo = (a.sig==="MT"&&h[0]===21) ? "a única questão dela em 2025 foi anulada"
-                   : (a.sig==="LC"&&h[0]===8)  ? "só aparece em questões de espanhol, e você fez inglês"
-                   : "sem questões válidas para você";
-      const nome = (M.matriz[k(a.sig,h[0])]||{}).hab || ("Habilidade "+h[0]);
-      const qs = (porHab[h[0]]||[]).map(o=>"Q"+o.q).join(", ");
-      return `<b>H${h[0]}</b> ${nome} — ${motivo}${qs?` (${qs})`:""}`;
-    }).join(" · ")}.</div>` : "";
+  // (o antigo bloco "conteudo que nao da para medir" foi fundido no rodape)
 
   const sub = manutencao
     ? `Você acertou todas as questões desta área — não há fila de prioridade, só o <b>inventário do que sustenta a sua nota</b>.`
@@ -1514,19 +1506,41 @@ function cartaoArea(a){
   // anulada primeiro (o conceito e mais conhecido); a segunda vira "outra"
   // quando vem depois de outro trecho, senao a frase repete o numeral
   const ORDEM_MOTIVO = ["anulada", "sem_calibracao"];
-  const trechos = ORDEM_MOTIVO.filter(mv => porMotivo[mv]).map((mv, i) => {
+  const trechos = ORDEM_MOTIVO.filter(mv => porMotivo[mv]).map(mv => {
     const n = porMotivo[mv].length;
-    if(mv === "anulada") return plural(n, "questão anulada", "questões anuladas");
-    if(n === 1) return i > 0 ? "outra cujos parâmetros não convergiram"
-                             : "1 questão cujos parâmetros não convergiram";
-    return `${n} questões cujos parâmetros não convergiram`;
+    return mv === "anulada"
+      ? plural(n, "anulada", "anuladas")
+      : plural(n, "sem calibração", "sem calibração");
   });
-  const verbo = nFora === 1 ? "não foi considerada" : "não foram consideradas";
-  const rodape = nFora > 0
-    ? `<p class="rodape-cartao">Em ${a.nome}, ${trechos.length
-        ? `houve ${trechos.join(" e ")}`
-        : `${plural(nFora, "questão ficou", "questões ficaram")} fora da correção do INEP`}` +
-      ` — ${verbo} para a nota.</p>`
+  // UM paragrafo, nao dois. Antes a tela explicava a mesma questao anulada
+  // duas vezes: uma no bloco "conteudo que nao da para medir" e outra na
+  // contagem do rodape. Aqui a contagem vem primeiro (explica por que 45 nao
+  // e 43) e o conteudo perdido entra como consequencia dela
+  const semMedida = naoMed.map(h=>{
+    const nome = (M.matriz[k(a.sig,h[0])]||{}).hab || ("Habilidade "+h[0]);
+    const porLingua = (a.sig==="LC" && h[0]===8);
+    return {cod:`H${h[0]}`, nome, porLingua};
+  });
+  const daContagem = semMedida.filter(x=>!x.porLingua);
+  const daLingua   = semMedida.filter(x=>x.porLingua);
+
+  const partes = [];
+  if(nFora > 0){
+    // a contagem primeiro (e ela que explica por que 45 nao e 43); o motivo
+    // entra como aposto, nao como sujeito -- "houve 1 anulada ... fora da
+    // correcao" nao fecha em portugues
+    partes.push(`Em ${a.nome}, ${plural(nFora,"questão ficou","questões ficaram")}`
+      + ` fora da correção do INEP${trechos.length ? ` (${trechos.join(", ")})` : ""}.`);
+    if(daContagem.length){
+      const lista = daContagem.map(x=>`<b>${x.cod}</b> (${resumoDesc(x.nome, 7).replace(/\.$/, "")})`).join(" e ");
+      partes.push(`Com isso, ${lista} ${daContagem.length===1?"ficou":"ficaram"} sem medida em 2025.`);
+    }
+  }
+  for(const x of daLingua){
+    partes.push(`<b>${x.cod}</b> (${resumoDesc(x.nome, 7).replace(/\.$/, "")}) só aparece em questões de espanhol.`);
+  }
+  const rodape = partes.length
+    ? `<p class="rodape-cartao">${partes.join(" ")}</p>`
     : "";
 
   return `<div class="cartao">
@@ -1537,7 +1551,6 @@ function cartaoArea(a){
     ${insightHtml}
     ${percentilHtml}
     ${blocos}
-    ${naoMedHtml}
     ${rodape}
   </div>`;
 }
