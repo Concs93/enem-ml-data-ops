@@ -60,7 +60,7 @@ const epilogo = `
   faixaDisponivel, curvaAcertos, notaPorAcertos, motorArea,
   corrigeCaderno, padraoSuspeito, cartaoArea, cartaoEstudo,
   erroPadrao, itensDaArea, get NOS_QUAD(){ return NOS_QUAD }, resumoDesc,
-  limitesNota, reparte, V,
+  limitesNota, reparte, V, cortesDesempenho,
 };`;
 vm.runInContext(script + epilogo, sandbox);
 const X = sandbox.X;
@@ -589,6 +589,27 @@ function passoDaArea(a) {
       const a = areaDe(sig, nota, null);
       if (!a.perfil.length) continue;
       espera(!/\+1 pontos/.test(X.cartaoArea(a)), `${sig} ${nota}: "+1 pontos"`);
+    }
+  });
+
+  // Os tres exemplos usam os cortes de 27% e 73% da distribuicao real de
+  // notas (regra classica de Kelley para grupo superior/inferior). Os cortes
+  // saem do n por faixa que a calibracao ja traz -- se a conta quebrar, os
+  // tres botoes viram o mesmo exemplo e ninguem percebe
+  caso("cortes de desempenho: p27 < p73, dentro dos limites reais da area", () => {
+    for (const [sig, lin] of [["MT", null], ["CH", null], ["CN", null], ["LC", 0], ["LC", 1]]) {
+      const c = X.cortesDesempenho(sig, lin);
+      espera(c, `${sig}: sem cortes`);
+      espera(c.min < c.p27 && c.p27 < c.p73 && c.p73 < c.max,
+        `${sig}: cortes fora de ordem (${c.min} / ${c.p27} / ${c.p73} / ${c.max})`);
+      // Mesma escala do formulario, com folga de UMA faixa: os cortes usam o
+      // meio da faixa de 10 pontos (faixa+5) e os limites usam o extremo real,
+      // entao exigir igualdade compararia duas coisas diferentes
+      const l = X.limitesNota(sig, lin);
+      espera(c.min >= l.min - 10 && c.max <= l.max + 10,
+        `${sig}: cortes (${c.min}-${c.max}) fora da escala do formulario (${l.min}-${l.max})`);
+      // e os tres grupos precisam ter tamanho parecido com o desenho (27/46/27)
+      espera(c.p73 - c.p27 > 20, `${sig}: faixa do meio estreita demais`);
     }
   });
 

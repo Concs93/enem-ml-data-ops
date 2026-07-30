@@ -140,7 +140,19 @@ só imprecisa — sob Rasch ela é **vazia** (não há diferença) e sob 3PL é
 
 ---
 
-## 5. A obter (nenhuma com versão livre legítima)
+## 5. Fora do escopo das duas obras
+
+Nem tudo que o projeto usa é TRI. Registrado aqui para não ser procurado à toa:
+
+**Kelley (1939), "The selection of upper and lower groups for the validation of
+test items"** — a regra dos **27%** para separar grupo superior e inferior. É
+**teoria clássica**, não TRI, e por isso não aparece em nenhuma das duas obras
+acima (verificado por varredura das duas). Usada no site apenas para escolher
+três exemplos representativos, nunca para sustentar afirmação sobre o dado.
+Ressalva do próprio Kelley: os 27% são ótimos **quando a distribuição é
+normal**; fora disso o corte ótimo é outro, e ele não especifica qual.
+
+## 6. A obter (nenhuma com versão livre legítima)
 
 | obra | para quê |
 |---|---|

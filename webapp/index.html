@@ -110,6 +110,9 @@
        background:var(--accent-soft);padding:1px 7px;border-radius:var(--r-chip);margin-right:6px}
   .badge{font-family:var(--sans);font-size:var(--fs-100);font-weight:700;padding:1px 8px;border-radius:var(--r-pill);background:var(--chip);color:var(--muted)}
   .badge.fragil{background:var(--chip);color:var(--muted);border:1px solid var(--border)}
+  .exemplos{display:flex;flex-wrap:wrap;align-items:center;gap:8px;
+       font-family:var(--sans);font-size:var(--fs-200);color:var(--muted)}
+  .secundaria.mini{padding:7px 12px;font-size:var(--fs-200);width:auto}
   .ver-metodo{font-family:var(--sans);font-size:var(--fs-200);
        text-align:center;margin:28px 0 8px;color:var(--muted)}
   .cor-caderno{color:var(--muted)}
@@ -265,7 +268,7 @@
     </details>
     <div class="acao">
       <button class="analisar" id="btn">Ver meu mapa de estudo</button>
-      <button class="analisar secundaria" id="btn-exemplo" type="button">Testar com um exemplo</button>
+      <span class="exemplos">Testar com um exemplo:<button class="secundaria mini" id="ex-baixo" type="button">nota mais baixa</button><button class="secundaria mini" id="ex-medio" type="button">nota média</button><button class="secundaria mini" id="ex-alto" type="button">nota mais alta</button></span>
       <span class="aviso-form oculto" id="erro-form"></span>
     </div>
   </div>
@@ -594,13 +597,56 @@ function simulaVetor(sig, lin, theta, cor){
   return {cp, txt};
 }
 
-function exemplo(){
+// CORTES DE DESEMPENHO, derivados da distribuicao real de notas (a
+// calibracao ja traz o n de cada faixa, entao nao ha dado novo a exportar).
+//
+// 27% e 73% nao sao escolha arbitraria: e a regra classica de Kelley (1939,
+// "The selection of upper and lower groups for the validation of test items")
+// para separar grupo superior e inferior na analise de itens. RESSALVA que o
+// proprio Kelley faz: os 27% sao otimos quando a distribuicao e normal; fora
+// disso o corte otimo e outro, e ele nao especifica qual.
+//
+// Aqui isso nao pesa: a regra serve para ESCOLHER TRES EXEMPLOS
+// representativos, nao para sustentar nenhuma afirmacao sobre o dado. Nao
+// esta em nenhuma das duas referencias de TRI do projeto -- e teoria classica,
+// nao TRI -- e por isso vem declarada em vez de citada como pagina.
+const _cortes = {};
+function cortesDesempenho(sig, lin){
+  const ch = k(sig, sig==="LC" ? lin : null);
+  if(_cortes[ch]) return _cortes[ch];
+  const fs = [];
+  for(const chave in M.calibracao){
+    const [a, l, f] = chave.split("|");
+    if(a !== sig || l !== (sig==="LC" ? String(lin) : "_")) continue;
+    fs.push([Number(f) + 5, M.calibracao[chave][1]]);
+  }
+  if(!fs.length) return null;
+  fs.sort((x, y) => x[0] - y[0]);
+  const total = fs.reduce((s, x) => s + x[1], 0);
+  const percentil = alvo => {
+    let acc = 0;
+    for(const [nota, n] of fs){ acc += n; if(acc/total >= alvo) return nota; }
+    return fs[fs.length-1][0];
+  };
+  return (_cortes[ch] = {p27: percentil(0.27), p73: percentil(0.73),
+                         min: fs[0][0], max: fs[fs.length-1][0]});
+}
+
+// faixa: "baixo" (abaixo do p27), "medio" (entre p27 e p73) ou "alto" (acima
+// do p73). Sem argumento, sorteia em toda a escala, como antes
+function exemplo(faixa){
   if(!M) return;   // dados ainda carregando
   V = {};          // o exemplo e sintetico: respostas coladas antes nao valem para ele
-  // um nivel geral sorteado, notas correlacionadas em torno dele (como notas
-  // reais se comportam) e um cartao de respostas simulado nesse nivel
-  const base = 430 + Math.random()*300;
   const lingua = Math.random() < 0.5 ? 0 : 1;
+  // O nivel geral e sorteado UMA vez e as notas orbitam em torno dele, porque
+  // notas reais sao correlacionadas entre areas -- ninguem tira 850 em MT e
+  // 350 em CN. O sorteio usa MT como regua da faixa e as outras acompanham
+  const c = cortesDesempenho("MT", null) || {p27: 415, p73: 585, min: 315, max: 980};
+  const entre = (lo, hi) => lo + Math.random()*(hi - lo);
+  const base = faixa === "baixo" ? entre(c.min + 20, c.p27)
+             : faixa === "medio" ? entre(c.p27, c.p73)
+             : faixa === "alto"  ? entre(c.p73, Math.min(c.max - 20, c.p73 + 220))
+             : entre(430, 730);
   $("lingua").value = String(lingua);
   // uma cor por DIA, como na vida real -- nao uma por area
   for(const dia of DIAS){
@@ -608,7 +654,10 @@ function exemplo(){
     const cor = cores[Math.floor(Math.random()*cores.length)] || "";
     $("v-cor-dia"+dia.n).value = cor;
     for(const sig of dia.areas){
-      const nota = Math.max(350, Math.min(850, Math.round(base + (Math.random()*2-1)*55)));
+      const lim = limitesNota(sig, sig==="LC" ? lingua : null);
+      const bruto = Math.round(base + (Math.random()*2-1)*55);
+      const nota = lim ? Math.max(Math.ceil(lim.min), Math.min(Math.floor(lim.max), bruto))
+                       : bruto;
       $("n-"+sig.toLowerCase()).value = nota;
       const lin = sig==="LC" ? lingua : null;
       const faixa = faixaDisponivel(sig, lin, nota);
@@ -1560,7 +1609,9 @@ function cartaoArea(a){
 }
 
 $("btn").addEventListener("click", analisar);
-$("btn-exemplo").addEventListener("click", exemplo);
+$("ex-baixo").addEventListener("click", ()=>exemplo("baixo"));
+$("ex-medio").addEventListener("click", ()=>exemplo("medio"));
+$("ex-alto").addEventListener("click", ()=>exemplo("alto"));
 $("lingua").addEventListener("change", montaFaixasNota);
 // delegado: as linhas do gabarito so existem depois que os dados carregam
 $("form").addEventListener("keydown", e=>{
