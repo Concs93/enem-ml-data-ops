@@ -405,43 +405,9 @@ function passoDaArea(a) {
 
   // a ressalva da folga aparece SO onde a medida e larga -- no miolo ela seria
   // ruido, e no piso ja existe um aviso mais forte que a substitui
-  const RESSALVA = /conjunto de boas apostas/;
   // CN 400 tem SE ~49 pontos; CH 450 (~23) NAO dispara, e esta certo -- e uma
   // precisao proxima da do miolo. O limiar e meio passo, nao "nota baixa"
-  caso("CN 400: a ressalva da folga aparece (SE ~49 pontos)", () =>
-    espera(RESSALVA.test(X.cartaoArea(areaDe("CN", 400, null))),
-      "faixa larga sem a ressalva"));
-  caso("CH 450: NAO dispara — SE ~23 pontos e comparavel ao miolo", () =>
-    espera(!RESSALVA.test(X.cartaoArea(areaDe("CH", 450, null))),
-      "ressalva disparando onde a medida e razoavel"));
-  // achados da revisao adversarial de 28/07: a ressalva falava de "primeiro
-  // grupo" em telas que nao renderizam grupo nenhum, e o "+-X pontos" era
-  // 100*SE -- constante da escala OFICIAL aplicada a curva empirica do site,
-  // cuja inclinacao vai de ~57 a ~200 pontos por unidade de theta
-  caso("a ressalva nao promete grupo onde a tela nao tem fila (modo 'no alto')", () => {
-    // nota alta sem vetor: cai no cartao de manutencao/lapidacao
-    for (const [sig, nota] of [["MT", 940], ["CH", 800]]) {
-      const h = X.cartaoArea(areaDe(sig, nota, null));
-      if (!/já está no alto|sem pontos a recuperar/.test(h)) continue;
-      espera(!RESSALVA.test(h),
-        `${sig} ${nota}: ressalva fala de grupos num cartao sem fila`);
-    }
-  });
-  caso("o '+-X pontos' sai da curva do site, nao de 100*SE", () => {
-    const a = areaDe("CN", 400, null);
-    const mot = X.motorArea(a);
-    espera(mot.seEmPontos != null, "seEmPontos nao foi calculado");
-    const ingenuo = 100 * mot.se;
-    espera(Math.abs(mot.seEmPontos - ingenuo) > 1,
-      `seEmPontos (${mot.seEmPontos.toFixed(1)}) igual a 100*SE (${ingenuo.toFixed(1)}) — `
-      + "a conversao pela curva empirica nao esta sendo usada");
-    const h = X.cartaoArea(a);
-    const m = h.match(/de uns (?:<b>)?(\d+) pontos/);
-    espera(m, "ressalva sem o numero de pontos");
-    espera(Math.abs(Number(m[1]) - mot.seEmPontos) <= 1,
-      `tela mostra ${m[1]}, motor calcula ${mot.seEmPontos.toFixed(1)}`);
-  });
-  // o corte por resolucao da fonte: acerto_esperado vem com round(...,1), entao
+      // o corte por resolucao da fonte: acerto_esperado vem com round(...,1), entao
   // residuo abaixo de meia casa e ruido -- sem o corte ele virava "+1 ponto"
   // colado a "acerto tipico ~100%", tirando o ponto de quem de fato rende
   caso("habilidade que a faixa da como 100% nao vira 'ate +1 ponto'", () => {
@@ -656,15 +622,7 @@ function passoDaArea(a) {
     espera(/já está no alto/.test(h), "MT 960 sem o cartao de topo");
   });
 
-  caso("MT 613: a ressalva NAO aparece no miolo da escala", () =>
-    espera(!RESSALVA.test(X.cartaoArea(areaDe("MT", 613, null))),
-      "ressalva vazando para o miolo, onde a medida e firme"));
-  caso("MT 340: no piso vale o aviso forte, sem a ressalva branda junto", () => {
-    const h = X.cartaoArea(areaDe("MT", 340, null));
-    espera(/não separa níveis/.test(h), "piso sem o aviso forte");
-    espera(!RESSALVA.test(h), "piso com os dois avisos empilhados");
-  });
-
+  
   console.log(falhas.length
     ? `\n${falhas.length} FALHA(S): ${falhas.join(" | ")}`
     : "\ntodos os casos passaram");

@@ -110,6 +110,8 @@
        background:var(--accent-soft);padding:1px 7px;border-radius:var(--r-chip);margin-right:6px}
   .badge{font-family:var(--sans);font-size:var(--fs-100);font-weight:700;padding:1px 8px;border-radius:var(--r-pill);background:var(--chip);color:var(--muted)}
   .badge.fragil{background:var(--chip);color:var(--muted);border:1px solid var(--border)}
+  .ver-metodo{font-family:var(--sans);font-size:var(--fs-200);
+       text-align:center;margin:28px 0 8px;color:var(--muted)}
   .cor-caderno{color:var(--muted)}
   .qrefs{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
   .qref{font-family:var(--sans);font-size:var(--fs-100);font-variant-numeric:tabular-nums;
@@ -275,18 +277,7 @@
       <div class="comp-areas" id="comp-areas"></div>
     </div>
     <div id="cards-areas"></div>
-    <div class="cartao">
-      <details class="metodo"><summary>Como o cálculo é feito</summary>
-        <p>Sua nota diz em que nível você está. Daí olhamos as questões
-        <b>logo acima dele</b> — nem fáceis demais, nem impossíveis. É a mesma
-        matemática que o INEP usa para corrigir a prova.</p>
-        <p><b>C</b> é competência e <b>H</b> é habilidade, os códigos da
-        ${linkMatriz("Matriz do ENEM")}. Sem as suas respostas, isto é um mapa do
-        terreno; com elas, a correção roda no seu aparelho e nada é enviado.</p>
-        <p><a href="metodo.html">Como funciona</a> — a explicação completa, em dois
-        minutos.</p>
-      </details>
-    </div>
+    <p class="ver-metodo"><a href="metodo.html">Como funciona</a> — de onde vem cada número, em dois minutos.</p>
   </div>
 
   <footer>
@@ -529,7 +520,8 @@ function analisar(){
       <div class="val">sua nota: ${a.nota}</div>
       <div class="val">${a.piso
         ? "nesta faixa a prova de 2025 não separa níveis — veja o cartão da área"
-        : a.ptsTop>=1 ? ""
+        : a.ptsTop>=1
+          ? `1º conteúdo: <b>até +${plural(a.ptsTop,"ponto","pontos")}</b>`
           : "sem pontos a recuperar — modo manutenção"}</div>
     </button>`).join("");
   $("card-comparativo").style.display = ULTIMA.length>1 ? "" : "none";
@@ -1005,38 +997,6 @@ function erroPadrao(sig, lin, th){
   return 1/Math.sqrt(I + 1);
 }
 
-// Quantos PONTOS valem +-1 erro-padrao, NA ESCALA DO PROPRIO SITE.
-// Nao usar 100. A relacao nota<->theta aqui e a calibracao empirica, e a
-// inclinacao dela varia de ~57 a ~200 pontos por unidade de theta conforme a
-// faixa (medido na tabela do motor.json). Multiplicar o SE por 100 seria
-// transcrever a constante da escala OFICIAL numa curva que nao e ela -- o
-// mesmo erro de categoria que o projeto ja documentou entre theta e
-// theta_efetivo. Aqui a conversao sai da propria tabela, por interpolacao.
-function pontosDoSE(sig, lin, th, se){
-  const pares = [];
-  for(const ch in M.calibracao){
-    const [a, l, f] = ch.split("|");
-    if(a !== sig || l !== (sig === "LC" ? String(lin) : "_")) continue;
-    pares.push([M.calibracao[ch][0], Number(f) + 5]);
-  }
-  if(pares.length < 2) return null;
-  pares.sort((x, y) => x[0] - y[0] || x[1] - y[1]);
-  const nota = t => {
-    if(t <= pares[0][0]) return pares[0][1];
-    if(t >= pares[pares.length-1][0]) return pares[pares.length-1][1];
-    for(let i = 1; i < pares.length; i++){
-      if(t <= pares[i][0]){
-        const [t0, n0] = pares[i-1], [t1, n1] = pares[i];
-        return t1 === t0 ? n1 : n0 + (n1-n0)*(t-t0)/(t1-t0);
-      }
-    }
-    return pares[pares.length-1][1];
-  };
-  // metade da largura do intervalo; a curva nao e simetrica, entao medir os
-  // dois lados e dividir e mais honesto que aplicar uma inclinacao so
-  const larg = (nota(th + se) - nota(th - se))/2;
-  return larg > 0 ? larg : null;
-}
 
 // O motor de uma area. Duas medidas, com papeis distintos:
 //   AGORA = ganho do proximo passo (ordena a tela)
@@ -1067,6 +1027,12 @@ function motorArea(a){
   const recua = (thUp === th);
 
   // a folga da medida nesta area e neste nivel (ver NOS_QUAD, acima)
+  // CUIDADO ao converter este SE em pontos: NAO e 100*SE. Aquela constante e
+  // da escala oficial (nota = 100*theta + 500), e a curva usada aqui e a
+  // empirica, cuja inclinacao vai de ~57 a ~200 pontos por unidade de theta
+  // conforme a faixa -- o erro chegava a 2x (CN 400: 49 contra 34 reais). A
+  // conversao correta interpola a propria tabela de calibracao; a funcao que
+  // fazia isso saiu com a ressalva que a consumia, e esta no historico.
   const se = erroPadrao(a.sig, lin, th);
   // media ponderada de f(theta) sobre a faixa plausivel da nota
   const sobreIncerteza = f => {
@@ -1187,11 +1153,9 @@ function motorArea(a){
   // limiar sai da unidade do proprio produto -- meio passo. Acima disso, a
   // incerteza sobre onde a pessoa esta supera metade do avanco que a tela
   // recomenda, e vale dizer que a leitura ali e mais grossa
-  const medidaLarga = !piso && se > PASSO/2;
-  const seEmPontos = pontosDoSE(a.sig, lin, th, se);
 
   return {lin, temResp, porHab, ganho, agoraHab, tetoHab, caderno, piso,
-          se, seEmPontos, medidaLarga};
+          se};
 }
 
 // ---------------------------------------------- cartao 2: RECOMENDACOES
@@ -1313,7 +1277,7 @@ function cartaoArea(a){
   const naoMed  = a.perfil.filter(h=>h[4]===0);
   const mot = motorArea(a);
   const {lin, temResp, porHab, ganho, agoraHab, tetoHab, caderno, piso,
-         se, seEmPontos, medidaLarga} = mot;
+         se} = mot;
 
   // agrupa pela COMPETENCIA da Matriz: a competencia e a medida com lastro
   // (4-11 questoes); a habilidade, o que se estuda -- uma dentro da outra
@@ -1372,11 +1336,9 @@ function cartaoArea(a){
 
   // sem respostas, mas ja no alto da area: a lista fica de numeros pequenos e
   // sem explicacao. Dizer o que fazer daqui vale mais que uma lista muda
-  let noAlto = false;
   if(!temResp){
     const totalPts = ganho(lista.reduce((s,c)=>s+c.agora, 0)).pts;
     if(totalPts < 12 && lista.length && !piso){
-      noAlto = true;
       insightHtml = `<div class="destaque-conquista">🏆 <b>Você já está no alto desta área.</b> Daqui o ganho vem de <b>lapidar o que você já domina</b>: manter em dia e treinar precisão e tempo. A lista abaixo mostra o que ainda tem alguma folga.</div>`;
     }
   }
@@ -1588,7 +1550,6 @@ function cartaoArea(a){
     <h2>${temResp ? "Diagnóstico da sua prova de 2025" : "Como foi a prova de 2025"} <span class="nota">${a.nome} · sua nota: ${a.nota}</span></h2>
     ${sub ? `<p class="sub">${sub}</p>` : ""}
     ${piso ? `<div class="percentil atencao">Nesta faixa a prova <b>não separa níveis</b> — os pontos abaixo são aproximados. O maior ganho está fora do que o mapa mede: <b>responder todas as questões</b>, mesmo sem certeza.</div>` : ""}
-    ${medidaLarga && !manutencao && !noAlto ? `<div class="percentil">Nesta faixa a prova mede com folga${seEmPontos ? ` de uns <b>${Math.round(seEmPontos)} pontos</b>` : " maior"} — trate os primeiros como um <b>conjunto de boas apostas</b>, não como ordem exata.</div>` : ""}
     ${insightHtml}
     ${percentilHtml}
     ${blocos}
