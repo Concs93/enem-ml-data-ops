@@ -19,16 +19,7 @@
     --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
     --mono:'SFMono-Regular',Consolas,Menlo,monospace;
   }
-  @media (prefers-color-scheme:dark){
-    :root{
-      --bg:#17181a; --surface:#1f2123; --text:#e7e6e1; --muted:#a3a29b;
-      --accent:#2dd4bf; --accent-deep:#5eead4; --accent-soft:#123330;
-      --accent-fill:#2dd4bf; --sobre-accent:#17181a;
-      --border:#31343a; --chip:#26292c;
-      --warn:#f0a952; --warn-soft:#2c2413; --tip:#a3d160; --tip-soft:#1a250f;
-      --alert:#f87171; --alert-soft:#2e1616;
-    }
-  }
+  :root{color-scheme:light}
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--text);font-family:var(--serif);
        line-height:1.7;font-size:var(--fs-400);-webkit-font-smoothing:antialiased}
@@ -61,33 +52,33 @@
        padding:1px 6px;border-radius:var(--r-chip)}
   footer{border-top:1px solid var(--border);margin-top:48px;padding-top:18px;
          font-family:var(--sans);font-size:var(--fs-200);color:var(--muted)}
-  .fig{display:block;width:100%;height:auto;margin:18px 0 4px;color:var(--text)}
-  .legenda{font-family:var(--sans);font-size:var(--fs-100);color:var(--muted);
-       margin:0 0 22px;display:flex;flex-wrap:wrap;gap:14px}
-  .legenda i{font-style:normal;display:inline-flex;align-items:center;gap:6px}
-  .legenda i::before{content:"";width:16px;height:3px;border-radius:2px;background:currentColor}
-  .p1{color:var(--accent-fill)} .p2{color:var(--warn)} .p3{color:var(--alert)}
   .ana{background:var(--chip);border-radius:var(--r-card);padding:14px 18px;margin:18px 0;
        font-family:var(--sans);font-size:var(--fs-300)}
   .ana b{color:var(--accent-deep)}
-  .fig{display:block;width:100%;height:auto;margin:18px 0 4px;color:var(--text)}
-  .legenda{font-family:var(--sans);font-size:var(--fs-100);color:var(--muted);
-       margin:0 0 22px;display:flex;flex-wrap:wrap;gap:14px}
-  .legenda i{font-style:normal;display:inline-flex;align-items:center;gap:6px}
-  .legenda i::before{content:"";width:16px;height:3px;border-radius:2px;background:currentColor}
-  .p1{color:var(--accent-fill)} .p2{color:var(--warn)} .p3{color:var(--alert)}
-  .ana{background:var(--chip);border-radius:var(--r-card);padding:14px 18px;margin:18px 0;
-       font-family:var(--sans);font-size:var(--fs-300)}
-  .ana b{color:var(--accent-deep)}
-  .fig{display:block;width:100%;height:auto;margin:18px 0 4px;color:var(--text)}
-  .legenda{font-family:var(--sans);font-size:var(--fs-100);color:var(--muted);
-       margin:0 0 22px;display:flex;flex-wrap:wrap;gap:14px}
-  .legenda i{font-style:normal;display:inline-flex;align-items:center;gap:6px}
-  .legenda i::before{content:"";width:16px;height:3px;border-radius:2px;background:currentColor}
-  .p1{color:var(--accent-fill)} .p2{color:var(--warn)} .p3{color:var(--alert)}
-  .ana{background:var(--chip);border-radius:var(--r-card);padding:14px 18px;margin:18px 0;
-       font-family:var(--sans);font-size:var(--fs-300)}
-  .ana b{color:var(--accent-deep)}
+  /* simulador */
+  .sim{border:1px solid var(--border);border-radius:var(--r-card);background:var(--surface);
+       padding:16px 18px;margin:20px 0}
+  .sim svg{display:block;width:100%;height:auto;color:var(--text)}
+  .sim-ctrl{display:grid;grid-template-columns:1fr 1fr;gap:12px 22px;margin-top:14px;
+       font-family:var(--sans);font-size:var(--fs-200)}
+  .sim-ctrl label{display:block;color:var(--muted)}
+  .sim-ctrl output{color:var(--accent-deep);font-weight:700;margin-left:6px;
+       font-variant-numeric:tabular-nums}
+  .sim-ctrl input[type=range]{width:100%;margin-top:6px;accent-color:var(--accent-fill)}
+  .sim-reais{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:8px;
+       color:var(--muted);margin-top:2px}
+  button.mini{font-family:var(--sans);font-weight:600;font-size:var(--fs-200);
+       padding:6px 13px;border:1px solid var(--border);border-radius:var(--r-pill);
+       background:var(--bg);color:var(--accent-deep);cursor:pointer;white-space:nowrap;
+       transition:border-color .12s,background .12s}
+  button.mini:hover{border-color:var(--accent);background:var(--accent-soft)}
+  .sim-saida{display:flex;flex-wrap:wrap;gap:26px;margin-top:16px;padding-top:14px;
+       border-top:1px solid var(--border);font-family:var(--sans)}
+  .sim-saida div{display:flex;flex-direction:column}
+  .sim-saida b{font-size:var(--fs-500);color:var(--accent-deep);
+       font-variant-numeric:tabular-nums;line-height:1.1}
+  .sim-saida span{font-size:var(--fs-100);color:var(--muted);margin-top:3px}
+  @media(max-width:620px){ .sim-ctrl{grid-template-columns:1fr} }
 </style>
 </head>
 <body>
@@ -102,68 +93,90 @@
   <p class="lede">Em dois minutos, com a Ana de exemplo.</p>
 
   <p class="ana">A <b>Ana</b> tirou <b>600 em Matemática</b>. É com a prova dela
-  que os números desta página são calculados — questões reais do ENEM 2025.</p>
+  — as 43 questões que valeram ponto em 2025 — que tudo nesta página é
+  calculado.</p>
 
   <h2><span class="num">1.</span> A prova conhece cada questão por três números</h2>
-  <p>O INEP publica, para cada questão, três parâmetros. Eles são o que
-  transforma "errei a 17" em "isso custou tantos pontos":</p>
+  <p>O INEP publica, para cada questão, três parâmetros. São eles que
+  transformam "errei a 17" em "isso custou tantos pontos":</p>
   <ul>
     <li><b>Dificuldade</b> — em que altura da escala a questão fica. Uma questão
-    de dificuldade 650 é aquela que quem tira 650 acerta com folga e quem tira
+    de dificuldade 650 é aquela que quem tira 650 acerta com folga, e quem tira
     500, raramente.</li>
     <li><b>Discriminação</b> — o quanto ela <i>separa</i> quem sabe de quem não
-    sabe. Discriminação alta é uma curva íngreme: 30 pontos de nota mudam muito
-    a chance de acerto. Baixa é uma curva quase plana — a questão quase não
-    distingue ninguém.</li>
-    <li><b>Acerto casual</b> — o piso. Mesmo quem não faz ideia às vezes marca
-    a certa. Esse piso varia muito de questão para questão: nas 43 de Matemática
-    ele vai de <b>1%</b> a <b>31%</b>, e não é o 20% do "chute entre cinco".</li>
+    sabe. Alta é uma curva íngreme: 30 pontos de nota mudam muito a chance de
+    acerto. Baixa é quase uma reta — a questão mal distingue.</li>
+    <li><b>Acerto casual</b> — o piso. Mesmo quem não faz ideia às vezes marca a
+    certa. E não é o 20% do "chute entre cinco": nas 43 questões de Matemática
+    esse piso vai de <b>1%</b> a <b>31%</b>.</li>
   </ul>
-  <svg viewBox="0 0 560 230" class="fig" role="img" aria-label="Curvas de tres questoes reais de Matematica: a probabilidade de acerto sobe com a nota, e cada questao tem sua propria posicao, inclinacao e piso."><line x1="46" y1="184" x2="546" y2="184" stroke="currentColor" opacity=".12"/><text x="39" y="188" text-anchor="end" font-size="11" opacity=".65">0%</text><line x1="46" y1="150" x2="546" y2="150" stroke="currentColor" opacity=".12"/><text x="39" y="154" text-anchor="end" font-size="11" opacity=".65">20%</text><line x1="46" y1="99" x2="546" y2="99" stroke="currentColor" opacity=".12"/><text x="39" y="103" text-anchor="end" font-size="11" opacity=".65">50%</text><line x1="46" y1="14" x2="546" y2="14" stroke="currentColor" opacity=".12"/><text x="39" y="18" text-anchor="end" font-size="11" opacity=".65">100%</text><line x1="166" y1="184" x2="166" y2="188" stroke="currentColor" opacity=".35"/><text x="166" y="201" text-anchor="middle" font-size="11" opacity=".65">400</text><line x1="241" y1="184" x2="241" y2="188" stroke="currentColor" opacity=".35"/><text x="241" y="201" text-anchor="middle" font-size="11" opacity=".65">500</text><line x1="301" y1="184" x2="301" y2="188" stroke="currentColor" opacity=".35"/><text x="301" y="201" text-anchor="middle" font-size="11" opacity=".65">600</text><line x1="364" y1="184" x2="364" y2="188" stroke="currentColor" opacity=".35"/><text x="364" y="201" text-anchor="middle" font-size="11" opacity=".65">700</text><line x1="428" y1="184" x2="428" y2="188" stroke="currentColor" opacity=".35"/><text x="428" y="201" text-anchor="middle" font-size="11" opacity=".65">800</text><line x1="501" y1="184" x2="501" y2="188" stroke="currentColor" opacity=".35"/><text x="501" y="201" text-anchor="middle" font-size="11" opacity=".65">900</text><line x1="46" y1="184" x2="546" y2="184" stroke="currentColor" opacity=".35"/><path d="M46.0,145.1 L51.0,144.5 L56.0,143.7 L61.0,142.9 L66.0,142.0 L71.0,141.0 L76.0,139.9 L81.0,138.6 L86.0,137.2 L91.0,135.7 L96.0,134.0 L101.0,132.1 L106.0,130.1 L111.0,127.9 L116.0,125.5 L121.0,122.9 L126.0,120.1 L131.0,117.1 L136.0,113.9 L141.0,110.6 L146.0,107.0 L151.0,103.3 L156.0,99.5 L161.0,95.5 L166.0,91.4 L171.0,87.3 L176.0,83.1 L181.0,78.9 L186.0,74.8 L191.0,70.7 L196.0,66.7 L201.0,62.8 L206.0,59.0 L211.0,55.4 L216.0,51.9 L221.0,48.6 L226.0,45.6 L231.0,42.7 L236.0,40.0 L241.0,37.5 L246.0,35.2 L251.0,33.1 L256.0,31.2 L261.0,29.4 L266.0,27.8 L271.0,26.4 L276.0,25.1 L281.0,23.9 L286.0,22.8 L291.0,21.8 L296.0,21.0 L301.0,20.2 L306.0,19.5 L311.0,18.9 L316.0,18.4 L321.0,17.9 L326.0,17.4 L331.0,17.1 L336.0,16.7 L341.0,16.4 L346.0,16.1 L351.0,15.9 L356.0,15.7 L361.0,15.5 L366.0,15.3 L371.0,15.2 L376.0,15.0 L381.0,14.9 L386.0,14.8 L391.0,14.7 L396.0,14.6 L401.0,14.6 L406.0,14.5 L411.0,14.4 L416.0,14.4 L421.0,14.3 L426.0,14.3 L431.0,14.3 L436.0,14.2 L441.0,14.2 L446.0,14.2 L451.0,14.2 L456.0,14.1 L461.0,14.1 L466.0,14.1 L471.0,14.1 L476.0,14.1 L481.0,14.1 L486.0,14.1 L491.0,14.1 L496.0,14.1 L501.0,14.0 L506.0,14.0 L511.0,14.0 L516.0,14.0 L521.0,14.0 L526.0,14.0 L531.0,14.0 L536.0,14.0 L541.0,14.0 L546.0,14.0" fill="none" stroke="var(--accent-fill)" stroke-width="2.4"/><path d="M46.0,147.3 L51.0,147.3 L56.0,147.3 L61.0,147.3 L66.0,147.3 L71.0,147.3 L76.0,147.3 L81.0,147.3 L86.0,147.3 L91.0,147.3 L96.0,147.3 L101.0,147.3 L106.0,147.3 L111.0,147.3 L116.0,147.3 L121.0,147.3 L126.0,147.3 L131.0,147.3 L136.0,147.3 L141.0,147.3 L146.0,147.3 L151.0,147.3 L156.0,147.3 L161.0,147.3 L166.0,147.3 L171.0,147.3 L176.0,147.3 L181.0,147.3 L186.0,147.3 L191.0,147.3 L196.0,147.3 L201.0,147.3 L206.0,147.3 L211.0,147.3 L216.0,147.3 L221.0,147.3 L226.0,147.3 L231.0,147.3 L236.0,147.2 L241.0,147.2 L246.0,147.2 L251.0,147.2 L256.0,147.2 L261.0,147.2 L266.0,147.1 L271.0,147.0 L276.0,147.0 L281.0,146.8 L286.0,146.7 L291.0,146.4 L296.0,146.1 L301.0,145.7 L306.0,145.1 L311.0,144.2 L316.0,143.1 L321.0,141.5 L326.0,139.4 L331.0,136.6 L336.0,132.9 L341.0,128.1 L346.0,122.0 L351.0,114.6 L356.0,105.9 L361.0,96.0 L366.0,85.3 L371.0,74.4 L376.0,63.8 L381.0,54.1 L386.0,45.5 L391.0,38.3 L396.0,32.4 L401.0,27.8 L406.0,24.2 L411.0,21.5 L416.0,19.5 L421.0,18.0 L426.0,16.9 L431.0,16.1 L436.0,15.5 L441.0,15.1 L446.0,14.8 L451.0,14.6 L456.0,14.4 L461.0,14.3 L466.0,14.2 L471.0,14.2 L476.0,14.1 L481.0,14.1 L486.0,14.1 L491.0,14.0 L496.0,14.0 L501.0,14.0 L506.0,14.0 L511.0,14.0 L516.0,14.0 L521.0,14.0 L526.0,14.0 L531.0,14.0 L536.0,14.0 L541.0,14.0 L546.0,14.0" fill="none" stroke="var(--warn)" stroke-width="2.4"/><path d="M46.0,131.0 L51.0,131.0 L56.0,131.0 L61.0,131.0 L66.0,131.0 L71.0,131.0 L76.0,131.0 L81.0,131.0 L86.0,131.0 L91.0,131.0 L96.0,130.9 L101.0,130.9 L106.0,130.9 L111.0,130.9 L116.0,130.9 L121.0,130.9 L126.0,130.9 L131.0,130.8 L136.0,130.8 L141.0,130.8 L146.0,130.8 L151.0,130.7 L156.0,130.7 L161.0,130.7 L166.0,130.6 L171.0,130.6 L176.0,130.5 L181.0,130.5 L186.0,130.4 L191.0,130.4 L196.0,130.3 L201.0,130.2 L206.0,130.2 L211.0,130.1 L216.0,130.0 L221.0,129.9 L226.0,129.8 L231.0,129.7 L236.0,129.5 L241.0,129.4 L246.0,129.3 L251.0,129.1 L256.0,128.9 L261.0,128.7 L266.0,128.5 L271.0,128.3 L276.0,128.1 L281.0,127.8 L286.0,127.5 L291.0,127.2 L296.0,126.9 L301.0,126.5 L306.0,126.1 L311.0,125.7 L316.0,125.2 L321.0,124.7 L326.0,124.2 L331.0,123.6 L336.0,123.0 L341.0,122.3 L346.0,121.6 L351.0,120.8 L356.0,119.9 L361.0,119.0 L366.0,118.1 L371.0,117.1 L376.0,116.0 L381.0,114.8 L386.0,113.5 L391.0,112.2 L396.0,110.8 L401.0,109.3 L406.0,107.8 L411.0,106.1 L416.0,104.4 L421.0,102.6 L426.0,100.7 L431.0,98.7 L436.0,96.6 L441.0,94.5 L446.0,92.3 L451.0,90.0 L456.0,87.7 L461.0,85.3 L466.0,82.9 L471.0,80.5 L476.0,78.0 L481.0,75.5 L486.0,73.0 L491.0,70.4 L496.0,67.9 L501.0,65.4 L506.0,63.0 L511.0,60.5 L516.0,58.1 L521.0,55.8 L526.0,53.5 L531.0,51.3 L536.0,49.1 L541.0,47.1 L546.0,45.1" fill="none" stroke="var(--alert)" stroke-width="2.4"/><text x="46" y="222" font-size="11" opacity=".65">sua nota em Matemática →</text></svg>
-  <p class="legenda">
-    <i class="p1">Q10 — fácil (dificuldade ~490)</i>
-    <i class="p2">Q32 — a mais íngreme da prova</i>
-    <i class="p3">Q4 — piso alto: 31% acertam no chute</i>
-  </p>
 
-  <h2><span class="num">2.</span> As questões perto do seu degrau são as que mexem na nota</h2>
-  <p>A Ana acertou 16 das 43. O gráfico mostra, para cada uma das 27 que ela
-  errou, quanto teria somado à nota se tivesse acertado. As barras não são
-  iguais — e não crescem com a dificuldade: <b>encolhem</b>.</p>
-  <svg viewBox="0 0 560 220" class="fig" role="img" aria-label="Quanto cada questao que a Ana errou teria somado a nota dela. As barras sao mais altas nas questoes proximas do nivel dela e encolhem ate quase zero nas mais dificeis."><line x1="105" y1="174" x2="105" y2="178" stroke="currentColor" opacity=".35"/><text x="105" y="191" text-anchor="middle" font-size="11" opacity=".65">600</text><line x1="187" y1="174" x2="187" y2="178" stroke="currentColor" opacity=".35"/><text x="187" y="191" text-anchor="middle" font-size="11" opacity=".65">700</text><line x1="273" y1="174" x2="273" y2="178" stroke="currentColor" opacity=".35"/><text x="273" y="191" text-anchor="middle" font-size="11" opacity=".65">800</text><line x1="368" y1="174" x2="368" y2="178" stroke="currentColor" opacity=".35"/><text x="368" y="191" text-anchor="middle" font-size="11" opacity=".65">900</text><line x1="46" y1="174" x2="546" y2="174" stroke="currentColor" opacity=".12"/><text x="39" y="178" text-anchor="end" font-size="11" opacity=".65">+0</text><line x1="46" y1="98" x2="546" y2="98" stroke="currentColor" opacity=".12"/><text x="39" y="102" text-anchor="end" font-size="11" opacity=".65">+5</text><line x1="46" y1="22" x2="546" y2="22" stroke="currentColor" opacity=".12"/><text x="39" y="26" text-anchor="end" font-size="11" opacity=".65">+11</text><line x1="46" y1="174" x2="546" y2="174" stroke="currentColor" opacity=".35"/><rect x="101.9" y="37.4" width="8" height="136.6" fill="var(--accent-fill)" opacity=".8" rx="1.5"/><rect x="118.9" y="53.5" width="8" height="120.5" fill="var(--accent-fill)" opacity=".8" rx="1.5"/><rect x="164.4" y="53.9" width="8" height="120.1" fill="var(--accent-fill)" opacity=".8" rx="1.5"/><rect x="189.5" y="76.4" width="8" height="97.6" fill="var(--accent-fill)" opacity=".8" rx="1.5"/><rect x="191.2" y="22.0" width="8" height="152.0" fill="var(--accent-fill)" opacity=".8" rx="1.5"/><rect x="197.1" y="69.6" width="8" height="104.4" fill="var(--accent-fill)" opacity=".8" rx="1.5"/><rect x="203.8" y="93.4" width="8" height="80.6" fill="var(--accent-fill)" opacity=".8" rx="1.5"/><rect x="204.5" y="107.8" width="8" height="66.2" fill="var(--accent-fill)" opacity=".8" rx="1.5"/><rect x="213.0" y="64.6" width="8" height="109.4" fill="var(--accent-fill)" opacity=".8" rx="1.5"/><rect x="215.2" y="109.8" width="8" height="64.2" fill="var(--accent-fill)" opacity=".8" rx="1.5"/><rect x="221.4" y="117.3" width="8" height="56.7" fill="var(--accent-fill)" opacity=".8" rx="1.5"/><rect x="229.2" y="133.6" width="8" height="40.4" fill="var(--accent-fill)" opacity=".8" rx="1.5"/><rect x="247.9" y="126.4" width="8" height="47.6" fill="var(--accent-fill)" opacity=".8" rx="1.5"/><rect x="251.2" y="118.1" width="8" height="55.9" fill="var(--accent-fill)" opacity=".8" rx="1.5"/><rect x="256.1" y="135.0" width="8" height="39.0" fill="var(--accent-fill)" opacity=".8" rx="1.5"/><rect x="262.4" y="150.5" width="8" height="23.5" fill="var(--accent-fill)" opacity=".8" rx="1.5"/><rect x="263.8" y="120.3" width="8" height="53.7" fill="var(--accent-fill)" opacity=".8" rx="1.5"/><rect x="272.8" y="161.5" width="8" height="12.5" fill="var(--accent-fill)" opacity=".8" rx="1.5"/><rect x="275.4" y="170.4" width="8" height="3.6" fill="var(--accent-fill)" opacity=".8" rx="1.5"/><rect x="283.3" y="158.4" width="8" height="15.6" fill="var(--accent-fill)" opacity=".8" rx="1.5"/><rect x="301.7" y="161.7" width="8" height="12.3" fill="var(--accent-fill)" opacity=".8" rx="1.5"/><rect x="332.5" y="159.6" width="8" height="14.4" fill="var(--accent-fill)" opacity=".8" rx="1.5"/><rect x="345.7" y="158.5" width="8" height="15.5" fill="var(--accent-fill)" opacity=".8" rx="1.5"/><rect x="347.9" y="173.7" width="8" height="1.0" fill="var(--accent-fill)" opacity=".8" rx="1.5"/><rect x="355.1" y="160.2" width="8" height="13.8" fill="var(--accent-fill)" opacity=".8" rx="1.5"/><rect x="418.8" y="171.6" width="8" height="2.4" fill="var(--accent-fill)" opacity=".8" rx="1.5"/><rect x="520.6" y="167.7" width="8" height="6.3" fill="var(--accent-fill)" opacity=".8" rx="1.5"/><line x1="112" y1="14" x2="112" y2="174" stroke="var(--warn)" stroke-width="2" stroke-dasharray="4 3"/><text x="118" y="21" font-size="11" fill="var(--warn)">a Ana está aqui</text><text x="46" y="212" font-size="11" opacity=".65">dificuldade da questão, na escala da nota →</text></svg>
-  <p class="legenda"><i class="p1">quanto cada questão errada teria somado</i>
-    <i class="p2">o degrau da Ana (600)</i></p>
-  <p class="caixa chave">As seis questões mais próximas do degrau dela valiam de
-  <b>7 a 11 pontos</b> cada. As seis mais distantes, de <b>0 a 1</b> — na média,
-  <b>14 vezes menos</b>. O modelo considera que um acerto tão acima do nível
-  poderia ter sido chute, e quase não credita. <b>É por esse impacto que a lista
-  da tela é ordenada</b>, não pelo que a pessoa mais errou.</p>
+  <p>Mexa nos três e veja o que acontece com a Ana:</p>
+  <div class="sim" id="sim">
+    <div class="sim-graf">
+      <svg viewBox="0 0 560 250" id="sim-svg" role="img"
+           aria-label="Curva da questão simulada: a chance de acerto em função da nota, com a posição da Ana marcada."></svg>
+    </div>
+    <div class="sim-ctrl">
+      <label>Dificuldade <output id="o-b"></output>
+        <input type="range" id="s-b" min="-1" max="4.2" step="0.05"></label>
+      <label>Discriminação <output id="o-a"></output>
+        <input type="range" id="s-a" min="0.5" max="4" step="0.05"></label>
+      <label>Acerto casual <output id="o-c"></output>
+        <input type="range" id="s-c" min="0" max="0.4" step="0.01"></label>
+      <div class="sim-reais">
+        <span>Questões reais de 2025:</span>
+        <button class="mini" type="button" data-q="10">Q10 · fácil</button>
+        <button class="mini" type="button" data-q="32">Q32 · íngreme</button>
+        <button class="mini" type="button" data-q="4">Q4 · piso alto</button>
+      </div>
+    </div>
+    <div class="sim-saida">
+      <div><b id="r-p"></b><span>chance de a Ana acertar</span></div>
+      <div><b id="r-i"></b><span>o que essa questão vale: de errar para acertar</span></div>
+    </div>
+  </div>
+  <p class="legenda">O valor é calculado de verdade: o gabarito da Ana é
+  re-corrigido com e sem o acerto naquela questão, e a diferença aparece ali.
+  Repare que uma questão que ela tinha 97% de chance de acertar vale
+  <b>mais</b> que uma difícil — é justamente por isso que errar uma fácil
+  derruba tanto: o modelo não esperava aquele erro.</p>
+
+  <h2><span class="num">2.</span> As questões perto do degrau dela são as que mexem na nota</h2>
+  <p>Arraste a <b>dificuldade</b> no simulador acima e observe o segundo número.
+  Ele não cresce com a dificuldade — <b>encolhe</b>. Uma questão na altura da
+  Ana vale vários pontos; uma muito acima, quase nada, porque o modelo considera
+  que aquele acerto poderia ter sido chute.</p>
+  <p class="caixa chave">Nas 27 questões que a Ana errou de verdade: as seis mais
+  próximas do degrau dela valiam de <b>7 a 11 pontos</b> cada; as seis mais
+  distantes, de <b>0 a 1</b> — na média, <b>14 vezes menos</b>. <b>É por esse
+  impacto que a lista da tela é ordenada</b>, não pelo que a pessoa mais errou.</p>
 
   <h2><span class="num">3.</span> O número é quanto <i>teria</i> somado</h2>
   <p>A prova de 2025 já passou — ninguém vai ganhar ponto nela. Quando a tela
   diz <b>"até +76 pontos"</b>, está dizendo: <i>se a Ana dominasse este
   conteúdo, a nota dela naquela prova teria sido até 76 pontos maior</i>.</p>
-  <p>Serve para escolher o que estudar porque a Matriz de Referência é a mesma
-  todo ano: o conteúdo que pesou em 2025 tende a pesar de novo. Mas o número é
-  do passado, e é assim que ele deve ser lido.</p>
+  <p>Isso serve para escolher o que estudar porque a Matriz de Referência é a
+  mesma todo ano: o conteúdo que pesou em 2025 tende a pesar de novo. Mas o
+  número é do passado, e é assim que ele deve ser lido.</p>
 
   <h2><span class="num">4.</span> Com as suas respostas, a conta deixa de ser média</h2>
   <p>Só com a nota, o site fala de <i>quem tirou 600</i> — um retrato médio de
   todo mundo naquele degrau.</p>
   <p>Preenchendo o gabarito, ele passa a falar da Ana. Sabemos <b>exatamente
-  quais</b> questões ela errou, e para cada uma calculamos, pelos três
-  parâmetros, qual era a probabilidade de ela acertar. Daí sai o impacto de
-  cada erro — e a lista deixa de ser um perfil de faixa e vira o mapa da prova
+  quais</b> questões ela errou e, para cada uma, calculamos pelos três
+  parâmetros qual era a probabilidade de ela acertar. Daí sai o impacto de cada
+  erro — e a lista deixa de ser o perfil de uma faixa e vira o mapa da prova
   dela. A correção acontece no aparelho dela; as respostas não são enviadas.</p>
 
   <h2><span class="num">5.</span> Nas pontas da escala, a medida é menos precisa</h2>
   <p>A prova tem muitas questões no miolo da escala e poucas nos extremos. Onde
-  há poucas questões, ela <b>localiza a pessoa com menos precisão</b> — e tudo
-  o que se calcula a partir dali herda essa imprecisão.</p>
-  <p class="caixa atencao">Medido nas 43 questões de Matemática: a margem da
-  nota é de cerca de <b>±16 pontos</b> em 700, sobe para <b>±42</b> em 500 e
-  chega a <b>±143</b> em 400. No topo ela volta a subir. Perto das pontas,
-  leia o mapa como direção, não como medida fina.</p>
+  há poucas questões, ela <b>localiza a pessoa com menos precisão</b> — e tudo o
+  que se calcula a partir dali herda essa imprecisão.</p>
+  <p class="caixa atencao">Medido nas 43 questões de Matemática: a margem da nota
+  é de cerca de <b>±16 pontos</b> em 700, sobe para <b>±42</b> em 500 e chega a
+  <b>±143</b> em 400. No topo ela volta a subir. Perto das pontas, leia o mapa
+  como direção, não como medida fina.</p>
 
   <h2><span class="num">6.</span> De onde vêm os dados</h2>
   <p>Tudo é público: os
@@ -175,6 +188,125 @@
   sua nota e o seu nível é medida aqui, nos participantes de 2025.</p>
 </main>
 
+<script>
+// ---- a prova de Matematica de 2025 (caderno azul) e o gabarito da Ana ------
+// Os 43 itens validos com os tres parametros publicados pelo INEP, e um cartao
+// de respostas coerente com a nota 600 (16 acertos). Com isso o simulador
+// calcula o impacto EXATO de uma questao nova: re-estima a nota com e sem o
+// acerto. A aproximacao de primeira ordem seria mais simples e erra ate 4
+// pontos em 9,5 -- num numero de tela isso nao passa.
+const SIM = {"th":1.1,"pars":[[1.844,0.878,0.134],[3.13,1.899,0.083],[2.2,1.779,0.171],[1.013,2.908,0.311],[3.466,2.925,0.079],[1.713,1.916,0.249],[1.518,0.989,0.203],[1.202,0.774,0.162],[1.412,2.98,0.149],[1.444,-0.189,0.198],[1.254,0.85,0.213],[2.495,0.972,0.106],[1.876,1.074,0.14],[2.358,2.354,0.241],[2.055,1.53,0.267],[1.577,0.091,0.171],[2.022,2.227,0.161],[2.276,2.434,0.156],[1.554,1.184,0.183],[0.942,2.286,0.12],[2.362,1.389,0.081],[2.712,1.244,0.273],[2.169,1.83,0.226],[1.46,1.395,0.266],[0.925,4.237,0.121],[2.021,1.269,0.177],[2.383,2.463,0.186],[1.554,0.316,0.238],[1.107,1.835,0.185],[1.256,1.964,0.249],[2.593,1.734,0.096],[3.863,1.721,0.216],[1.421,0.317,0.015],[2.154,2.19,0.104],[2.217,2.023,0.277],[2.332,2.574,0.106],[1.89,2.165,0.17],[1.786,3.464,0.092],[1.699,1.055,0.169],[3.041,2.374,0.301],[1.927,2.808,0.081],[1.623,0.456,0.178],[2.567,2.275,0.132]],"u":[1,0,0,0,0,0,1,1,0,1,1,1,1,0,0,1,0,0,0,0,1,1,0,1,0,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0],"ponte":[[-3.0,315],[-1.05,365],[-0.75,375],[-0.5,385],[-0.35,395],[-0.25,405],[-0.15,415],[-0.05,425],[0.0,435],[0.1,445],[0.15,455],[0.2,465],[0.3,475],[0.35,485],[0.4,495],[0.5,505],[0.55,515],[0.6,525],[0.65,535],[0.75,545],[0.8,555],[0.85,565],[0.9,575],[0.95,585],[1.0,595],[1.1,605],[1.15,615],[1.2,625],[1.25,635],[1.35,645],[1.4,655],[1.45,665],[1.5,675],[1.6,685],[1.65,695],[1.7,705],[1.75,715],[1.85,725],[1.9,735],[1.95,745],[2.05,755],[2.1,765],[2.15,775],[2.25,785],[2.3,795],[2.35,805],[2.4,815],[2.5,825],[2.55,835],[2.6,845],[2.7,855],[2.75,865],[2.85,875],[2.9,885],[3.0,895],[3.1,905],[3.2,915],[3.3,925],[3.45,935],[3.75,945],[3.95,955],[5.0,965]],"reais":{"4":[1.013,2.908,0.311],"10":[1.444,-0.189,0.198],"32":[3.863,1.721,0.216]}};
+const D = 1.7;
+const P = (t,a,b,c) => c + (1-c)/(1+Math.exp(-D*a*(t-b)));
+
+function notaDe(t){
+  const p = SIM.ponte;
+  if(t <= p[0][0]) return p[0][1];
+  if(t >= p[p.length-1][0]) return p[p.length-1][1];
+  for(let i=1;i<p.length;i++) if(t <= p[i][0]){
+    const [t0,n0] = p[i-1], [t1,n1] = p[i];
+    return t1===t0 ? n1 : n0 + (n1-n0)*(t-t0)/(t1-t0);
+  }
+  return p[p.length-1][1];
+}
+function thetaDe(nota){
+  const p = SIM.ponte;
+  for(let i=1;i<p.length;i++) if(nota <= p[i][1]){
+    const [t0,n0] = p[i-1], [t1,n1] = p[i];
+    return n1===n0 ? t1 : t0 + (t1-t0)*(nota-n0)/(n1-n0);
+  }
+  return p[p.length-1][0];
+}
+// maxima verossimilhanca, o mesmo passo de Newton do resto do projeto
+function estima(pars, resp){
+  let t = 1.0;
+  for(let k=0;k<300;k++){
+    let num=0, den=0;
+    for(let i=0;i<pars.length;i++){
+      const [a,b,c] = pars[i];
+      const p = Math.min(Math.max(P(t,a,b,c),1e-9),1-1e-9);
+      const w = D*a*(p-c)/(p*(1-c));
+      num += w*(resp[i]-p); den += w*w*p*(1-p);
+    }
+    if(den < 1e-12) break;
+    const passo = num/den;
+    t += Math.max(-0.5, Math.min(0.5, passo));
+    if(Math.abs(passo) < 1e-10) break;
+  }
+  return t;
+}
+function impacto(a,b,c){
+  const pars = SIM.pars.concat([[a,b,c]]);
+  const nAcerta = notaDe(estima(pars, SIM.u.concat([1])));
+  const nErra   = notaDe(estima(pars, SIM.u.concat([0])));
+  return Math.max(nAcerta - nErra, 0);
+}
+
+const $s = id => document.getElementById(id);
+// O grafico e desenhado na LARGURA REAL do container, nao numa viewBox fixa.
+// Com viewBox de 560 num celular de 390 o SVG inteiro encolhe 45%, e os
+// rotulos de 11px viram 6px -- ilegiveis. Desenhando 1:1 o texto sai no
+// tamanho que foi pedido.
+let W=560, H=250;
+const ML=48, MR=16, MT=16, MB=42;
+const T0=-1.2, T1=4.4;
+const gx = t => ML + (t-T0)/(T1-T0)*(W-ML-MR);
+const gy = p => MT + (1-p)*(H-MT-MB);
+
+function desenha(a,b,c){
+  const box = $s("sim-svg").parentNode.getBoundingClientRect().width;
+  W = Math.max(300, Math.round(box));
+  H = W < 460 ? 230 : 250;
+  $s("sim-svg").setAttribute("viewBox", `0 0 ${W} ${H}`);
+  const pts = [];
+  for(let i=0;i<=120;i++){
+    const t = T0 + (T1-T0)*i/120;
+    pts.push(gx(t).toFixed(1)+","+gy(P(t,a,b,c)).toFixed(1));
+  }
+  let g = "";
+  for(const p of [0,0.25,0.5,0.75,1]){
+    g += `<line x1="${ML}" y1="${gy(p)}" x2="${W-MR}" y2="${gy(p)}" stroke="currentColor" opacity=".12"/>`
+       + `<text x="${ML-8}" y="${gy(p)+4}" text-anchor="end" font-size="11" opacity=".6">${p*100}%</text>`;
+  }
+  for(const nota of [400,500,600,700,800,900]){
+    const t = thetaDe(nota);
+    if(t < T0 || t > T1) continue;
+    g += `<text x="${gx(t)}" y="${gy(0)+18}" text-anchor="middle" font-size="11" opacity=".6">${nota}</text>`;
+  }
+  const tAna = SIM.th, pAna = P(tAna,a,b,c);
+  g += `<line x1="${ML}" y1="${gy(0)}" x2="${W-MR}" y2="${gy(0)}" stroke="currentColor" opacity=".35"/>`;
+  g += `<path d="M${pts.join(" L")}" fill="none" stroke="var(--accent-fill)" stroke-width="2.6"/>`;
+  g += `<line x1="${gx(tAna)}" y1="${MT}" x2="${gx(tAna)}" y2="${gy(0)}" stroke="var(--warn)" stroke-width="2" stroke-dasharray="4 3"/>`;
+  g += `<line x1="${ML}" y1="${gy(pAna)}" x2="${gx(tAna)}" y2="${gy(pAna)}" stroke="var(--warn)" stroke-width="1" stroke-dasharray="3 3" opacity=".6"/>`;
+  g += `<circle cx="${gx(tAna)}" cy="${gy(pAna)}" r="5.5" fill="var(--warn)"/>`;
+  g += `<text x="${gx(tAna)+9}" y="${MT+12}" font-size="11" fill="var(--warn)">Ana · 600</text>`;
+  g += `<text x="${ML}" y="${H-8}" font-size="11" opacity=".6">nota em Matemática →</text>`;
+  $s("sim-svg").innerHTML = g;
+}
+
+function atualiza(){
+  const a = +$s("s-a").value, b = +$s("s-b").value, c = +$s("s-c").value;
+  desenha(a,b,c);
+  $s("o-a").textContent = a.toFixed(2).replace(".",",");
+  $s("o-b").textContent = "nota " + Math.round(notaDe(b));
+  $s("o-c").textContent = Math.round(c*100) + "%";
+  $s("r-p").textContent = Math.round(P(SIM.th,a,b,c)*100) + "%";
+  const imp = impacto(a,b,c);
+  $s("r-i").textContent = "+" + imp.toFixed(1).replace(".",",");
+}
+for(const id of ["s-a","s-b","s-c"]) $s(id).addEventListener("input", atualiza);
+addEventListener("resize", atualiza);
+for(const btn of document.querySelectorAll(".sim-reais button")){
+  btn.addEventListener("click", () => {
+    const [a,b,c] = SIM.reais[btn.dataset.q];
+    $s("s-a").value = a; $s("s-b").value = b; $s("s-c").value = c;
+    atualiza();
+  });
+}
+const q0 = SIM.reais[10];
+$s("s-a").value = q0[0]; $s("s-b").value = q0[1]; $s("s-c").value = q0[2];
+atualiza();
+</script>
   <footer>
     ENEM em foco · <a href="index.html">voltar ao mapa</a> · nada do que você digita é enviado ou armazenado.
   </footer>

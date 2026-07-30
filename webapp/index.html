@@ -26,18 +26,7 @@
     --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
     --mono:'SFMono-Regular',Consolas,Menlo,monospace;
   }
-  @media (prefers-color-scheme:dark){
-    :root{
-      --bg:#17181a; --surface:#1f2123; --text:#e7e6e1; --muted:#a3a29b;
-      --accent:#2dd4bf; --accent-deep:#5eead4; --accent-soft:#123330;
-      /* no escuro o accent e CLARO: texto branco sobre ele daria 1,86 --
-         ilegivel. O texto passa a ser o proprio fundo da pagina (9,54) */
-      --accent-fill:#2dd4bf; --sobre-accent:#17181a;
-      --border:#31343a; --chip:#26292c;
-      --warn:#f0a952; --warn-soft:#2c2413; --tip:#a3d160; --tip-soft:#1a250f;
-      --alert:#f87171; --alert-soft:#2e1616;
-    }
-  }
+  :root{color-scheme:light}
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--text);font-family:var(--serif);
        line-height:1.65;font-size:var(--fs-400);-webkit-font-smoothing:antialiased}
