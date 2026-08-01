@@ -1,45 +1,54 @@
 """
-Exporta o pacote da FACE DO GESTOR (geografia.json) a partir dos marts.
+Exporta os pacotes da FACE DO GESTOR -- a navegacao por grao:
+Brasil > estado > cidade > rede, cada nivel com o diagnostico DELE.
 
-Passo inicial: nivel UF, grao competencia. Sao 27 unidades x 4 areas x 6 a 9
-competencias -- ~810 numeros, alguns KB. Regiao imediata (510 unidades) e
-municipio (1.942 publicaveis) entram depois, no mesmo formato.
+TRES SAIDAS:
+  webapp/dados/geografia.json           pais + as 27 UFs (todas as redes)
+  webapp/dados/geo_mun/{uf}.json        municipios + regioes imediatas da UF
+  webapp/dados/municipios_indice.json   [codigo, nome, sigla, publica] p/ busca
 
-O QUE VIAJA, E POR QUE:
-- `perfil` e o numero que o mapa pinta. E a diferenca contra o nacional
-  DEPOIS de descontar o patamar da propria UF na area. A diferenca crua e
-  80% "este estado vai melhor/pior em tudo" -- pintar com ela seria ranking
-  disfarcado (ver mart_geografia_competencia).
-- `diferenca` viaja junto porque a tela precisa dizer as duas coisas sem
-  esconder nenhuma: onde a rede esta como um todo, e onde ela se distancia
-  do proprio patamar.
+O DESENHO DOS NUMEROS (decisao de 01/08/2026, medida antes de decidida):
+- A tela mostra COMPARACOES SIMPLES: taxa da unidade menos taxa do pai
+  geografico e menos taxa do Brasil, sempre NA MESMA REDE. Sao subtracoes
+  que o leitor confere de cabeca. A ordem da lista e a mesma que a do
+  indicador centrado (medido: 3.464 de 3.480 listas identicas), entao a
+  simplicidade nao custa o conselho.
+- O `perfil` (desvio do padrao da propria unidade) viaja junto, mas so pinta
+  o MAPA e vira anotacao verbal -- entre unidades de niveis diferentes, a
+  diferenca crua e 90%+ ranking (rho 0,91-0,97 com o nivel; o perfil, 0,03-
+  0,08). Cada painel usa a medida que a pergunta dele exige.
+- `tri` e a competencia em que AVANCAR mais rende no nivel medio da celula
+  (ganho de um passo do mart_perfil_habilidade). E quase um fato nacional
+  (1 a 3 respostas distintas entre 27 UFs), por isso e UMA linha de
+  contexto, nunca o numero que ordena.
 
 Regras da fronteira (as mesmas do export do aluno):
-- le SO de marts (nunca de camada interna);
+- le SO de marts;
 - valida conservacao contra o banco e FALHA ALTO antes de gravar parcial;
-- grava atomico: escreve em .tmp e renomeia no fim.
+- grava atomico (tmp + rename), e o conjunto so e valido se TODOS os
+  arquivos gravarem -- por isso valida tudo antes do primeiro rename.
 
 Uso:
-    python -m export.export_gestor          # grava webapp/dados/geografia.json
+    python -m export.export_gestor
 """
 
 import json
 import os
 import sys
+from collections import defaultdict
 
 import psycopg2
 from dotenv import load_dotenv
 
-DESTINO = os.path.join("webapp", "dados", "geografia.json")
+DESTINO_RAIZ = os.path.join("webapp", "dados", "geografia.json")
+PASTA_MUN = os.path.join("webapp", "dados", "geo_mun")
+DESTINO_INDICE = os.path.join("webapp", "dados", "municipios_indice.json")
 
 UFS_ESPERADAS = 27
-# LC 9 · MT 7 · CN 8 · CH 6 -- 30 competencias no total (Matriz de Referencia)
+# LC 9 · MT 7 · CN 8 · CH 6 -- 30 competencias (Matriz de Referencia)
 COMP_POR_AREA = {"CH": 6, "CN": 8, "LC": 9, "MT": 7}
-
-# 'Todas' precisa existir em TODA UF x area -- e o padrao da tela. As outras
-# passam pelo gate de publicacao por conta propria: a rede municipal tem 205
-# escolas no pais e so publica em 8 UFs, o que e a regra funcionando
 REDE_PADRAO = "Todas"
+REDES_CONHECIDAS = ["Todas", "Estadual", "Privada", "Federal", "Municipal"]
 
 
 def conexao():
@@ -53,162 +62,317 @@ def conexao():
     )
 
 
-def exporta(cur):
-    pacote = {"edicao": 2025, "nivel": "uf", "areas": sorted(COMP_POR_AREA)}
+def k(*partes):
+    return "|".join(str(p) for p in partes)
 
-    # ------------------------------------------------------------- as UFs
-    # a sigla sai do proprio cadastro (derivar, nunca transcrever)
+
+# ---------------------------------------------------------------- TRI (contexto)
+def tabela_tri(cur):
+    """Para cada (area, theta da grade): a competencia em que avancar meio
+    nivel mais devolve acertos. Em LC usa a lingua da MAIORIA -- derivada do
+    proprio banco, nunca transcrita."""
+    cur.execute("""
+        select cod_lingua, sum(n) from marts.mart_calibracao_nota
+        where area = 'LC' group by 1 order by 2 desc
+    """)
+    linhas = [(int(l), float(n)) for l, n in cur.fetchall()]
+    lingua_maioria = linhas[0][0]
+    pct_maioria = round(100.0 * linhas[0][1] / sum(n for _, n in linhas))
+
+    cur.execute("""
+        with h as (
+            select theta, area, competencia,
+                   sum(n_itens)                                   as n_itens,
+                   sum(n_itens * acerto_esperado) / sum(n_itens)  as acerto
+            from marts.mart_perfil_habilidade
+            where cod_lingua is null or cod_lingua = %s
+            group by 1, 2, 3
+        ),
+        ganho as (
+            select a.area, a.theta, a.competencia,
+                   sum(a.n_itens * (b.acerto - a.acerto)) as g
+            from h a
+            join h b on b.area = a.area and b.competencia = a.competencia
+                    and b.theta = a.theta + 0.5
+            group by 1, 2, 3
+        )
+        select distinct on (area, theta) area, theta, competencia
+        from ganho order by area, theta, g desc
+    """, (lingua_maioria,))
+    tri = {(a, float(t)): int(c) for a, t, c in cur.fetchall()}
+    thetas = sorted({t for _, t in tri})
+    rotulo_lc = ("inglês" if lingua_maioria == 0 else "espanhol")
+    return tri, thetas, f"{rotulo_lc}, a língua de {pct_maioria}% dos participantes"
+
+
+def tri_da_media(tri, thetas, area, media_nota):
+    """media da nota -> theta na grade de 0,05 -> competencia que mais rende."""
+    if media_nota is None:
+        return None
+    t = round(((float(media_nota) - 500) / 100.0) / 0.05) * 0.05
+    t = min(max(t, thetas[0]), thetas[-1])
+    return tri.get((area, round(t, 2)))
+
+
+# ------------------------------------------------------------------- extracao
+def exporta(cur):
+    tri_tab, tri_grade, tri_nota_lc = tabela_tri(cur)
+
+    raiz = {"edicao": 2025, "areas": sorted(COMP_POR_AREA),
+            "triLC": tri_nota_lc}
+
     cur.execute("""
         select distinct co_uf, uf, nome_uf, nome_regiao
-        from staging.int_municipio_geografia
-        where co_uf is not null
+        from staging.int_municipio_geografia where co_uf is not null
     """)
-    ufs = {}
-    for cod, sigla, nome, regiao in cur.fetchall():
-        ufs[str(cod)] = [sigla, nome, regiao]
-    pacote["ufs"] = ufs
+    raiz["ufs"] = {str(c): [s, n, r] for c, s, n, r in cur.fetchall()}
 
-    # -------------------------------------------------------- competencias
     cur.execute("""
         select distinct area, competencia, descricao_competencia
         from staging.matriz_referencia
     """)
-    pacote["comp"] = {f"{a}|{c}": d for a, c, d in cur.fetchall()}
+    raiz["comp"] = {k(a, c): d for a, c, d in cur.fetchall()}
 
-    # ------------------------------------------------------ contexto de area
-    # participantes e media da nota por UF x area: e o que da escala humana ao
-    # mapa ("estes 145 mil alunos"), nao um ranking -- a ordenacao da tela e
-    # sempre por perfil
     cur.execute("""
-        select codigo, area, rede, n_presentes, n_escolas, publicavel
+        select distinct area, competencia, n_itens_validos_nacional
+        from marts.mart_geografia_competencia where nivel = 'pais'
+    """)
+    raiz["itens"] = {k(a, c): int(n) for a, c, n in cur.fetchall()}
+
+    # ---------------- contexto (n, escolas, media) por celula publicavel
+    cur.execute("""
+        select nivel, codigo, area, rede, n_presentes, n_escolas, media_nota
         from marts.mart_geografia_area
-        where nivel = 'uf' and publicavel
+        where publicavel and nivel in ('pais', 'uf', 'municipio', 'regiao_imediata')
     """)
-    area = {}
-    for cod, ar, rede, n, escolas, pub in cur.fetchall():
-        area[f"{cod}|{ar}|{rede}"] = [int(n), int(escolas)]
-    pacote["area"] = area
+    ctx = {"pais_uf": {}, "mun": defaultdict(dict), "ri": defaultdict(dict)}
+    tri_out = {"pais_uf": {}, "mun": defaultdict(dict), "ri": defaultdict(dict)}
+    for nivel, cod, ar, rede, n, esc, media in cur.fetchall():
+        val = [int(n), int(esc), round(float(media))]
+        chave = k(cod, ar, rede)
+        t = tri_da_media(tri_tab, tri_grade, ar, media)
+        if nivel in ("pais", "uf"):
+            ctx["pais_uf"][chave] = val
+            if t is not None:
+                tri_out["pais_uf"][chave] = t
+        elif nivel == "municipio":
+            ctx["mun"][cod][k(ar, rede)] = val
+            if t is not None:
+                tri_out["mun"][cod][k(ar, rede)] = t
+        else:
+            ctx["ri"][cod][k(ar, rede)] = val
+            if t is not None:
+                tri_out["ri"][cod][k(ar, rede)] = t
 
-    # ------------------------------------------------------------- o mapa
-    # [competencia, perfil, diferenca, taxa, taxa_nacional, n_itens]
-    # o gate do N minimo e o filtro, nao um enfeite: no nivel UF todas as 27
-    # passam com folga, mas o mesmo codigo vai servir municipio -- onde 1.942
-    # de 5.570 publicam --, e ali a omissao seria silenciosa
-    # n_respostas viaja porque a PRECISAO da medida varia 10x entre as redes:
-    # o erro-padrao medio da taxa e 0,13 pp em 'Todas' e 1,47 pp na municipal
-    # -- que e MAIOR que o desvio-padrao do proprio perfil entre UFs (1,14).
-    # Sem esse numero a tela ordenaria ruido como se fosse conselho.
+    # ---------------- competencias por celula publicavel (status ok)
+    # [comp, taxa (1 casa), perfil (1 casa), n_respostas (a margem sai dele
+    #  no navegador)]. O mart guarda 4 casas e AQUI arredonda-se UMA vez,
+    #  para a casa que a tela exibe -- arredondar duas vezes trocava o
+    #  digito em ~1 de cada 10 celulas (crivo de 01/08/2026)
     cur.execute("""
-        select codigo, area, rede, competencia,
-               perfil, diferenca, taxa_acerto, taxa_acerto_nacional,
-               n_itens_validos, n_respostas, diferenca_area, status
+        select nivel, codigo, area, rede, competencia,
+               taxa_acerto, perfil, n_respostas
         from marts.mart_geografia_competencia
-        where nivel = 'uf' and publicavel
-        order by codigo, area, rede, competencia
+        where publicavel and status = 'ok'
+          and nivel in ('pais', 'uf', 'municipio', 'regiao_imediata')
+        order by nivel, codigo, area, rede, competencia
     """)
-    dados, patamar = {}, {}
-    for (cod, ar, rede, comp, perf, dif, taxa, taxa_nac,
-         n_itens, n_resp, dif_area, status) in cur.fetchall():
-        if status != "ok":
-            continue
-        ch = f"{cod}|{ar}|{rede}"
-        dados.setdefault(ch, []).append([
-            int(comp), float(perf), float(dif),
-            float(taxa), float(taxa_nac), int(n_itens), int(n_resp),
-        ])
-        # a distancia da unidade ate o nacional na area inteira: e o que o
-        # perfil desconta, e a tela mostra para nao esconder o nivel
-        patamar[ch] = round(float(dif_area), 2)
-    pacote["mapa"] = dados
-    pacote["patamar"] = patamar
+    dados = {"pais_uf": defaultdict(list), "mun": defaultdict(lambda: defaultdict(list)),
+             "ri": defaultdict(lambda: defaultdict(list))}
+    for nivel, cod, ar, rede, comp, taxa, perfil, n in cur.fetchall():
+        linha = [int(comp), round(float(taxa), 1), round(float(perfil), 1), int(n)]
+        if nivel in ("pais", "uf"):
+            dados["pais_uf"][k(cod, ar, rede)].append(linha)
+        elif nivel == "municipio":
+            dados["mun"][cod][k(ar, rede)].append(linha)
+        else:
+            dados["ri"][cod][k(ar, rede)].append(linha)
 
-    # as redes que existem, na ordem em que a tela as oferece
+    raiz["ctx"] = ctx["pais_uf"]
+    raiz["dados"] = {c: v for c, v in dados["pais_uf"].items()}
+    raiz["tri"] = tri_out["pais_uf"]
+
     cur.execute("""
         select distinct rede from marts.mart_geografia_competencia
         where nivel = 'uf' and publicavel
     """)
     achadas = {r[0] for r in cur.fetchall()}
-    ordem = ["Todas", "Estadual", "Privada", "Federal", "Municipal"]
-    pacote["redes"] = [r for r in ordem if r in achadas]
-    if achadas - set(ordem):
-        raise SystemExit(f"  ERRO: rede desconhecida no mart: {achadas - set(ordem)}")
+    if achadas - set(REDES_CONHECIDAS):
+        raise SystemExit(f"ERRO: rede desconhecida: {achadas - set(REDES_CONHECIDAS)}")
+    raiz["redes"] = [r for r in REDES_CONHECIDAS if r in achadas]
 
-    return pacote
+    # ---------------- cadastro municipal: nome, regiao imediata, UF
+    # a UF sai do PROPRIO codigo (2 primeiros digitos) e nao do cadastro:
+    # Boa Esperanca do Norte/MT existe no ENEM e nao no Censo 2024 -- pelo
+    # cadastro ela ficaria sem UF e cairia do pacote
+    cur.execute("""
+        select a.codigo,
+               max(a.nome)                    as nome,
+               max(g.co_regiao_imediata)      as ri
+        from marts.mart_geografia_area a
+        left join staging.int_municipio_geografia g on g.co_municipio = a.codigo
+        where a.nivel = 'municipio'
+        group by 1
+    """)
+    municipios = {cod: {"nome": nome, "ri": ri} for cod, nome, ri in cur.fetchall()}
+
+    cur.execute("""
+        select distinct codigo, nome from marts.mart_geografia_area
+        where nivel = 'regiao_imediata'
+    """)
+    nomes_ri = dict(cur.fetchall())
+
+    # ---------------- monta os pacotes por UF
+    pacotes = {}
+    for cod, cad in municipios.items():
+        uf = cod // 100000
+        p = pacotes.setdefault(uf, {"uf": uf, "mun": {}, "ri": {}})
+        entrada = {"nome": cad["nome"]}
+        if cad["ri"] is not None:
+            entrada["ri"] = int(cad["ri"])
+        if cod in ctx["mun"]:
+            entrada["ctx"] = ctx["mun"][cod]
+            entrada["dados"] = dados["mun"][cod]
+            entrada["tri"] = tri_out["mun"][cod]
+        p["mun"][str(cod)] = entrada
+    for cod, cel in ctx["ri"].items():
+        uf = cod // 10000
+        p = pacotes.setdefault(uf, {"uf": uf, "mun": {}, "ri": {}})
+        p["ri"][str(cod)] = {"nome": nomes_ri.get(cod, str(cod)),
+                             "ctx": cel, "dados": dados["ri"][cod],
+                             "tri": tri_out["ri"][cod]}
+
+    # ---------------- indice de busca
+    indice = sorted(
+        [[cod, cad["nome"], raiz["ufs"].get(str(cod // 100000), ["?"])[0],
+          1 if cod in ctx["mun"] else 0]
+         for cod, cad in municipios.items()],
+        key=lambda l: l[1])
+
+    return raiz, pacotes, indice
 
 
-def valida(cur, pacote):
-    """Um mapa parcial no ar pinta um estado de cinza e ninguem percebe --
-    melhor nao gravar."""
+# ------------------------------------------------------------------ validacao
+def valida(cur, raiz, pacotes, indice):
+    """Um pacote parcial no ar e um mapa que mente com confianca."""
     erros = []
 
-    if len(pacote["ufs"]) != UFS_ESPERADAS:
-        erros.append(f"ufs: {len(pacote['ufs'])} unidades, esperadas "
-                     f"{UFS_ESPERADAS}")
+    if len(raiz["ufs"]) != UFS_ESPERADAS:
+        erros.append(f"ufs: {len(raiz['ufs'])}, esperadas {UFS_ESPERADAS}")
+    if len(raiz["comp"]) != 30:
+        erros.append(f"comp: {len(raiz['comp'])}, esperadas 30")
 
-    if len(pacote["comp"]) != 30:
-        erros.append(f"comp: {len(pacote['comp'])} competencias, esperadas 30")
+    # pais e toda UF precisam da rede 'Todas' completa em toda area -- e o
+    # estado inicial da tela
+    for cod in ["0"] + list(raiz["ufs"]):
+        for ar, n_esp in COMP_POR_AREA.items():
+            ch = k(cod, ar, REDE_PADRAO)
+            if ch not in raiz["ctx"]:
+                erros.append(f"ctx: falta {ch}")
+            linhas = raiz["dados"].get(ch, [])
+            if len(linhas) != n_esp:
+                erros.append(f"dados: {ch} com {len(linhas)} competencias, "
+                             f"esperadas {n_esp}")
+            if ch not in raiz["tri"]:
+                erros.append(f"tri: falta {ch}")
 
-    # 'Todas' tem de existir em TODA UF x area -- e o estado inicial da tela.
-    # Sem isso o mapa mostra um buraco cinza que parece "sem dado" quando na
-    # verdade e o export que perdeu a linha
-    for cod in pacote["ufs"]:
-        for ar in COMP_POR_AREA:
-            ch = f"{cod}|{ar}|{REDE_PADRAO}"
-            if ch not in pacote["mapa"]:
-                erros.append(f"mapa: falta {ch}")
-            if ch not in pacote["area"]:
-                erros.append(f"area: falta contexto de {ch}")
+    # toda celula que EXISTE esta completa (vale para municipio tambem --
+    # conferido no banco: nenhuma celula publicavel tem status != ok)
+    def confere_completo(rotulo, dados_cel):
+        for ch, linhas in dados_cel.items():
+            ar = ch.split("|")[-2] if rotulo != "raiz" else ch.split("|")[1]
+            if len(linhas) != COMP_POR_AREA[ar]:
+                erros.append(f"{rotulo}: {ch} com {len(linhas)} competencias")
+                return  # um exemplo basta; a causa e a mesma
+    confere_completo("raiz", raiz["dados"])
+    for uf, p in pacotes.items():
+        for cod, m in p["mun"].items():
+            if "dados" in m:
+                confere_completo(f"mun {cod}", m["dados"])
+        for cod, r in p["ri"].items():
+            confere_completo(f"ri {cod}", r["dados"])
 
-    # toda celula que EXISTE precisa estar completa. Uma rede pode nao
-    # publicar numa UF (a municipal so passa o gate em 8) -- isso e a regra
-    # funcionando --, mas rede que publica com meia lista e linha perdida
-    for ch, linhas in pacote["mapa"].items():
-        _cod, ar, _rede = ch.split("|")
-        if len(linhas) != COMP_POR_AREA[ar]:
-            erros.append(f"mapa: {ch} com {len(linhas)} competencias, "
-                         f"esperadas {COMP_POR_AREA[ar]}")
-        if ch not in pacote["area"]:
-            erros.append(f"area: falta contexto de {ch}")
+    # paridade ctx <-> dados: o JS espera que toda celula com contexto tenha
+    # lista e vice-versa; um lado sem o outro e painel morto em silencio
+    if set(raiz["ctx"]) != set(raiz["dados"]):
+        dif = set(raiz["ctx"]) ^ set(raiz["dados"])
+        erros.append(f"paridade: {len(dif)} celulas em so um de ctx/dados "
+                     f"(ex.: {sorted(dif)[:3]})")
+    for uf, pacote in pacotes.items():
+        for cod, m in list(pacote["mun"].items()) + list(pacote["ri"].items()):
+            if ("ctx" in m) != ("dados" in m) or                ("ctx" in m and set(m["ctx"]) != set(m["dados"])):
+                erros.append(f"paridade: {cod} (UF {uf}) com ctx e dados "
+                             f"divergentes")
+                break
 
-    # o invariante do perfil: ponderado pelas respostas ele zera dentro de
-    # cada UF x area x rede. Aqui nao temos n_respostas por competencia, entao
-    # a checagem e mais fraca de proposito -- media simples com folga larga.
-    # O `dbt test geografia_perfil_soma_zero` e quem trava isso de verdade;
-    # esta guarda so pega o pacote montado ao contrario (sinal trocado,
-    # coluna errada), que deslocaria a media em unidades
-    for ch, linhas in pacote["mapa"].items():
-        media = sum(l[1] for l in linhas) / len(linhas)
-        if abs(media) > 1.5:
-            erros.append(f"perfil: media {media:.2f} em {ch} -- o patamar "
-                         f"nao foi descontado")
+    # conservacao 1: as UFs somam o pais (rede 'Todas', por area)
+    for ar in COMP_POR_AREA:
+        pais = raiz["ctx"].get(k(0, ar, REDE_PADRAO))
+        soma = sum(raiz["ctx"][k(c, ar, REDE_PADRAO)][0] for c in raiz["ufs"]
+                   if k(c, ar, REDE_PADRAO) in raiz["ctx"])
+        if pais and soma != pais[0]:
+            erros.append(f"conservacao: UFs somam {soma:,} em {ar}, "
+                         f"pais tem {pais[0]:,}")
 
-    # conservacao: as 27 UFs cobrem os presentes do pais, na rede 'Todas'.
-    # Somar sem filtrar rede daria o DOBRO nos dois lados e passaria verde
+    # conservacao 2: os municipios de cada UF somam a UF -- CONTRA O BANCO,
+    # porque o pacote so carrega os publicaveis (a soma do pacote e menor por
+    # construcao, e isso nao e defeito)
     cur.execute("""
-        select area, n_presentes from marts.mart_geografia_area
-        where nivel = 'pais' and rede = %s
-    """, (REDE_PADRAO,))
-    for ar, n_pais in cur.fetchall():
-        soma = sum(v[0] for k, v in pacote["area"].items()
-                   if k.endswith(f"|{ar}|{REDE_PADRAO}"))
-        if soma != int(n_pais):
-            erros.append(f"area: as UFs somam {soma:,} presentes em {ar}, "
-                         f"o pais tem {int(n_pais):,}")
+        with mun as (
+            select codigo / 100000 as uf, area, sum(n_presentes) as n
+            from marts.mart_geografia_area
+            where nivel = 'municipio' and rede = %s
+            group by 1, 2
+        )
+        select u.codigo, u.area, u.n_presentes, m.n
+        from marts.mart_geografia_area u
+        join mun m on m.uf = u.codigo and m.area = u.area
+        where u.nivel = 'uf' and u.rede = %s
+          and u.n_presentes is distinct from m.n
+    """, (REDE_PADRAO, REDE_PADRAO))
+    vazou = cur.fetchall()
+    if vazou:
+        erros.append(f"conservacao: {len(vazou)} celulas UF x area em que os "
+                     f"municipios nao somam a UF (ex.: {vazou[:2]})")
 
-    # e as redes somam a 'Todas' dentro de cada UF x area
-    for cod in pacote["ufs"]:
-        for ar in COMP_POR_AREA:
-            todas = pacote["area"].get(f"{cod}|{ar}|{REDE_PADRAO}")
-            if not todas:
-                continue
-            soma = sum(v[0] for r in pacote["redes"] if r != REDE_PADRAO
-                       for v in [pacote["area"].get(f"{cod}|{ar}|{r}")] if v)
-            # menor e esperado: rede que nao publica fica de fora do pacote
-            if soma > todas[0]:
-                erros.append(f"area: as redes de {cod}|{ar} somam {soma:,}, "
-                             f"acima dos {todas[0]:,} de 'Todas'")
+    # o perfil zera dentro da celula (guarda frouxa; o dbt test
+    # geografia_perfil_soma_zero trava com o peso exato)
+    for ch, linhas in raiz["dados"].items():
+        media = sum(l[2] for l in linhas) / len(linhas)
+        if abs(media) > 1.5:
+            erros.append(f"perfil: media {media:.2f} em {ch}")
+
+    # o tri aponta competencia que existe na area
+    for ch, c in raiz["tri"].items():
+        ar = ch.split("|")[1]
+        if k(ar, c) not in raiz["comp"]:
+            erros.append(f"tri: {ch} aponta C{c}, inexistente em {ar}")
+
+    # indice cobre exatamente os municipios do mart
+    cur.execute("select count(distinct codigo) from marts.mart_geografia_area "
+                "where nivel = 'municipio'")
+    n_mart = cur.fetchone()[0]
+    if len(indice) != n_mart:
+        erros.append(f"indice: {len(indice)} municipios, mart tem {n_mart}")
+
+    # a malha municipal precisa existir para toda UF do pacote -- um pacote
+    # sem malha vira um estado que abre e nao desenha
+    for uf in pacotes:
+        if not os.path.exists(os.path.join("webapp", "dados", "malha_mun",
+                                           f"{uf}.json")):
+            erros.append(f"malha: falta webapp/dados/malha_mun/{uf}.json "
+                         f"(rodar ingestion.baixa_malha_municipios)")
 
     return erros
+
+
+def grava(caminho, obj):
+    os.makedirs(os.path.dirname(caminho), exist_ok=True)
+    tmp = caminho + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as fh:
+        json.dump(obj, fh, ensure_ascii=False, separators=(",", ":"))
+    os.replace(tmp, caminho)
+    return os.path.getsize(caminho) / 1024
 
 
 def main():
@@ -216,28 +380,30 @@ def main():
     cur = conn.cursor()
     try:
         print("1. Exportando dos marts")
-        pacote = exporta(cur)
+        raiz, pacotes, indice = exporta(cur)
 
         print("2. Validando conservacao")
-        erros = valida(cur, pacote)
+        erros = valida(cur, raiz, pacotes, indice)
         if erros:
             print("\nFALHA -- nada foi gravado:")
             for e in erros:
                 print(f"  ! {e}")
             sys.exit(1)
-        medidas = sum(len(v) for v in pacote["mapa"].values())
-        print(f"  ok: {len(pacote['ufs'])} UFs | {len(pacote['comp'])} "
-              f"competencias | {len(pacote['redes'])} redes | "
-              f"{medidas} medidas")
+        medidas = sum(len(v) for v in raiz["dados"].values())
+        pub = sum(1 for l in indice if l[3])
+        print(f"  ok: 27 UFs | {medidas} medidas pais+UF | "
+              f"{len(pacotes)} pacotes | {len(indice)} municipios no indice "
+              f"({pub} publicam)")
 
         print("3. Gravando")
-        os.makedirs(os.path.dirname(DESTINO), exist_ok=True)
-        tmp = DESTINO + ".tmp"
-        with open(tmp, "w", encoding="utf-8") as fh:
-            json.dump(pacote, fh, ensure_ascii=False, separators=(",", ":"))
-        os.replace(tmp, DESTINO)
-        kb = os.path.getsize(DESTINO) / 1024
-        print(f"  {DESTINO}: {kb:.0f} KB")
+        kb = grava(DESTINO_RAIZ, raiz)
+        print(f"  {DESTINO_RAIZ}: {kb:.0f} KB")
+        total = 0.0
+        for uf, p in sorted(pacotes.items()):
+            total += grava(os.path.join(PASTA_MUN, f"{uf}.json"), p)
+        print(f"  {PASTA_MUN}/: {len(pacotes)} arquivos, {total/1024:.1f} MB")
+        kb = grava(DESTINO_INDICE, indice)
+        print(f"  {DESTINO_INDICE}: {kb:.0f} KB")
     finally:
         conn.close()
 

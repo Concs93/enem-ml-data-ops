@@ -56,6 +56,13 @@ models:
       - dbt_utils.unique_combination_of_columns:
           combination_of_columns: [co_municipio, rede, area, co_item]
     columns:
+      - name: co_municipio
+        description: >
+          Hoje nenhuma escola vem sem municipio (conferido 01/08/2026), mas se
+          uma edicao futura trouxer, ela entraria no nivel pais do mart de
+          competencia e ficaria FORA do de area - divergencia silenciosa entre
+          os dois. Este not_null e o alarme (achado do crivo adversarial).
+        tests: [not_null]
       - name: rede
         description: >
           Dependencia administrativa da escola de conclusao (Federal,
@@ -65,6 +72,23 @@ models:
           - accepted_values:
               values: ['Todas', 'Federal', 'Estadual', 'Municipal',
                        'Privada', 'Sem cadastro']
+
+  - name: int_nivel_nacional
+    description: >
+      A referencia da face do gestor: quanto o Brasil acerta em cada
+      competencia POR NIVEL DE NOTA (grade de theta de 0,05). Saida minuscula
+      e dela saem os DOIS indicadores - o esperado de cada unidade (ponderando
+      esta tabela pelo histograma dela) e o ganho de um passo (a mesma tabela
+      meio nivel acima). Empirica de proposito: a frase da tela e "do que
+      alunos com a mesma nota", e isso so e literal na versao observada. Piso
+      de 400 respostas por faixa - abaixo disso a taxa vira ruido que se
+      propaga para toda unidade que tiver alguem ali.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: [area, cod_lingua, theta, competencia]
+    columns:
+      - name: taxa_nacional
+        tests: [not_null]
 
   - name: int_acerto_item_nacional
     description: >

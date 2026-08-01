@@ -7,7 +7,9 @@ with participantes as (
         r.co_escola,
         r.co_prova_lc  as co_prova,
         r.cod_lingua,
-        r.respostas_lc as respostas
+        r.respostas_lc as respostas,
+        -- ver a nota de explode_respostas.sql: evita a auto-junta
+        r.nota_lc      as nota
     from {{ ref('stg_resultados') }} r
     join {{ ref('co_prova') }} p
       on p.co_prova = r.co_prova_lc
@@ -26,6 +28,8 @@ itens_do_aluno as (
     select
         p.id_resultado,
         p.co_escola,
+        p.nota,
+        p.cod_lingua,
         p.respostas,
         i.co_item,
         i.habilidade,
@@ -56,6 +60,8 @@ avaliado as (
 select
     id_resultado,
     co_escola,
+    nota,
+    cod_lingua,
     'LC' as area,
     co_item,
     habilidade,

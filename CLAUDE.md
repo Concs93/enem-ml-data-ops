@@ -1005,20 +1005,63 @@ prioridade some e a tela diz *"a margem de cada número é de cerca de ±2,2 pp,
 maior que a distância entre eles. Leia como inventário."* É o mesmo "modo
 manutenção" da face do aluno.
 
-**Próximo: região imediata e município.** O mart já tem os cinco níveis
-construídos (1.966 municípios e as 510 regiões imediatas publicáveis) — falta
-geometria, export e tela. Medido: a malha do IBGE em qualidade mínima dá
-**853 KB** para as 510 regiões e **2,6 MB** para os 5.570 municípios, que
-quebra em ~100 KB por UF, carregado ao clicar.
+### A refatoração do lugar: Brasil ▸ estado ▸ cidade ▸ rede (01/08/2026)
 
-**E o mapa não deve ser o seletor nesse nível** (levantado pelo dono do
-produto): num mapa de 459px — 304px no celular — 5.570 municípios são
-polígonos de poucos pixels. O desenho proposto é **busca por nome** como
-seletor, a **lista** como resposta, e o mapa reduzido à **região imediata da
-cidade** (mediana de 9 municípios, p90 de 19) como contexto. Isso também
-resolve a geometria: 5 a 10 KB por vez em vez de 2,6 MB. Os 3.615 municípios
-que não publicam deixam de ser buracos cinzas — recebem a região imediata
-deles, que publica sempre.
+Direção do dono do produto: *"a pessoa clica, e tem o diagnóstico do país, do
+estado, da cidade e da rede dele — a mesma coisa, dentro do grão dele"* — e
+que fosse **de simples interpretação**. A `redes.html` foi reescrita como
+navegação por grão, com trilha clicável e **busca por nome** como seletor
+(num mapa de 459px ninguém clica num município de poucos pixels).
+
+**A decisão central: números simples na lista, perfil só no mapa.** Medido
+antes de decidir: a ordem da lista é **idêntica** com diferença crua ou com
+perfil em 3.464 de 3.480 casos (o patamar é constante dentro da unidade;
+subtrair constante não reordena). Então a lista mostra o que se confere de
+cabeça — *taxa daqui − taxa do Brasil na mesma rede*, e na cidade também
+*vs o estado* — e o perfil fica onde é insubstituível: **entre** unidades
+(mapa e listas de filhos), onde a diferença crua é 90%+ ranking (ρ 0,91–0,97
+com o nível; o perfil, 0,03–0,08). O perfil também aparece como anotação
+verbal na linha (*"1,3 pp atrás do próprio padrão"*), nunca como segundo
+número competindo.
+
+**Por que comparar com os vizinhos ajuda mas não basta** (medido): municípios
+contra o Brasil dispersam 46,5 em nível; contra o próprio estado, 27,8 —
+corta 40%, não zera. As duas comparações viajam juntas por isso: quando
+divergem muito, *isso* é a informação (problema regional, não municipal).
+
+**O TRI entrou como contexto, não como diagnóstico** — a caixa verde: *"no
+nível médio daqui (nota ~X), o conteúdo em que avançar mais rende é Cn"*,
+do `mart_perfil_habilidade` (ganho de um passo no θ da média). Medido: entre
+27 UFs dá 1 a 3 respostas distintas (as médias das unidades vivem num
+intervalo de 97 pontos contra 117 de dispersão interna — 93,4% da variação
+de nota é DENTRO das unidades, não entre). Em LC usa a língua da maioria
+(inglês, 60% — derivado do banco, não transcrito). O **vetor modal** foi
+descartado com medição: a moda das alternativas acerta 27/43 itens em MT
+onde a pessoa média acerta 32% (viés de ~190 pontos — pluralidade não é
+maioria com 5 alternativas), e amplifica a separação entre redes em 2×.
+
+**Peças novas:** `ingestion/baixa_malha_municipios.py` (27 malhas, 5.570
+municípios, 2,8 MB — 3 casas decimais porque a 0,01° município pequeno
+degenera; o piso de features por UF quase derrubou o DF, que tem UM
+município); `export_gestor.py` v2 com três saídas (raiz 111 KB · 27 pacotes
+por UF 4,6 MB, carregados ao entrar · índice de busca 174 KB) e validação
+que confere conservação município→UF **contra o banco** (o pacote só carrega
+publicáveis, então a soma do pacote é menor por construção — validar contra
+ela seria teste que não pega nada); cidade sem o mínimo roteia para a
+**região imediata** dela, que sempre publica.
+
+**O trabalho do resíduo foi aparcado, não jogado fora** (`enabled=false` em
+`int_acerto_nivel` e `mart_geografia_diagnostico` + 2 testes): o confundimento
+que ele corrige continua real e medido (perfil da C6 de MT com ρ +0,97 contra
+o patamar), mas a leitura comparativa saiu da tela. O `int_nivel_nacional`
+(3.646 linhas, referência empírica por nível de nota) ficou construído e
+ativo. De quebra, as views `int_respostas_*` agora carregam a **nota** — o
+modelo que custou 44,9 min fazia autojunção de `stg_resultados` com ela
+mesma, sondada 220 mi de vezes.
+
+`dbt test` verde e `testa_webapp` 47/47 após a mudança. Verificação
+adversarial em 4 lentes (números banco→JSON→tela, UX/texto, código, export)
+com juiz cético por achado — resultado registrado no commit.
 
 ### Etapa 4 — o que ficou de pé
 

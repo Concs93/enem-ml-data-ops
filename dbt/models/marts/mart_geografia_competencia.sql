@@ -205,16 +205,20 @@ select
     nivel, codigo, nome, rede, area, competencia, descricao_competencia,
     n_itens_validos, n_itens_validos_nacional, n_respostas, publicavel, status,
 
-    round(taxa, 2)                          as taxa_acerto,
-    round(taxa_nac, 2)                      as taxa_acerto_nacional,
-    round(taxa - taxa_nac, 2)               as diferenca,
+    -- 4 casas, nao 2: o export arredonda para a casa DA TELA, e arredondar
+    -- duas vezes troca o digito exibido em ~1 de cada 10 celulas (36,7477
+    -- -> 36,75 -> 36,8, quando o certo e 36,7). Achado do crivo adversarial
+    -- de 01/08/2026, verificado contra o grao: arredonda-se UMA vez
+    round(taxa, 4)                          as taxa_acerto,
+    round(taxa_nac, 4)                      as taxa_acerto_nacional,
+    round(taxa - taxa_nac, 4)               as diferenca,
 
-    round(taxa_area, 2)                     as taxa_area,
-    round(taxa_area - taxa_area_nac, 2)     as diferenca_area,
+    round(taxa_area, 4)                     as taxa_area,
+    round(taxa_area - taxa_area_nac, 4)     as diferenca_area,
 
     -- o numero que o mapa pinta: a diferenca DEPOIS de descontar o patamar
     -- da unidade. Positivo = esta competencia vai melhor do que o resto da
     -- area nesta rede; negativo = fica para tras alem do nivel geral
-    round((taxa - taxa_nac) - (taxa_area - taxa_area_nac), 2) as perfil
+    round((taxa - taxa_nac) - (taxa_area - taxa_area_nac), 4) as perfil
 
 from calculado

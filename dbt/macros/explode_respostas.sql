@@ -9,7 +9,12 @@ with participantes as (
         r.co_escola,
         r.co_prova_{{ s }}   as co_prova,
         r.respostas_{{ s }}  as respostas,
-        r.gabarito_{{ s }}   as gabarito
+        r.gabarito_{{ s }}   as gabarito,
+        -- a nota viaja junto porque quem precisa dela (o diagnostico por
+        -- nivel) teria de juntar stg_resultados COM ELA MESMA -- a view ja
+        -- le essa tabela, entao a coluna sai de graca aqui e poupa uma
+        -- auto-junta de 4,8 mi de linhas sondada 220 mi de vezes
+        r.nota_{{ s }}       as nota
     from {{ ref('stg_resultados') }} r
     join {{ ref('co_prova') }} p
       on p.co_prova = r.co_prova_{{ s }}
@@ -26,6 +31,7 @@ explodido as (
         p.id_resultado,
         p.co_escola,
         p.co_prova,
+        p.nota,
         pos.posicao,
         substring(p.respostas from pos.posicao for 1) as resposta,
         substring(p.gabarito  from pos.posicao for 1) as gabarito
@@ -37,6 +43,7 @@ explodido as (
 select
     e.id_resultado,
     e.co_escola,
+    e.nota,
     '{{ sigla | upper }}'  as area,
     i.co_item,
     i.habilidade,
