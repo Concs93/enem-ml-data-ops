@@ -382,14 +382,47 @@ const notaTxt = v => (Math.round(v*10)/10).toString().replace(".", ",");
 // por prova). As 40 comuns nao levam marca -- elas valem para as duas linguas,
 // e marcar tudo faria a distincao perder o sentido
 const LING_CURTA = {0: "ING", 1: "ESP"};
+
+// O banco guarda a posicao no CATALOGO da area (1-45, e 1-50 em LC porque o
+// catalogo carrega as duas linguas). O caderno que a pessoa teve na mao
+// numera as quatro areas em sequencia -- e e esse numero que serve para
+// achar a questao na prova. Em LC as 5 da lingua dela viram 1-5 e as 40
+// comuns (catalogo 11-50) viram 6-45; a INTERCALACAO das linguas em 1-10
+// muda a cada edicao (medido nas seis), entao o posto e derivado dos dados,
+// nunca transcrito. Mesma conta do corrigeCaderno do nivel 3
+let _lcPosto = null;
+function lcPosto(){
+  if(_lcPosto) return _lcPosto;
+  _lcPosto = {};
+  const porEd = {};
+  for(const ch in (M.questoes||{})){
+    if(ch.slice(0, 2) !== "LC") continue;
+    for(const it of M.questoes[ch]){
+      if(it[2] == null) continue;
+      const c = `${it[0]}|${it[2]}`;
+      (porEd[c] = porEd[c] || new Set()).add(it[1]);
+    }
+  }
+  for(const c in porEd)
+    [...porEd[c]].sort((a, b) => a - b)
+      .forEach((p, i) => { _lcPosto[`${c}|${p}`] = i + 1; });
+  return _lcPosto;
+}
+function numCaderno(sig, ed, pos, linItem){
+  if(sig !== "LC") return OFFSET[sig] + pos;
+  if(pos > 10) return pos - 5;
+  return lcPosto()[`${ed}|${linItem}|${pos}`] || pos;
+}
+
 function questoesTxt(sig, lin, hab){
   const qs = (M.questoes||{})[k(sig, sig==="LC" ? lin : null, hab)] || [];
   if(!qs.length) return "";
   const itens = qs.map(q => {
     const marca = q[2] != null ? `<em>${LING_CURTA[q[2]]||""}</em>` : "";
-    return `<span class="qref">Q${q[1]}${marca}<i>ENEM ${q[0]}</i></span>`;
+    return `<span class="qref">Q${numCaderno(sig, q[0], q[1], q[2])}${marca}`
+      + `<i>ENEM ${q[0]}</i></span>`;
   }).join("");
-  return `<div class="qrefs" title="posições no caderno azul — nas outras cores a mesma questão tem outro número">${itens}</div>`;
+  return `<div class="qrefs" title="numeração do caderno azul (LC 1–45 · CH 46–90 · CN 91–135 · MT 136–180) — nas outras cores a mesma questão tem outro número">${itens}</div>`;
 }
 
 const _limites = {};

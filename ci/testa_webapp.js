@@ -60,7 +60,7 @@ const epilogo = `
   faixaDisponivel, curvaAcertos, notaPorAcertos, motorArea,
   corrigeCaderno, padraoSuspeito, cartaoArea, cartaoEstudo,
   erroPadrao, itensDaArea, get NOS_QUAD(){ return NOS_QUAD }, resumoDesc,
-  limitesNota, reparte, V, cortesDesempenho,
+  limitesNota, reparte, V, cortesDesempenho, numCaderno,
 };`;
 vm.runInContext(script + epilogo, sandbox);
 const X = sandbox.X;
@@ -723,7 +723,51 @@ function passoDaArea(a) {
     espera(/já está no alto/.test(h), "MT 960 sem o cartao de topo");
   });
 
-  
+  caso("cartao de estudo: numeracao do caderno real, e LC renumerada por edicao", () => {
+    // O banco guarda a posicao no CATALOGO da area (1-45; 1-50 em LC, que
+    // carrega as duas linguas). Quem procura a questao na prova precisa do
+    // numero do CADERNO -- MT e 136-180, nao 1-45.
+    //
+    // A faixa sozinha NAO trava o bug: um `pos-5` ingenuo em LC tambem cai
+    // em 1-45. O que trava e a injecao (duas posicoes nunca podem virar o
+    // mesmo numero no mesmo caderno) mais a exigencia de que as 5 questoes
+    // de lingua ocupem exatamente {1,2,3,4,5} -- e a intercalacao delas em
+    // 1-10 muda a cada edicao, entao so acerta quem deriva dos dados
+    const BLOCO = { LC: [1, 45], CH: [46, 90], CN: [91, 135], MT: [136, 180] };
+    const cadernos = {};    // area|lingua|edicao -> {pos -> numero}
+    const daLingua = {};    // idem -> numeros das questoes de lingua
+    for (const ch in X.M.questoes) {
+      const [sig, lin] = ch.split("|");
+      for (const it of X.M.questoes[ch]) {
+        const [ed, pos, linItem] = it;
+        const n = X.numCaderno(sig, ed, pos, linItem);
+        const [lo, hi] = BLOCO[sig];
+        espera(Number.isInteger(n) && n >= lo && n <= hi,
+          `${sig} ed ${ed} pos ${pos}: caderno ${n} fora de ${lo}-${hi}`);
+        const c = `${sig}|${lin}|${ed}`;
+        cadernos[c] = cadernos[c] || {};
+        espera(cadernos[c][pos] === undefined || cadernos[c][pos] === n,
+          `${c} pos ${pos} virou dois numeros`);
+        cadernos[c][pos] = n;
+        if (linItem != null) (daLingua[c] = daLingua[c] || []).push(n);
+      }
+    }
+    let nLC = 0;
+    for (const c in cadernos) {
+      const nums = Object.values(cadernos[c]);
+      espera(new Set(nums).size === nums.length,
+        `${c}: duas posicoes do catalogo caem no mesmo numero de caderno`);
+      if (c.slice(0, 2) !== "LC") continue;
+      nLC++;
+      espera(JSON.stringify([...new Set(daLingua[c])].sort((a, b) => a - b))
+             === "[1,2,3,4,5]",
+        `${c}: as questoes de lingua estrangeira nao ocupam 1-5 `
+        + `(deram ${[...new Set(daLingua[c] || [])].sort((a, b) => a - b)})`);
+    }
+    espera(nLC === 12, `esperava 6 edicoes x 2 linguas em LC, vieram ${nLC}`);
+  });
+
+
   console.log(falhas.length
     ? `\n${falhas.length} FALHA(S): ${falhas.join(" | ")}`
     : "\ntodos os casos passaram");
