@@ -149,32 +149,45 @@ def exporta(cur):
             [int(comp), round(float(taxa), 1), int(n)])
     pacote["dados"] = dict(dados)
 
-    # ------------------- pontos na media: fechar a distancia para o Brasil
-    # Cenario NOMEADO (a melhoria "X%" generica nao existe): se esta rede
-    # acertasse, em cada competencia em que esta atras, o que o Brasil da
-    # mesma rede acerta, quantos pontos a MEDIA subiria. Convertido pela
-    # curva acertos->nota (nao por inclinacao local: o fator varia de ~32 a
-    # ~14 pts/acerto ao longo da escala) e PARTICIONADO para as partes
-    # somarem o total -- a licao da face do aluno ("somar e exatamente a
-    # conferencia que o leitor faz").
+    # --------------- pontos na media: o POTENCIAL de um passo de avanco
+    # Cenario da face do aluno aplicado ao estado (pedido do dono do
+    # produto: "o potencial de crescimento, mesmo que esteja no topo"): se
+    # os alunos avancarem MEIO NIVEL, quantos acertos cada competencia
+    # devolve -- calculado com as curvas nacionais sobre a DISTRIBUICAO real
+    # de notas daquele estado/rede (int_uf_nivel x int_estudo_referencia),
+    # nunca sobre a media (theta(media) != media(theta), ja medido).
+    # Convertido pela curva acertos->nota e PARTICIONADO para as partes
+    # somarem o total -- a conferencia que o leitor faz. Funciona para MG
+    # como para MA: todo mundo tem um proximo passo.
+    cur.execute("""
+        select coalesce(w.co_uf, 0) as co_uf, w.rede, w.area, r.competencia,
+               sum(w.n * r.ganho) / sum(w.n) as ganho
+        from staging.int_uf_nivel w
+        join staging.int_estudo_referencia r
+          on r.area = w.area
+         and r.cod_lingua = w.cod_lingua
+         and r.theta = w.theta
+        group by grouping sets ((w.co_uf, w.rede, w.area, r.competencia),
+                                (w.rede, w.area, r.competencia))
+    """)
+    ganhos = defaultdict(dict)
+    for cod, rede, ar, comp, g in cur.fetchall():
+        ganhos[k(cod, ar, rede)][int(comp)] = float(g)
+
     curvas = curva_acertos_nota(cur)
     pacote["pts"] = {}
     for ch, linhas in list(pacote["dados"].items()):
         cod, ar, rede = ch.split("|")
-        if cod == "0":
-            continue
-        br = {l[0]: l[1] for l in pacote["dados"].get(k(0, ar, rede), [])}
         ctx = pacote["ctx"].get(ch)
-        if not br or not ctx or not ctx[0]:
+        ganho_cel = ganhos.get(ch)
+        if not ctx or not ctx[0] or not ganho_cel:
             continue
         presentes = ctx[0]
-        # questoes POR ALUNO da competencia = respostas / presentes (em LC a
-        # C2 tem 10 itens distintos mas cada aluno responde 5 -- e por isso
-        # que n_respostas, e nao n_itens, e o divisor certo)
+        # questoes POR ALUNO = respostas / presentes (em LC a C2 tem 10
+        # itens distintos mas cada aluno responde 5)
         q_aluno = {l[0]: l[2] / presentes for l in linhas}
         atual = sum(l[1] / 100 * q_aluno[l[0]] for l in linhas)
-        delta = {l[0]: max(0.0, (br.get(l[0], 0) - l[1]) / 100) * q_aluno[l[0]]
-                 for l in linhas}
+        delta = {l[0]: max(0.0, ganho_cel.get(l[0], 0.0)) for l in linhas}
         total_delta = sum(delta.values())
         curva = curvas[ar]
         total_pts = (nota_de_acertos(curva, atual + total_delta)
@@ -247,6 +260,13 @@ def valida(cur, pacote):
         if pais and soma != pais[0]:
             erros.append(f"conservacao: UFs somam {soma:,} em {ar}, "
                          f"pais tem {pais[0]:,}")
+
+    # toda celula publicavel tem o potencial calculado -- celula sem pts e
+    # painel sem resposta em silencio
+    sem = [ch for ch in pacote["ctx"] if ch not in pacote["pts"]]
+    if sem:
+        erros.append(f"pts: {len(sem)} celulas publicaveis sem potencial "
+                     f"(ex.: {sorted(sem)[:3]})")
 
     # as partes dos pontos somam o total (a conferencia que o leitor faz)
     for ch, total in pacote["pts"].items():

@@ -73,6 +73,36 @@ models:
               values: ['Todas', 'Federal', 'Estadual', 'Municipal',
                        'Privada', 'Sem cadastro']
 
+  - name: int_uf_nivel
+    description: >
+      Quantos alunos cada UF x REDE tem em cada nivel de nota (grade de
+      theta 0,05, lingua em LC com sentinela -1) - os pesos do potencial de
+      crescimento por estado. UF e rede vem direto do stg_resultados; a rede
+      'Todas' e LINHA (grouping sets) - somar sem filtrar conta duas vezes.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: [co_uf, rede, area, cod_lingua, theta]
+    columns:
+      - name: n
+        tests: [not_null]
+
+  - name: int_estudo_referencia
+    description: >
+      O motor da face do aluno como tabela - acertos que um passo de meio
+      nivel devolve por (area, lingua, theta, competencia). Materializada de
+      proposito: como CTE ao lado de join grande, o planejador estima rows=1
+      e cai em laco aninhado (duas versoes canceladas, 51 e 20+ min).
+      cod_lingua com sentinela -1 (igualdade hasheavel).
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: [area, cod_lingua, theta, competencia]
+    columns:
+      - name: ganho
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+
   - name: int_nivel_nacional
     description: >
       A referencia da face do gestor: quanto o Brasil acerta em cada

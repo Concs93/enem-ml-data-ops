@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Quantos pontos a sua rede pode subir — ENEM em foco</title>
+<title>Onde o próximo passo rende mais — ENEM em foco</title>
 <style>
   :root{
     --bg:#fbfaf7; --surface:#ffffff; --text:#20211f; --muted:#5f625d;
@@ -135,10 +135,11 @@
   </nav>
 </header>
 <main>
-  <h1>Quantos pontos a sua rede pode subir — e onde</h1>
-  <p class="lede">Se os concluintes do seu estado acertassem, onde estão
-  atrás, o que o Brasil da mesma rede acerta, quantos pontos a média subiria
-  — repartidos pelas competências da Matriz, para dizer o que ensinar.</p>
+  <h1>Onde o próximo passo rende mais pontos</h1>
+  <p class="lede">Se os concluintes do seu estado avançarem um passo no
+  aprendizado, quantos pontos a média sobe — e em quais competências da
+  Matriz esse passo rende mais. Vale para todo mundo, inclusive quem já
+  está na frente: sempre há um próximo passo.</p>
 
   <div class="abas" role="group" aria-label="Área de conhecimento">
     <button type="button" data-area="CH" aria-pressed="false">Humanas</button>
@@ -169,17 +170,23 @@
 
   <details class="metodo">
     <summary>Como este número é calculado</summary>
-    <p><b>O cenário.</b> Para cada competência da Matriz em que o estado
-    acerta menos que o Brasil <b>na mesma rede</b>, calculamos quantos
-    acertos por aluno faltam para igualar. A soma vira pontos pela ponte
-    acertos→nota, medida nos 1,3 milhão de concluintes de cada área — e é
-    <b>repartida</b> entre as competências na proporção do que falta em cada
-    uma, para as partes somarem o total (a conferência que o leitor faz).</p>
-    <p><b>O que ele não diz.</b> A conversão nível↔nota carrega ~±13 pontos
-    de imprecisão, documentada; e a média real se move ensinando tudo, não
-    só redistribuindo esforço. Competência em que o estado já está acima do
-    Brasil aparece com ✓ — não há distância a fechar ali, e a taxa dos dois
-    fica na linha para conferência.</p>
+    <p><b>O cenário.</b> O mesmo passo da página do estudante, aplicado ao
+    estado: um avanço de <b>meio nível</b> na escala do ENEM. Para cada
+    competência, as curvas oficiais dos itens de 2025 dizem quantos acertos
+    esse passo devolve — calculado sobre a <b>distribuição real de notas</b>
+    dos concluintes daquele estado e rede, nunca sobre a média (o conselho
+    muda ao longo da escala, e 93% da variação de nota vive dentro de cada
+    estado). A soma vira pontos pela ponte acertos→nota, medida nos 1,3
+    milhão de concluintes de cada área, e é <b>repartida</b> entre as
+    competências na proporção do que cada uma devolve — as partes somam o
+    total, que é a conferência que o leitor faz.</p>
+    <p><b>O que ele não diz.</b> O total varia pouco de um lugar para outro
+    (meio nível vale ~50 pontos por definição da escala; a ponte empírica
+    carrega ~±13 de imprecisão, documentada) — <b>a informação está em ONDE
+    o passo rende</b>, e isso muda principalmente entre redes: a estadual e
+    a privada têm distribuições de nota muito diferentes, e o mesmo passo
+    rende em competências diferentes. As taxas de acerto ficam em cada
+    linha para conferência.</p>
     <p><b>Quem está aqui.</b> Só quem estava <b>concluindo o ensino médio em
     2025</b> e fez prova regular — 1,7 milhão de pessoas; treineiros e quem
     já tinha concluído ficam de fora. Um recorte é publicado com ao menos
@@ -332,10 +339,8 @@ function dicaDe(cod){
       + `abaixo do mínimo para publicar (3 escolas e 50 participantes).`;
   }
   const t = G.pts[chave(cod)];
-  return `<b>${nome}</b> — ` + (t > 0
-    ? `fechar as distâncias para o Brasil${NA_REDE[rede]} valeria `
-      + `<b>≈ +${t} pontos</b> na média.`
-    : `acima do Brasil${NA_REDE[rede]} em todas as competências.`);
+  return `<b>${nome}</b> — um passo de avanço${NA_REDE[rede]} valeria `
+    + `<b>≈ +${t} pontos</b> na média. Clique para ver onde ele rende mais.`;
 }
 
 // ------------------------------------------------------------- painel
@@ -345,39 +350,30 @@ function desenhaPainel(){
   $("total").innerHTML = "";
   const tituloRede = rede === "Todas" ? "" : ` · rede ${ROT_REDE[rede].toLowerCase()}`;
 
+  const cod = uf === null ? 0 : uf;
+  const nome = uf === null ? "Brasil" : G.ufs[uf][1];
   if(uf === null){
     cam.innerHTML = "<b>Brasil</b>";
-    $("pan-tit").textContent = `Brasil — ${NOME_AREA[area]}${tituloRede}`;
-    const ctx = G.ctx[chave(0)];
-    $("pan-sub").textContent = ctx
-      ? `${ctx[1].toLocaleString("pt-BR")} escolas · `
-        + `${ctx[0].toLocaleString("pt-BR")} participantes · média ${ctx[2]} · `
-        + `clique num estado para ver quantos pontos ele pode subir`
-      : "";
-    filhos();
-    return;
+  } else {
+    cam.innerHTML = `<button type="button">Brasil</button> ▸ <b>${nome}</b>`;
+    cam.querySelector("button").addEventListener("click", () => { uf = null; render(); });
   }
-
-  cam.innerHTML = `<button type="button">Brasil</button> ▸ <b>${G.ufs[uf][1]}</b>`;
-  cam.querySelector("button").addEventListener("click", () => { uf = null; render(); });
-
-  const nome = G.ufs[uf][1];
   $("pan-tit").textContent = `${nome} — ${NOME_AREA[area]}${tituloRede}`;
-  const ctx = G.ctx[chave(uf)];
-  const rows = dadosDe(uf);
+  const ctx = G.ctx[chave(cod)];
+  const rows = dadosDe(cod);
 
   if(!ctx || !rows){
     $("pan-sub").textContent = "";
     const li = document.createElement("li");
     li.className = "vazio";
-    const nEsc = G.esc[chave(uf)];
+    const nEsc = G.esc[chave(cod)];
     li.textContent = (rede !== "Todas" && !nEsc)
       ? `${nome} não tem escola${NA_REDE[rede].replace(" na", " da")} com `
         + `concluintes no ENEM 2025. `
       : `${nome} ${nEsc ? `tem ${nEsc} escola${nEsc === 1 ? "" : "s"}`
           + `${NA_REDE[rede]} — abaixo` : "fica abaixo"} do mínimo para `
         + `publicar${NA_REDE[rede]} (3 escolas e 50 participantes). `;
-    if(rede !== "Todas" && G.dados[`${uf}|${area}|Todas`]){
+    if(rede !== "Todas" && G.dados[`${cod}|${area}|Todas`]){
       const b = document.createElement("button");
       b.type = "button";
       b.textContent = `Ver ${nome} em todas as redes →`;
@@ -389,19 +385,16 @@ function desenhaPainel(){
     return;
   }
 
-  const brRows = dadosDe(0) || [];
+  const brRows = uf === null ? [] : (dadosDe(0) || []);
   const brDe = c => brRows.find(l => l[COMP] === c);
   $("pan-sub").textContent =
     `${ctx[1].toLocaleString("pt-BR")} escolas · `
     + `${ctx[0].toLocaleString("pt-BR")} participantes · média ${ctx[2]}`;
 
-  const total = G.pts[chave(uf)] ?? 0;
-  $("total").innerHTML = total > 0
-    ? `<p class="total">Fechar as distâncias para o Brasil${NA_REDE[rede]} `
-      + `valeria <b>≈ +${total} pontos</b> na média — repartidos assim:</p>`
-    : `<p class="total zen">${nome} está acima do Brasil${NA_REDE[rede]} em `
-      + `todas as competências — não há distância a fechar. As taxas ficam `
-      + `abaixo, para conferência.</p>`;
+  const total = G.pts[chave(cod)] ?? 0;
+  $("total").innerHTML =
+    `<p class="total">Um passo de avanço no aprendizado${NA_REDE[rede]} `
+    + `valeria <b>≈ +${total} pontos</b> na média — e rende mais aqui:</p>`;
 
   // guarda de margem: com poucos participantes (rede municipal em UF
   // pequena), a taxa que sustenta o calculo e ruidosa -- declara
@@ -423,7 +416,7 @@ function desenhaPainel(){
       + `${G.comp[`${area}|${l[COMP]}`] || ""}</span>`
       + (l[PTS] > 0
          ? `<span class="val">+${l[PTS]}<em>pts na média</em></span>`
-         : `<span class="val zen">✓<em>acima do Brasil</em></span>`)
+         : `<span class="val zen">rende depois<em>dos primeiros</em></span>`)
       + `<span class="pista">`
       + (nQ ? `medido em ${nQ} ${nQ === 1 ? "questão" : "questões"} · ` : "")
       + `acertam ${pct(l[TAXA])}`

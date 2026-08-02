@@ -1165,6 +1165,32 @@ os ±13 da ponte.
 O perfil e a infraestrutura ficam nos marts (computo e testes) — a tela é
 que enxugou.
 
+### O potencial do passo: a TRI voltou como o número da tela (02/08/2026)
+
+Ajuste final do dono do produto: *"não queria que 'fechasse' a distância da
+média — queria o potencial de crescimento, mesmo que esteja no topo. Aí
+entra a TRI: usar os vetores e as notas que temos para construir o por
+estado."* O cenário da tela trocou: de "alcançar o Brasil" (que zerava para
+MG) para **um passo de avanço de meio nível** — o mesmo passo da face do
+aluno, integrado sobre a **distribuição real de notas** de cada estado ×
+rede (nunca sobre a média; θ(média) ≠ média(θ), já medido).
+
+Duas peças reconstruídas com dono novo: `int_uf_nivel` (pesos por UF × rede
+× língua × θ, direto do `stg_resultados` — 50.451 linhas) e
+`int_estudo_referencia` (o motor como tabela, 6.279 linhas — materializada
+pela lição do rows=1). O export junta as duas num hash join, converte pela
+ponte acertos→nota e **reparte** (partes somam o total, validado e
+conferido na tela).
+
+**A honestidade central, declarada no método:** o total varia pouco entre
+lugares (~48–52; meio nível vale ~50 por definição da escala — a
+coincidência é a sanidade da conta) — **a informação está em ONDE o passo
+rende**, e isso muda principalmente **entre redes**: a estadual do MA
+concentra em C1 (13 de 48) com C7 quase nulo (4); a privada de MG espalha
+para C2 e C7 (9 e 8). É a medição de 31/07 (estadual→C1/C7, privada→C2)
+virando produto. O Brasil ganhou o próprio painel — a página abre com o
+potencial do país repartido, não com um convite vazio.
+
 ### Etapa 4 — o que ficou de pé
 
 Schema `marts` (sem prefixo, via `generate_schema_name`), três modelos e quatro
