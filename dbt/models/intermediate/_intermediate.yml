@@ -73,6 +73,25 @@ models:
               values: ['Todas', 'Federal', 'Estadual', 'Municipal',
                        'Privada', 'Sem cadastro']
 
+  - name: int_nivel_por_nota
+    description: >
+      A ponte nota -> nivel como tabela de consulta: o theta_efetivo de cada
+      faixa de 10 pontos que a edicao produziu. Existe porque os pesos de UF
+      e municipio precisam do MESMO theta da face do aluno - a formula da
+      escala, (nota-500)/100, e a definicao do INEP mas e outra quantidade, e
+      a errada para somar ao acerto observado. Cobertura completa por
+      construcao (faixas dos extremos fisicos, nao da calibracao); faixa rala
+      herda a vizinha calibrada e a coluna theta_de_vizinha diz quais.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: [area, cod_lingua, nota_faixa]
+    columns:
+      - name: theta
+        description: >
+          Nulo aqui apagaria participante no join a jusante - o INNER
+          descarta sem erro nenhum.
+        tests: [not_null]
+
   - name: int_uf_nivel
     description: >
       Quantos alunos cada UF x REDE tem em cada nivel de nota (grade de

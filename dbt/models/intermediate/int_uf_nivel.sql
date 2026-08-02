@@ -9,6 +9,11 @@
 -- nota 805 da 2,35 pela TCC contra 3,05 pela escala), e 93,4% da variacao
 -- de nota vive DENTRO das unidades.
 --
+-- O NIVEL vem do int_nivel_por_nota (theta_efetivo da faixa), nao de
+-- (nota-500)/100 -- ver o cabecalho daquele modelo para o porque e para o
+-- que a troca mudou. O join e por igualdade contra uma tabela de algumas
+-- centenas de linhas, com cobertura completa da escala por construcao.
+--
 -- A UF e a rede vem DIRETO do stg_resultados (co_uf_escola e
 -- cod_dependencia_escola estao na propria base de resultados) -- sem junta
 -- com dim_escola. A rede 'Todas' e LINHA (grouping sets): o consumidor que
@@ -24,11 +29,14 @@ with alunos as (
         d.rotulo       as rede,
         '{{ a | upper }}' as area,
         {% if a == 'lc' %}r.cod_lingua{% else %}-1{% endif %} as cod_lingua,
-        greatest(-3.00, least(5.00,
-            round(((r.nota_{{ a }} - 500) / 100.0) / 0.05) * 0.05))::numeric(5,2) as theta
+        nv.theta
     from {{ ref('stg_resultados') }} r
     join {{ ref('co_prova') }} p
       on p.co_prova = r.co_prova_{{ a }} and p.sg_area = '{{ a | upper }}'
+    join {{ ref('int_nivel_por_nota') }} nv
+      on nv.area = '{{ a | upper }}'
+     and nv.cod_lingua = {% if a == 'lc' %}r.cod_lingua{% else %}-1{% endif %}
+     and nv.nota_faixa = (floor(r.nota_{{ a }} / 10) * 10)::int
     -- o rotulo da rede sai do seed de dominios (derivar, nunca transcrever)
     join {{ ref('dominios') }} d
       on d.variavel = 'TP_DEPENDENCIA_ADM_ESC'

@@ -6,7 +6,8 @@
 -- Quantos alunos cada MUNICIPIO x REDE tem em cada nivel de nota -- os
 -- pesos do potencial de crescimento por cidade, mesmo desenho do
 -- int_uf_nivel (municipio e rede vem direto do stg_resultados; rede
--- 'Todas' e LINHA via grouping sets; lingua de LC com sentinela -1).
+-- 'Todas' e LINHA via grouping sets; lingua de LC com sentinela -1; o
+-- nivel vem do int_nivel_por_nota, nao da formula da escala).
 --
 -- Grao de COMPUTO para todas as cidades; quais publicam e decisao do gate
 -- no mart_geografia_area, aplicada no export.
@@ -21,11 +22,14 @@ with alunos as (
         d.rotulo              as rede,
         '{{ a | upper }}'     as area,
         {% if a == 'lc' %}r.cod_lingua{% else %}-1{% endif %} as cod_lingua,
-        greatest(-3.00, least(5.00,
-            round(((r.nota_{{ a }} - 500) / 100.0) / 0.05) * 0.05))::numeric(5,2) as theta
+        nv.theta
     from {{ ref('stg_resultados') }} r
     join {{ ref('co_prova') }} p
       on p.co_prova = r.co_prova_{{ a }} and p.sg_area = '{{ a | upper }}'
+    join {{ ref('int_nivel_por_nota') }} nv
+      on nv.area = '{{ a | upper }}'
+     and nv.cod_lingua = {% if a == 'lc' %}r.cod_lingua{% else %}-1{% endif %}
+     and nv.nota_faixa = (floor(r.nota_{{ a }} / 10) * 10)::int
     join {{ ref('dominios') }} d
       on d.variavel = 'TP_DEPENDENCIA_ADM_ESC'
      and d.codigo = r.cod_dependencia_escola::text
