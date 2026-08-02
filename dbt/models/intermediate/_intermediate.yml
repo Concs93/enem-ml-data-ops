@@ -86,6 +86,19 @@ models:
       - name: n
         tests: [not_null]
 
+  - name: int_municipio_nivel
+    description: >
+      Quantos alunos cada MUNICIPIO x REDE tem em cada nivel de nota - os
+      pesos do potencial por cidade, mesmo desenho do int_uf_nivel. Grao de
+      computo para todas as cidades; o gate de publicacao e aplicado no
+      export a partir do mart_geografia_area.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: [co_municipio, rede, area, cod_lingua, theta]
+    columns:
+      - name: n
+        tests: [not_null]
+
   - name: int_estudo_referencia
     description: >
       O motor da face do aluno como tabela - acertos que um passo de meio

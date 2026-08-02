@@ -303,7 +303,7 @@ models:
         tests:
           - not_null
           - accepted_values:
-              values: ['uf', 'regiao', 'pais']
+              values: ['municipio', 'uf', 'regiao', 'pais']
       - name: nome
         tests: [not_null]
       - name: publicavel

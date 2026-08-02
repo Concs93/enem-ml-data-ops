@@ -96,6 +96,43 @@ def nota_de_acertos(curva, ac):
     return curva[-1][1]
 
 
+def aplica_pts(dados_cel, ctx_cel, ganhos_cel, curvas):
+    """Anexa a parte de cada competencia as linhas e devolve o total da
+    celula. A MESMA conta para pais, estado e cidade: passo integrado sobre
+    a distribuicao real, curva acertos->nota, particao por resto maior."""
+    pts = {}
+    for ch, linhas in dados_cel.items():
+        ar = ch.split("|")[-2]
+        ctx = ctx_cel.get(ch)
+        ganho_cel = ganhos_cel.get(ch)
+        if not ctx or not ctx[0] or not ganho_cel:
+            continue
+        presentes = ctx[0]
+        q_aluno = {l[0]: l[2] / presentes for l in linhas}
+        atual = sum(l[1] / 100 * q_aluno[l[0]] for l in linhas)
+        delta = {l[0]: max(0.0, ganho_cel.get(l[0], 0.0)) for l in linhas}
+        total_delta = sum(delta.values())
+        curva = curvas[ar]
+        total_pts = (nota_de_acertos(curva, atual + total_delta)
+                     - nota_de_acertos(curva, atual)) if total_delta > 1e-9 else 0.0
+        total_int = round(total_pts)
+        if total_int > 0 and total_delta > 0:
+            brutas = {c: total_pts * d / total_delta for c, d in delta.items()}
+            partes = {c: int(v) for c, v in brutas.items()}
+            sobra = total_int - sum(partes.values())
+            for c, _ in sorted(brutas.items(), key=lambda x: -(x[1] % 1)):
+                if sobra <= 0:
+                    break
+                partes[c] += 1
+                sobra -= 1
+        else:
+            partes = {l[0]: 0 for l in linhas}
+        for l in linhas:
+            l.append(partes.get(l[0], 0))
+        pts[ch] = total_int
+    return pts
+
+
 def exporta(cur):
     pacote = {"edicao": 2025, "areas": sorted(COMP_POR_AREA)}
 
@@ -150,15 +187,8 @@ def exporta(cur):
     pacote["dados"] = dict(dados)
 
     # --------------- pontos na media: o POTENCIAL de um passo de avanco
-    # Cenario da face do aluno aplicado ao estado (pedido do dono do
-    # produto: "o potencial de crescimento, mesmo que esteja no topo"): se
-    # os alunos avancarem MEIO NIVEL, quantos acertos cada competencia
-    # devolve -- calculado com as curvas nacionais sobre a DISTRIBUICAO real
-    # de notas daquele estado/rede (int_uf_nivel x int_estudo_referencia),
-    # nunca sobre a media (theta(media) != media(theta), ja medido).
-    # Convertido pela curva acertos->nota e PARTICIONADO para as partes
-    # somarem o total -- a conferencia que o leitor faz. Funciona para MG
-    # como para MA: todo mundo tem um proximo passo.
+    # (cenario da face do aluno; ver aplica_pts). Os ganhos por celula saem
+    # do join pesos x referencia -- estado E cidade pela mesma conta.
     cur.execute("""
         select coalesce(w.co_uf, 0) as co_uf, w.rede, w.area, r.competencia,
                sum(w.n * r.ganho) / sum(w.n) as ganho
@@ -175,39 +205,80 @@ def exporta(cur):
         ganhos[k(cod, ar, rede)][int(comp)] = float(g)
 
     curvas = curva_acertos_nota(cur)
-    pacote["pts"] = {}
-    for ch, linhas in list(pacote["dados"].items()):
-        cod, ar, rede = ch.split("|")
-        ctx = pacote["ctx"].get(ch)
-        ganho_cel = ganhos.get(ch)
-        if not ctx or not ctx[0] or not ganho_cel:
-            continue
-        presentes = ctx[0]
-        # questoes POR ALUNO = respostas / presentes (em LC a C2 tem 10
-        # itens distintos mas cada aluno responde 5)
-        q_aluno = {l[0]: l[2] / presentes for l in linhas}
-        atual = sum(l[1] / 100 * q_aluno[l[0]] for l in linhas)
-        delta = {l[0]: max(0.0, ganho_cel.get(l[0], 0.0)) for l in linhas}
-        total_delta = sum(delta.values())
-        curva = curvas[ar]
-        total_pts = (nota_de_acertos(curva, atual + total_delta)
-                     - nota_de_acertos(curva, atual)) if total_delta > 1e-9 else 0.0
-        total_int = round(total_pts)
-        # particao por resto maior: as partes inteiras somam o total exato
-        if total_int > 0 and total_delta > 0:
-            brutas = {c: total_pts * d / total_delta for c, d in delta.items()}
-            partes = {c: int(v) for c, v in brutas.items()}
-            sobra = total_int - sum(partes.values())
-            for c, _ in sorted(brutas.items(), key=lambda x: -(x[1] % 1)):
-                if sobra <= 0:
-                    break
-                partes[c] += 1
-                sobra -= 1
-        else:
-            partes = {l[0]: 0 for l in linhas}
-        for l in linhas:
-            l.append(partes.get(l[0], 0))
-        pacote["pts"][ch] = total_int
+    pacote["pts"] = aplica_pts(pacote["dados"], pacote["ctx"], ganhos, curvas)
+
+    # ---------------- municipios (voltaram em 02/08 com a moeda do passo):
+    # mesmos dados, mesmo calculo, empacotados POR UF -- o navegador baixa
+    # so o estado aberto. Cidade entra por busca; sem malha municipal.
+    cur.execute("""
+        select codigo, area, rede, n_presentes, n_escolas, media_nota
+        from marts.mart_geografia_area
+        where publicavel and nivel = 'municipio'
+    """)
+    mun_ctx = defaultdict(dict)
+    for cod, ar, rede, n, esc, media in cur.fetchall():
+        mun_ctx[cod][k(ar, rede)] = [int(n), int(esc), round(float(media))]
+
+    cur.execute("""
+        select codigo, area, rede, n_escolas
+        from marts.mart_geografia_area
+        where not publicavel and nivel = 'municipio'
+    """)
+    mun_esc = defaultdict(dict)
+    for cod, ar, rede, n in cur.fetchall():
+        mun_esc[cod][k(ar, rede)] = int(n)
+
+    cur.execute("""
+        select codigo, area, rede, competencia, taxa_acerto, n_respostas
+        from marts.mart_geografia_competencia
+        where publicavel and status = 'ok' and nivel = 'municipio'
+        order by codigo, area, rede, competencia
+    """)
+    mun_dados = defaultdict(lambda: defaultdict(list))
+    for cod, ar, rede, comp, taxa, n in cur.fetchall():
+        mun_dados[cod][k(ar, rede)].append(
+            [int(comp), round(float(taxa), 1), int(n)])
+
+    cur.execute("""
+        select w.co_municipio, w.rede, w.area, r.competencia,
+               sum(w.n * r.ganho) / sum(w.n) as ganho
+        from staging.int_municipio_nivel w
+        join staging.int_estudo_referencia r
+          on r.area = w.area
+         and r.cod_lingua = w.cod_lingua
+         and r.theta = w.theta
+        group by 1, 2, 3, 4
+    """)
+    mun_ganhos = defaultdict(lambda: defaultdict(dict))
+    for cod, rede, ar, comp, g in cur.fetchall():
+        mun_ganhos[cod][k(ar, rede)][int(comp)] = float(g)
+
+    cur.execute("""
+        select distinct codigo, nome from marts.mart_geografia_area
+        where nivel = 'municipio'
+    """)
+    nomes = dict(cur.fetchall())
+
+    pacotes = {}
+    indice = []
+    for cod, nome in nomes.items():
+        uf = cod // 100000
+        sigla = pacote["ufs"].get(str(uf), ["?"])[0]
+        pub = 1 if cod in mun_ctx else 0
+        indice.append([cod, nome, sigla, pub])
+        pk = pacotes.setdefault(uf, {"uf": uf, "mun": {}})
+        entrada = {"nome": nome}
+        if pub:
+            entrada["ctx"] = mun_ctx[cod]
+            entrada["dados"] = mun_dados[cod]
+            entrada["pts"] = aplica_pts(mun_dados[cod], mun_ctx[cod],
+                                        mun_ganhos[cod], curvas)
+        if cod in mun_esc:
+            entrada["esc"] = mun_esc[cod]
+        pk["mun"][str(cod)] = entrada
+    indice.sort(key=lambda l: l[1])
+    pacote["_pacotes"] = pacotes
+    pacote["_indice"] = indice
 
     cur.execute("""
         select distinct rede from marts.mart_geografia_competencia
@@ -261,6 +332,27 @@ def valida(cur, pacote):
             erros.append(f"conservacao: UFs somam {soma:,} em {ar}, "
                          f"pais tem {pais[0]:,}")
 
+    # municipios: toda celula publicavel completa, com pts e partes somando
+    for uf, pk in pacote["_pacotes"].items():
+        for cod, m in pk["mun"].items():
+            if "dados" not in m:
+                continue
+            for ch, linhas in m["dados"].items():
+                ar = ch.split("|")[0]
+                if len(linhas) != COMP_POR_AREA[ar]:
+                    erros.append(f"mun {cod}: {ch} incompleta")
+                    break
+                if ch not in m["pts"]:
+                    erros.append(f"mun {cod}: {ch} sem potencial")
+                    break
+                soma = sum(l[3] for l in linhas if len(l) > 3)
+                if soma != m["pts"][ch]:
+                    erros.append(f"mun {cod}: partes {soma} != {m['pts'][ch]} em {ch}")
+                    break
+            else:
+                continue
+            break
+
     # toda celula publicavel tem o potencial calculado -- celula sem pts e
     # painel sem resposta em silencio
     sem = [ch for ch in pacote["ctx"] if ch not in pacote["pts"]]
@@ -298,12 +390,31 @@ def main():
               f"{medidas} medidas")
 
         print("3. Gravando")
+        pacotes = pacote.pop("_pacotes")
+        indice = pacote.pop("_indice")
         os.makedirs(os.path.dirname(DESTINO), exist_ok=True)
         tmp = DESTINO + ".tmp"
         with open(tmp, "w", encoding="utf-8") as fh:
             json.dump(pacote, fh, ensure_ascii=False, separators=(",", ":"))
         os.replace(tmp, DESTINO)
         print(f"  {DESTINO}: {os.path.getsize(DESTINO)/1024:.0f} KB")
+
+        pasta = os.path.join("webapp", "dados", "geo_mun")
+        os.makedirs(pasta, exist_ok=True)
+        total = 0
+        for uf, pk in sorted(pacotes.items()):
+            caminho = os.path.join(pasta, f"{uf}.json")
+            with open(caminho + ".tmp", "w", encoding="utf-8") as fh:
+                json.dump(pk, fh, ensure_ascii=False, separators=(",", ":"))
+            os.replace(caminho + ".tmp", caminho)
+            total += os.path.getsize(caminho)
+        print(f"  {pasta}/: {len(pacotes)} arquivos, {total/1024:.0f} KB")
+
+        caminho = os.path.join("webapp", "dados", "municipios_indice.json")
+        with open(caminho + ".tmp", "w", encoding="utf-8") as fh:
+            json.dump(indice, fh, ensure_ascii=False, separators=(",", ":"))
+        os.replace(caminho + ".tmp", caminho)
+        print(f"  {caminho}: {os.path.getsize(caminho)/1024:.0f} KB")
     finally:
         conn.close()
 

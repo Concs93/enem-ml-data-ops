@@ -31,10 +31,14 @@
 -- analise vive bem por estado e competencia. O co_municipio continua sendo
 -- o grao de COMPUTO (int_acerto_item_municipio); o que sumiu e a linha
 -- publicada, nao a soma.
+-- municipio VOLTOU (02/08/2026, com a moeda nova): o passo nao ranqueia
+-- (total quase constante entre lugares) e cidade nao e pintada em mapa --
+-- entra por busca. A regiao imediata segue fora do produto.
 {% set niveis = [
-    ('uf',     'g.co_uf',     'g.nome_uf',     'g.co_regiao'),
-    ('regiao', 'g.co_regiao', 'g.nome_regiao', '0'),
-    ('pais',   '0',           "'Brasil'",      'null::int'),
+    ('municipio', 'g.co_municipio', 'g.municipio', 'g.co_uf'),
+    ('uf',        'g.co_uf',        'g.nome_uf',   'g.co_regiao'),
+    ('regiao',    'g.co_regiao',    'g.nome_regiao', '0'),
+    ('pais',      '0',              "'Brasil'",    'null::int'),
 ] %}
 
 with base as (

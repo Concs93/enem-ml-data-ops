@@ -81,6 +81,28 @@
        margin:8px 0 0;min-height:2.6em}
   .dica b{color:var(--text)}
 
+  .busca{position:relative;margin-left:auto;min-width:230px;flex:0 1 300px}
+  .busca input{width:100%;font-family:var(--sans);font-size:16px; /* 16px trava o zoom do iOS */
+       padding:8px 13px;border:1px solid var(--border);border-radius:var(--r-pill);
+       background:var(--surface);color:var(--text)}
+  .busca input::placeholder{color:var(--muted)}
+  .busca ul{position:absolute;z-index:30;top:calc(100% + 4px);left:0;right:0;
+       margin:0;padding:4px;list-style:none;background:var(--surface);
+       border:1px solid var(--border);border-radius:var(--r-ctrl);
+       box-shadow:0 8px 24px rgba(0,0,0,.10);max-height:320px;overflow-y:auto}
+  .busca ul:empty{display:none}
+  .busca li button{width:100%;text-align:left;border:0;background:none;cursor:pointer;
+       font-family:var(--sans);font-size:var(--fs-200);padding:7px 10px;
+       border-radius:var(--r-chip);color:var(--text)}
+  .busca li button:hover,.busca li button:focus-visible{background:var(--chip)}
+  .busca li button i{font-style:normal;color:var(--muted)}
+  .busca li button em{font-style:normal;display:block;font-size:var(--fs-100);color:var(--warn)}
+  .controles{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin:0 0 14px}
+  .controles .abas{margin:0}
+  .filtro-cidades{width:100%;font-family:var(--sans);font-size:var(--fs-200);
+       padding:7px 12px;margin:2px 0 8px;border:1px solid var(--border);
+       border-radius:var(--r-ctrl);background:var(--bg);color:var(--text)}
+
   .caminho{font-family:var(--sans);font-size:var(--fs-100);color:var(--muted);
        margin:0 0 10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
   .caminho button{font-family:inherit;font-size:inherit;border:1px solid var(--border);
@@ -141,11 +163,18 @@
   Matriz esse passo rende mais. Vale para todo mundo, inclusive quem já
   está na frente: sempre há um próximo passo.</p>
 
-  <div class="abas" role="group" aria-label="Área de conhecimento">
-    <button type="button" data-area="CH" aria-pressed="false">Humanas</button>
-    <button type="button" data-area="CN" aria-pressed="false">Natureza</button>
-    <button type="button" data-area="LC" aria-pressed="false">Linguagens</button>
-    <button type="button" data-area="MT" aria-pressed="false">Matemática</button>
+  <div class="controles">
+    <div class="abas" role="group" aria-label="Área de conhecimento">
+      <button type="button" data-area="CH" aria-pressed="false">Humanas</button>
+      <button type="button" data-area="CN" aria-pressed="false">Natureza</button>
+      <button type="button" data-area="LC" aria-pressed="false">Linguagens</button>
+      <button type="button" data-area="MT" aria-pressed="false">Matemática</button>
+    </div>
+    <div class="busca">
+      <input type="search" id="busca" placeholder="Buscar sua cidade…"
+             autocomplete="off" aria-label="Buscar cidade">
+      <ul id="busca-out" role="listbox"></ul>
+    </div>
   </div>
   <div class="abas redes" role="group" aria-label="Rede de ensino" id="abas-rede"></div>
 
@@ -164,6 +193,8 @@
       <div id="total"></div>
       <ul class="lista" id="pan-lista"></ul>
       <p class="caminho" id="filhos-tit" style="margin-top:18px"></p>
+      <input class="filtro-cidades" id="filtro" placeholder="Filtrar pelo nome…"
+             aria-label="Filtrar cidades" hidden>
       <ul class="lista" id="filhos"></ul>
     </div>
   </div>
@@ -213,8 +244,9 @@ const NA_REDE = {Todas:"", Estadual:" na rede estadual", Privada:" na rede priva
                  Federal:" na rede federal", Municipal:" na rede municipal"};
 const pct = v => v.toFixed(1).replace(".", ",") + "%";
 
-let G = null, MALHA = null;
-let area = "MT", rede = "Todas", uf = null;   // uf null = Brasil
+let G = null, MALHA = null, INDICE = null;
+const MUN = {};                     // pacotes por UF, cache de PROMESSA
+let area = "MT", rede = "Todas", uf = null, mun = null;  // mun = codigo da cidade
 
 // posicoes no vetor [comp, taxa, n_respostas, pts]
 const COMP = 0, TAXA = 1, N = 2, PTS = 3;
@@ -317,7 +349,13 @@ function desenhaMapa(){
 
   for(const p of svg.querySelectorAll("path")){
     const cod = p.dataset.cod;
-    p.addEventListener("click", () => { uf = (uf === cod ? null : cod); render(); });
+    p.addEventListener("click", () => {
+      mun = null;
+      uf = (uf === cod ? null : cod);
+      render();
+      // o pacote de cidades desce em paralelo e redesenha ao chegar
+      if(uf !== null) carregaPacote(uf).then(render).catch(() => {});
+    });
     p.addEventListener("keydown", e => {
       if(e.key === "Enter" || e.key === " "){ e.preventDefault(); p.click(); }
     });
@@ -344,40 +382,83 @@ function dicaDe(cod){
 }
 
 // ------------------------------------------------------------- painel
-function desenhaPainel(){
-  const cam = $("caminho"), ul = $("pan-lista");
-  ul.innerHTML = "";
-  $("total").innerHTML = "";
-  const tituloRede = rede === "Todas" ? "" : ` · rede ${ROT_REDE[rede].toLowerCase()}`;
-
-  const cod = uf === null ? 0 : uf;
-  const nome = uf === null ? "Brasil" : G.ufs[uf][1];
-  if(uf === null){
-    cam.innerHTML = "<b>Brasil</b>";
-  } else {
-    cam.innerHTML = `<button type="button">Brasil</button> ▸ <b>${nome}</b>`;
-    cam.querySelector("button").addEventListener("click", () => { uf = null; render(); });
+// a celula atual pode viver no pacote raiz (Brasil/UF) ou no pacote da UF
+// (cidade) -- o resto do painel nao sabe a diferenca
+function celula(){
+  const kk = `${area}|${rede}`;
+  if(mun !== null){
+    const pk = MUN[`d${uf}`];
+    const e = pk && pk.mun[String(mun)];
+    if(!e) return null;
+    return {nome:e.nome, ctx:e.ctx && e.ctx[kk], rows:e.dados && e.dados[kk],
+            pts:e.pts && e.pts[kk], nEsc:e.esc && e.esc[kk],
+            emTodas:!!(e.dados && e.dados[`${area}|Todas`]), cidade:true};
   }
-  $("pan-tit").textContent = `${nome} — ${NOME_AREA[area]}${tituloRede}`;
-  const ctx = G.ctx[chave(cod)];
-  const rows = dadosDe(cod);
+  const cod = uf === null ? 0 : uf;
+  return {nome: uf === null ? "Brasil" : G.ufs[uf][1],
+          ctx:G.ctx[chave(cod)], rows:dadosDe(cod), pts:G.pts[chave(cod)],
+          nEsc:G.esc[chave(cod)],
+          emTodas:!!G.dados[`${cod}|${area}|Todas`], cidade:false};
+}
 
-  if(!ctx || !rows){
+function trilha(){
+  const cam = $("caminho");
+  const b = (rot, fn) => {
+    const el = document.createElement("button");
+    el.type = "button"; el.textContent = rot;
+    el.addEventListener("click", fn);
+    return el;
+  };
+  cam.innerHTML = "";
+  if(uf === null){ cam.innerHTML = "<b>Brasil</b>"; return; }
+  cam.appendChild(b("Brasil", () => { uf = null; mun = null; render(); }));
+  cam.appendChild(document.createTextNode(" \u25b8 "));
+  if(mun === null){
+    const el = document.createElement("b");
+    el.textContent = G.ufs[uf][1];
+    cam.appendChild(el);
+  } else {
+    cam.appendChild(b(G.ufs[uf][1], () => { mun = null; render(); }));
+    cam.appendChild(document.createTextNode(" \u25b8 "));
+    const el = document.createElement("b");
+    const c = celula();
+    el.textContent = c ? c.nome : String(mun);
+    cam.appendChild(el);
+  }
+}
+
+function desenhaPainel(){
+  trilha();
+  const ul = $("pan-lista");
+  ul.innerHTML = "";
+  const c = celula();
+  const tituloRede = rede === "Todas" ? "" : ` \u00b7 rede ${ROT_REDE[rede].toLowerCase()}`;
+  $("pan-tit").textContent = `${c ? c.nome : "\u2014"} \u2014 ${NOME_AREA[area]}${tituloRede}`;
+
+  if(!c || !c.ctx || !c.rows){
     $("pan-sub").textContent = "";
     const li = document.createElement("li");
     li.className = "vazio";
-    const nEsc = G.esc[chave(cod)];
+    const nome = c ? c.nome : "\u2014";
+    const nEsc = c && c.nEsc;
     li.textContent = (rede !== "Todas" && !nEsc)
-      ? `${nome} não tem escola${NA_REDE[rede].replace(" na", " da")} com `
+      ? `${nome} n\u00e3o tem escola${NA_REDE[rede].replace(" na", " da")} com `
         + `concluintes no ENEM 2025. `
       : `${nome} ${nEsc ? `tem ${nEsc} escola${nEsc === 1 ? "" : "s"}`
-          + `${NA_REDE[rede]} — abaixo` : "fica abaixo"} do mínimo para `
+          + `${NA_REDE[rede]} \u2014 abaixo` : "fica abaixo"} do m\u00ednimo para `
         + `publicar${NA_REDE[rede]} (3 escolas e 50 participantes). `;
-    if(rede !== "Todas" && G.dados[`${cod}|${area}|Todas`]){
+    if(c && rede !== "Todas" && c.emTodas){
       const b = document.createElement("button");
       b.type = "button";
-      b.textContent = `Ver ${nome} em todas as redes →`;
+      b.textContent = `Ver ${c.nome} em todas as redes \u2192`;
       b.addEventListener("click", () => { rede = "Todas"; render(); });
+      li.appendChild(b);
+    }
+    if(c && c.cidade){
+      const b = document.createElement("button");
+      b.type = "button";
+      b.textContent = `Ver ${G.ufs[uf][1]} \u2192`;
+      b.addEventListener("click", () => { mun = null; render(); });
       li.appendChild(b);
     }
     ul.appendChild(li);
@@ -385,85 +466,166 @@ function desenhaPainel(){
     return;
   }
 
-  const brRows = uf === null ? [] : (dadosDe(0) || []);
-  const brDe = c => brRows.find(l => l[COMP] === c);
   $("pan-sub").textContent =
-    `${ctx[1].toLocaleString("pt-BR")} escolas · `
-    + `${ctx[0].toLocaleString("pt-BR")} participantes · média ${ctx[2]}`;
+    `${c.ctx[1].toLocaleString("pt-BR")} escolas \u00b7 `
+    + `${c.ctx[0].toLocaleString("pt-BR")} participantes \u00b7 m\u00e9dia ${c.ctx[2]} \u00b7 `
+    + `um passo de avan\u00e7o vale \u2248 +${c.pts ?? 0} pontos na m\u00e9dia, repartidos:`;
 
-  const total = G.pts[chave(cod)] ?? 0;
-  $("total").innerHTML =
-    `<p class="total">Um passo de avanço (meio nível da escala) em `
-    + `<b>todas</b> as competências${NA_REDE[rede]} valeria `
-    + `<b>≈ +${total} pontos</b> na média — repartido por onde ele rende. `
-    + `Não é um teto: é o valor de um passo.</p>`;
-
-  // guarda de margem: com poucos participantes (rede municipal em UF
-  // pequena), a taxa que sustenta o calculo e ruidosa -- declara
-  const frouxa = rows.filter(l => erroPadrao(l) > 1).length > rows.length / 2;
-  if(frouxa)
-    $("pan-sub").textContent += ` · poucos participantes: leia os valores `
-      + `como aproximação, não como medida fina`;
-
-  const lista = rows.slice().sort((a, b) =>
-    (b[PTS] - a[PTS]) ||
-    ((brDe(a[COMP]) ? a[TAXA] - brDe(a[COMP])[TAXA] : 0)
-   - (brDe(b[COMP]) ? b[TAXA] - brDe(b[COMP])[TAXA] : 0)));
-
+  const brRows = dadosDe(0) || [];
+  const brDe = cc => brRows.find(l => l[COMP] === cc);
+  const lista = c.rows.slice().sort((a, b) => (b[PTS] ?? 0) - (a[PTS] ?? 0));
   for(const l of lista){
     const li = document.createElement("li");
     const br = brDe(l[COMP]);
     const nQ = G.itens[`${area}|${l[COMP]}`];
     li.innerHTML = `<span class="rot"><b>C${l[COMP]}</b> `
       + `${G.comp[`${area}|${l[COMP]}`] || ""}</span>`
-      + (l[PTS] > 0
-         ? `<span class="val">+${l[PTS]}<em>pts na média</em></span>`
+      + ((l[PTS] ?? 0) > 0
+         ? `<span class="val">+${l[PTS]}<em>pts na m\u00e9dia</em></span>`
          : `<span class="val zen">rende depois<em>dos primeiros</em></span>`)
       + `<span class="pista">`
-      + (nQ ? `medido em ${nQ} ${nQ === 1 ? "questão" : "questões"} · ` : "")
+      + (nQ ? `medido em ${nQ} ${nQ === 1 ? "quest\u00e3o" : "quest\u00f5es"} \u00b7 ` : "")
       + `acertam ${pct(l[TAXA])}`
-      + (br ? ` · o Brasil${NA_REDE[rede]} acerta ${pct(br[TAXA])}` : "")
+      + (br ? ` \u00b7 o Brasil${NA_REDE[rede]} acerta ${pct(br[TAXA])}` : "")
       + `</span>`;
     ul.appendChild(li);
   }
   filhos();
 }
 
-// as redes do estado (ou do Brasil): o unico outro mergulho
+// filhos: as redes da unidade atual; no painel da UF, tambem as cidades
 function filhos(){
-  const ul = $("filhos"), tit = $("filhos-tit");
+  const ul = $("filhos"), tit = $("filhos-tit"), filtro = $("filtro");
   ul.innerHTML = "";
-  const cod = uf === null ? 0 : uf;
-  tit.innerHTML = uf === null ? `<b>As redes no Brasil</b>` : `<b>As redes deste estado</b>`;
+  filtro.hidden = true;
+
+  tit.innerHTML = mun !== null ? `<b>As redes daqui</b>`
+    : uf === null ? `<b>As redes no Brasil</b>` : `<b>As redes deste estado</b>`;
+  const kkDe = r => `${area}|${r}`;
+  const pk = uf !== null ? MUN[`d${uf}`] : null;
+  const ent = (mun !== null && pk) ? pk.mun[String(mun)] : null;
   for(const r of G.redes){
-    const ch = `${cod}|${area}|${r}`;
-    const ctx = G.ctx[ch];
     const li = document.createElement("li");
+    let ctx, pts, nEsc;
+    if(mun !== null){
+      ctx = ent && ent.ctx && ent.ctx[kkDe(r)];
+      pts = ent && ent.pts && ent.pts[kkDe(r)];
+      nEsc = ent && ent.esc && ent.esc[kkDe(r)];
+    } else {
+      const cod = uf === null ? 0 : uf;
+      ctx = G.ctx[`${cod}|${area}|${r}`];
+      pts = G.pts[`${cod}|${area}|${r}`];
+      nEsc = G.esc[`${cod}|${area}|${r}`];
+    }
     if(ctx){
       const b = document.createElement("button");
       b.type = "button";
       b.style.cssText = "all:unset;cursor:pointer;display:grid;width:100%;"
         + "grid-template-columns:1fr auto;gap:2px 14px;align-items:baseline";
       if(r === rede) li.style.background = "var(--accent-soft)";
-      const t = cod !== 0 ? (G.pts[ch] ?? null) : null;
       b.innerHTML = `<span class="rot">${ROT_REDE[r]}</span>`
         + `<span class="val" style="color:var(--muted);font-weight:600">`
-        + (t === null ? "" : t > 0 ? `+${t} pts` : "✓") + `</span>`
+        + (pts != null ? `+${pts} pts` : "") + `</span>`
         + `<span class="pista">${ctx[1].toLocaleString("pt-BR")} `
-        + `${ctx[1] === 1 ? "escola" : "escolas"} · `
-        + `${ctx[0].toLocaleString("pt-BR")} participantes · média ${ctx[2]}</span>`;
+        + `${ctx[1] === 1 ? "escola" : "escolas"} \u00b7 `
+        + `${ctx[0].toLocaleString("pt-BR")} participantes \u00b7 m\u00e9dia ${ctx[2]}</span>`;
       b.addEventListener("click", () => { rede = r; render(); });
       li.appendChild(b);
     } else {
-      const nEsc = G.esc[ch];
       li.className = "apagado";
       li.innerHTML = `<span class="rot">${ROT_REDE[r]}</span>`
         + `<span class="pista">${nEsc
-            ? `${nEsc} escola${nEsc === 1 ? "" : "s"} — abaixo do mínimo`
-            : "não tem escola dessa rede"}</span>`;
+            ? `${nEsc} escola${nEsc === 1 ? "" : "s"} \u2014 abaixo do m\u00ednimo`
+            : "n\u00e3o tem escola dessa rede"}</span>`;
     }
     ul.appendChild(li);
   }
+
+  if(uf !== null && mun === null && pk){
+    const cab = document.createElement("li");
+    cab.className = "vazio";
+    cab.innerHTML = `<b style="font-family:var(--sans)">Cidades</b> \u2014 as que `
+      + `atingem o m\u00ednimo${NA_REDE[rede]}; as demais aparecem apagadas.`;
+    ul.appendChild(cab);
+    filtro.hidden = false;
+    const alvo = norm(filtro.value || "");
+    const kk = kkDe(rede);
+    const cidades = Object.entries(pk.mun)
+      .map(([cod, m]) => ({cod:+cod, nome:m.nome,
+        pub:!!(m.ctx && m.ctx[kk]), pts:m.pts && m.pts[kk]}))
+      .filter(m => !alvo || norm(m.nome).includes(alvo))
+      .sort((a, b) => (b.pub - a.pub) || a.nome.localeCompare(b.nome, "pt"));
+    for(const m of cidades){
+      const li = document.createElement("li");
+      if(m.pub){
+        const b = document.createElement("button");
+        b.type = "button";
+        b.style.cssText = "all:unset;cursor:pointer;display:grid;width:100%;"
+          + "grid-template-columns:1fr auto;gap:2px 14px;align-items:baseline";
+        b.innerHTML = `<span class="rot">${m.nome}</span>`
+          + `<span class="val" style="color:var(--muted);font-weight:600">`
+          + (m.pts != null ? `+${m.pts} pts` : "") + `</span>`;
+        b.addEventListener("click", () => { mun = m.cod; render(); });
+        li.appendChild(b);
+      } else {
+        li.className = "apagado";
+        li.innerHTML = `<span class="rot">${m.nome}</span>`
+          + `<span class="pista">abaixo do m\u00ednimo${NA_REDE[rede]}</span>`;
+      }
+      ul.appendChild(li);
+    }
+  }
+}
+
+// ----------------------------------------------------------- carregamento
+function carregaPacote(u){
+  const ch = `p${u}`;
+  if(!MUN[ch]){
+    MUN[ch] = fetch(`dados/geo_mun/${u}.json`).then(r => {
+      if(!r.ok) throw new Error(`geo_mun/${u}: HTTP ${r.status}`);
+      return r.json();
+    }).then(v => { MUN[`d${u}`] = v; })
+      .catch(e => { delete MUN[ch]; throw e; });
+  }
+  return MUN[ch];
+}
+const norm = t => t.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
+
+async function abreBusca(){
+  if(!INDICE){
+    try {
+      INDICE = await fetch("dados/municipios_indice.json").then(r => r.json());
+    } catch(e){ console.error(e); INDICE = []; }
+    buscaRender();
+  }
+}
+function buscaRender(){
+  const out = $("busca-out");
+  const alvo = norm($("busca").value.trim());
+  if(alvo.length < 2 || !INDICE){ out.innerHTML = ""; return; }
+  const achados = [];
+  for(const [cod, nome, sigla, pub] of INDICE){
+    if(norm(nome).includes(alvo)){
+      achados.push([cod, nome, sigla, pub]);
+      if(achados.length >= 12) break;
+    }
+  }
+  out.innerHTML = achados.map(([cod, nome, sigla, pub]) =>
+    `<li role="option"><button type="button" data-cod="${cod}">`
+    + `${nome} <i>\u00b7 ${sigla}</i>`
+    + (pub ? "" : `<em>abaixo do m\u00ednimo \u2014 sem n\u00fameros pr\u00f3prios</em>`)
+    + `</button></li>`).join("");
+  for(const b of out.querySelectorAll("button"))
+    b.addEventListener("click", () => escolheBusca(+b.dataset.cod));
+}
+async function escolheBusca(cod){
+  $("busca-out").innerHTML = "";
+  $("busca").value = "";
+  const u = String(Math.floor(cod / 100000));
+  try { await carregaPacote(u); }
+  catch(e){ $("dica").innerHTML = "<b>N\u00e3o foi poss\u00edvel carregar este estado.</b>"; return; }
+  uf = u; mun = cod;
+  render();
 }
 
 function pintaBotoes(){
@@ -510,6 +672,15 @@ Promise.all([
 
 for(const b of document.querySelectorAll(".abas:not(.redes) button"))
   b.addEventListener("click", () => { area = b.dataset.area; render(); });
+$("busca").addEventListener("focus", abreBusca);
+$("busca").addEventListener("input", buscaRender);
+$("busca").addEventListener("keydown", e => {
+  if(e.key === "Escape") $("busca-out").innerHTML = "";
+});
+document.addEventListener("click", e => {
+  if(!e.target.closest(".busca")) $("busca-out").innerHTML = "";
+});
+$("filtro").addEventListener("input", () => filhos());
 
 let esperando = null;
 addEventListener("resize", () => {

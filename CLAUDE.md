@@ -1191,6 +1191,26 @@ para C2 e C7 (9 e 8). É a medição de 31/07 (estadual→C1/C7, privada→C2)
 virando produto. O Brasil ganhou o próprio painel — a página abre com o
 potencial do país repartido, não com um convite vazio.
 
+### Municípios de volta, na moeda do passo (02/08/2026, fechamento)
+
+Dois ajustes finais do dono do produto: o cartão explicativo do total saiu
+("ali é melhor só a lista mesmo" — o total virou meia linha no subtítulo), e
+**os municípios voltaram** — agora seguro, porque a moeda do passo não
+ranqueia (total quase constante entre lugares) e cidade não é pintada em
+mapa nenhum: entra por **busca** ou pela lista do estado, exatamente como o
+desenho de 31/07 previa ("o mapa não deve ser o seletor nesse nível").
+
+A mesma conta para os três grãos (`aplica_pts()`): passo integrado sobre a
+distribuição real (`int_uf_nivel` / `int_municipio_nivel` × referência),
+curva acertos→nota, partição com soma exata. Os marts de geografia
+recuperaram o nível município (e o teste de conservação voltou à igualdade
+mais forte: município == país). Pacotes por UF (`geo_mun/`, 3,6 MB em 27
+arquivos — o navegador baixa só o estado aberto) e índice de busca (174 KB,
+carregado ao focar). Cidade abaixo do gate: aparece na busca e na lista,
+apagada, com o número de escolas e as saídas em botão. Verificado:
+Imperatriz +52 com partes somando, Santana do Maranhão ("2 escolas — abaixo
+do mínimo → Ver Maranhão"), filtro de cidades, celular sem overflow.
+
 ### Etapa 4 — o que ficou de pé
 
 Schema `marts` (sem prefixo, via `generate_schema_name`), três modelos e quatro

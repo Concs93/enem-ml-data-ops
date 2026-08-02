@@ -18,7 +18,7 @@ por_nivel as (
     -- somar sem filtrar contaria cada participante duas vezes nos DOIS lados
     -- da comparacao, e o teste passaria verde escondendo o defeito
     where rede = 'Todas'
-      and nivel in ('pais', 'uf', 'regiao')
+      and nivel in ('pais', 'municipio', 'uf', 'regiao')
     group by 1, 2
 )
 select n.nivel, n.area, n.presentes, e.presentes as esperado

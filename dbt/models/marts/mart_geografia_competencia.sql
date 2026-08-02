@@ -15,10 +15,12 @@
 -- desta rede, qual competencia fica desproporcionalmente para tras.
 
 -- so tres niveis -- ver a nota do mart_geografia_area
+-- municipio voltou -- ver a nota do mart_geografia_area
 {% set niveis = [
-    ('uf',     'g.co_uf',     'g.nome_uf'),
-    ('regiao', 'g.co_regiao', 'g.nome_regiao'),
-    ('pais',   '0',           "'Brasil'"),
+    ('municipio', 'g.co_municipio', 'g.municipio'),
+    ('uf',        'g.co_uf',        'g.nome_uf'),
+    ('regiao',    'g.co_regiao',    'g.nome_regiao'),
+    ('pais',      '0',              "'Brasil'"),
 ] %}
 
 with base as (
