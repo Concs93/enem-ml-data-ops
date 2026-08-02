@@ -1083,7 +1083,15 @@ e ela é privacidade (com 2 escolas, cada uma calcula a outra por subtração),
 não estatística. Gate mantido; o que mudou foi a honestidade do beco:
 **"não atinge o mínimo" e "não existe" são verdades diferentes** — Muriaé
 não tem escola municipal NENHUMA (só 14 cidades no país têm 3+ com
-concluintes; ensino médio é do estado). O `n_escolas` das células não
+concluintes). E a pergunta seguinte — "escola municipal não era para ter
+ensino médio?" — tem resposta precisa: a CF (art. 211, §2º) põe o município
+**"prioritariamente"** no fundamental (prioritariamente ≠ exclusivamente) e
+a LDB (art. 11, V) permite outros níveis quando o fundamental está
+plenamente atendido com recursos próprios. Legal e excepcional: SP concentra
+61 das 205 escolas e 65% dos participantes — os ITBs de **Barueri** e a
+universidade municipal de São Caetano, municípios ricos, os únicos que
+cumprem a condição. Corolário: a média 533 da rede municipal contra 481 da
+estadual é seleção de município rico, não rede melhor. O `n_escolas` das células não
 publicáveis agora viaja (cadastral, público — participantes e notas, nunca)
 e a tela diz qual dos dois casos é, com saídas reais em botão: a cidade em
 Todas as redes, e o estado na rede escolhida.
