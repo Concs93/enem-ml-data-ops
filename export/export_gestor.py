@@ -164,6 +164,23 @@ def exporta(cur):
             if t is not None:
                 tri_out["ri"][cod][k(ar, rede)] = t
 
+    # ---------------- celulas que existem mas nao publicam: so n_escolas
+    cur.execute("""
+        select nivel, codigo, area, rede, n_escolas
+        from marts.mart_geografia_area
+        where not publicavel
+          and nivel in ('pais', 'uf', 'municipio', 'regiao_imediata')
+    """)
+    esc_np = {"pais_uf": {}, "mun": defaultdict(dict), "ri": defaultdict(dict)}
+    for nivel, cod, ar, rede, n_esc in cur.fetchall():
+        if nivel in ("pais", "uf"):
+            esc_np["pais_uf"][k(cod, ar, rede)] = int(n_esc)
+        elif nivel == "municipio":
+            esc_np["mun"][cod][k(ar, rede)] = int(n_esc)
+        else:
+            esc_np["ri"][cod][k(ar, rede)] = int(n_esc)
+    raiz["esc"] = esc_np["pais_uf"]
+
     # ---------------- competencias por celula publicavel (status ok)
     # [comp, taxa (1 casa), perfil (1 casa), n_respostas (a margem sai dele
     #  no navegador)]. O mart guarda 4 casas e AQUI arredonda-se UMA vez,
@@ -234,6 +251,8 @@ def exporta(cur):
             entrada["ctx"] = ctx["mun"][cod]
             entrada["dados"] = dados["mun"][cod]
             entrada["tri"] = tri_out["mun"][cod]
+        if cod in esc_np["mun"]:
+            entrada["esc"] = esc_np["mun"][cod]
         p["mun"][str(cod)] = entrada
     for cod, cel in ctx["ri"].items():
         uf = cod // 10000
@@ -241,6 +260,8 @@ def exporta(cur):
         p["ri"][str(cod)] = {"nome": nomes_ri.get(cod, str(cod)),
                              "ctx": cel, "dados": dados["ri"][cod],
                              "tri": tri_out["ri"][cod]}
+        if cod in esc_np["ri"]:
+            p["ri"][str(cod)]["esc"] = esc_np["ri"][cod]
 
     # ---------------- indice de busca
     indice = sorted(

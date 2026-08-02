@@ -1063,6 +1063,35 @@ mesma, sondada 220 mi de vezes.
 adversarial em 4 lentes (números banco→JSON→tela, UX/texto, código, export)
 com juiz cético por achado — resultado registrado no commit.
 
+### Visão geral e o gate medido (01/08/2026)
+
+Dois pedidos do dono do produto, no mesmo teste com Muriaé/rede municipal:
+
+**"Queria ver sem selecionar uma competência"** virou a **visão geral**, o
+novo padrão da tela: mapa categórico — cada lugar com a cor da competência em
+que mais fica atrás do próprio padrão — com legenda contada (`C6 ×15`),
+filhos agrupados pela maior lacuna, e o aviso de consenso quando ≥90%
+compartilham a mesma. Toda troca de escopo/área/rede volta à geral; a
+competência específica fica a um toque (chips ou linha do painel). A escolha
+automática de competência morreu — confundia ("por que C6?").
+
+**"Podemos ampliar? muitas escolas ficam de fora"** foi medido antes de
+mexer: baixar o piso de participantes de 50 para 20 compra **+0,4 pp** de
+cobertura (87,0% → 87,4% dos participantes já cobertos no grão cidade). O
+muro real é a regra das **3 escolas** — 3.461 dos 5.556 municípios têm 1–2 —
+e ela é privacidade (com 2 escolas, cada uma calcula a outra por subtração),
+não estatística. Gate mantido; o que mudou foi a honestidade do beco:
+**"não atinge o mínimo" e "não existe" são verdades diferentes** — Muriaé
+não tem escola municipal NENHUMA (só 14 cidades no país têm 3+ com
+concluintes; ensino médio é do estado). O `n_escolas` das células não
+publicáveis agora viaja (cadastral, público — participantes e notas, nunca)
+e a tela diz qual dos dois casos é, com saídas reais em botão: a cidade em
+Todas as redes, e o estado na rede escolhida.
+
+De passagem: `display:flex` vence o atributo `hidden` — a régua da escala
+ficava visível na visão geral. Mesma família do `.hab .pos` vencido por
+especificidade.
+
 ### Etapa 4 — o que ficou de pé
 
 Schema `marts` (sem prefixo, via `generate_schema_name`), três modelos e quatro

@@ -115,6 +115,10 @@
   #mapa text.claro{fill:#ffffff;opacity:.92}
   .escala{display:flex;align-items:center;gap:10px;margin-top:10px;
        font-family:var(--sans);font-size:var(--fs-100);color:var(--muted)}
+  /* display:flex VENCE o atributo hidden -- sem esta regra, a regua da
+     escala continuava visivel na visao geral (mesma familia do .hab .pos
+     vencido por especificidade, ja documentada no projeto) */
+  .escala[hidden]{display:none}
   .escala .barra{flex:1;height:9px;border-radius:var(--r-pill);min-width:80px}
   .unidade{font-family:var(--sans);font-size:var(--fs-100);color:var(--muted);
        margin:10px 0 0;line-height:1.5}
@@ -122,6 +126,12 @@
   .dica{font-family:var(--sans);font-size:var(--fs-100);color:var(--muted);
        margin:8px 0 0;min-height:2.6em}
   .dica b{color:var(--text)}
+  .legenda-geral{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:10px;
+       font-family:var(--sans);font-size:var(--fs-100);color:var(--muted)}
+  .legenda-geral:empty{display:none}
+  .legenda-geral i{font-style:normal;display:inline-flex;align-items:center;gap:5px;
+       font-variant-numeric:tabular-nums}
+  .legenda-geral b{width:11px;height:11px;border-radius:3px}
   .aviso-mapa{font-family:var(--sans);font-size:var(--fs-100);color:var(--warn);
        background:var(--warn-soft);border-radius:var(--r-chip);padding:8px 12px;
        margin:10px 0 0;line-height:1.5}
@@ -226,6 +236,7 @@
       <p class="sub" id="mapa-sub">—</p>
       <div class="chips" id="chips" role="group" aria-label="Competência"></div>
       <svg id="mapa" role="group" aria-labelledby="mapa-tit"></svg>
+      <div class="legenda-geral" id="legenda-geral"></div>
       <div class="escala">
         <span>fica atrás do próprio padrão</span>
         <span class="barra" id="esc-barra"></span>
@@ -307,6 +318,18 @@ const CORTE = 1.0;
 // medido do |perfil| municipal e 4,96 -- dai +-5.
 const LIM_ESCOPO = {pais: 3.5, mun: 5.0};
 
+// paleta CATEGORICA da visao geral: uma cor por competencia (ate 9, LC).
+// Tons afastados entre si e legiveis sobre fundo claro
+const PALETA = ["#0f766e", "#b45309", "#6d28d9", "#be185d", "#1d4ed8",
+                "#4d7c0f", "#0e7490", "#a21caf", "#78350f"];
+const corComp = c => PALETA[(c - 1) % PALETA.length];
+// a competencia em que a unidade mais fica atras do proprio padrao
+function piorComp(rows){
+  let m = null;
+  for(const l of rows || []) if(!m || l[PERFIL] < m[PERFIL]) m = l;
+  return m;
+}
+
 const FRIO = [15, 118, 110], NEUTRO = [237, 235, 228], QUENTE = [180, 83, 9];
 function cor(v, lim){
   const t = Math.max(-1, Math.min(1, (v || 0) / lim));
@@ -322,6 +345,9 @@ const norm = s => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
 // ------------------------------------------------------------------ estado
 let G = null, MALHA_UF = null, INDICE = null;
 const MUN = {}, MALHA_MUN = {};      // caches por UF
+// comp = null e a VISAO GERAL (o padrao): o mapa pinta cada lugar pela
+// competencia em que ele mais fica atras do proprio padrao, sem exigir que
+// a pessoa escolha uma -- pedido do dono do produto
 let area = "MT", rede = "Todas", comp = null;
 // esc = {tipo:'pais'} | {tipo:'uf',uf} | {tipo:'mun',uf,cod} | {tipo:'ri',uf,cod}
 let esc = {tipo: "pais"};
@@ -376,7 +402,8 @@ function unidadesDoMapa(){
   if(!pk) return [];
   return Object.entries(pk.mun).map(([cod, m]) =>
     ({cod, nome:m.nome, ri:m.ri,
-      rows:(m.dados && m.dados[`${area}|${rede}`]) || null}));
+      rows:(m.dados && m.dados[`${area}|${rede}`]) || null,
+      nEsc:(m.esc && m.esc[`${area}|${rede}`]) || null}));
 }
 
 const erroPadrao = l => l[N] > 0
@@ -482,16 +509,18 @@ function desenhaMapa(){
                                                       // (centenas; hover+busca)
   let s = "";
   const cands = [];
+  const geral = comp === null;
   for(const f of feicoes){
     const cod = String(escopoPais ? f.properties.uf : f.properties.m);
     const u = unidades.get(cod);
-    const l = u ? linhaDe(u.rows, comp) : null;
+    const l = u ? (geral ? piorComp(u.rows) : linhaDe(u.rows, comp)) : null;
     const v = l ? l[PERFIL] : null;
     const selecionada = (esc.tipo === "uf" && false) ||
       (escopoPais ? false : esc.tipo === "mun" && cod === String(esc.cod));
     const membro = esc.tipo === "ri" && u && u.ri === esc.cod;
     s += `<path d="${caminhoSvg(f.geometry, proj)}"`
-      + ` fill="${v === null ? "var(--chip)" : cor(v, lim)}"`
+      + ` fill="${v === null ? "var(--chip)"
+                 : geral ? corComp(l[COMP]) : cor(v, lim)}"`
       + ` data-cod="${cod}" tabindex="0" role="button"`
       + ` class="${selecionada ? "sel" : membro ? "mem" : ""}"`
       + ` aria-label="${u ? u.nome : cod}"><title>${u ? u.nome : ""}</title></path>`;
@@ -518,27 +547,61 @@ function desenhaMapa(){
     p.addEventListener("focus", mostra);
   }
 
-  $("esc-barra").style.background =
-    `linear-gradient(90deg, ${cor(-lim, lim)}, ${cor(0, lim)}, ${cor(lim, lim)})`;
+  document.querySelector(".escala").hidden = geral;
+  const leg = $("legenda-geral");
+  if(geral){
+    // a legenda so lista as cores QUE APARECEM, com a contagem: e ela que
+    // transforma o mapa categorico em frase ("em 14 estados, a lacuna e C6")
+    const conta = new Map();
+    for(const u of unidades.values()){
+      const pc = piorComp(u.rows);
+      if(pc) conta.set(pc[COMP], (conta.get(pc[COMP]) || 0) + 1);
+    }
+    leg.innerHTML = [...conta.entries()].sort((a, b) => b[1] - a[1])
+      .map(([c, n]) => `<i><b style="background:${corComp(c)}"></b>C${c} ×${n}</i>`)
+      .join("");
+  } else {
+    leg.innerHTML = "";
+    $("esc-barra").style.background =
+      `linear-gradient(90deg, ${cor(-lim, lim)}, ${cor(0, lim)}, ${cor(lim, lim)})`;
+  }
 
-  const d = G.comp[`${area}|${comp}`] || "";
-  $("mapa-tit").textContent = `C${comp} · ${NOME_AREA[area]}`
-    + (rede === "Todas" ? "" : ` · rede ${ROT_REDE[rede].toLowerCase()}`)
+  const sufixo = (rede === "Todas" ? "" : ` · rede ${ROT_REDE[rede].toLowerCase()}`)
     + (escopoPais ? "" : ` · ${G.ufs[esc.uf][1]}`);
-  $("mapa-sub").textContent = d;
+  if(geral){
+    $("mapa-tit").textContent = `Onde cada ${escopoPais ? "estado" : "cidade"} `
+      + `mais fica atrás · ${NOME_AREA[area]}${sufixo}`;
+    $("mapa-sub").textContent = `Cada lugar recebe a cor da competência em `
+      + `que mais fica atrás do próprio padrão. Toque num código acima para `
+      + `ver uma competência específica.`;
+  } else {
+    $("mapa-tit").textContent = `C${comp} · ${NOME_AREA[area]}${sufixo}`;
+    $("mapa-sub").textContent = G.comp[`${area}|${comp}`] || "";
+  }
 
   avisoUniforme();
 }
 
 function dicaDe(cod, u){
   if(!u) return `<b>${cod}</b> — sem participantes com escola identificada.`;
-  const l = linhaDe(u.rows, comp);
+  const geral = comp === null;
+  const l = geral ? piorComp(u.rows) : linhaDe(u.rows, comp);
   if(!l){
     const alvo = (esc.tipo !== "pais" && u.ri)
       ? " Clique para ver a região dele." : "";
-    return `<b>${u.nome}</b> — não atinge o mínimo para publicar`
-      + `${NA_REDE[rede]} (3 escolas e 50 participantes).${alvo}`;
+    // "abaixo do minimo" e "nao existe" sao verdades diferentes: Muriae nao
+    // tem escola municipal NENHUMA, e a tela dizia "nao atinge o minimo"
+    // (achado do dono do produto)
+    if(rede !== "Todas" && !u.nEsc)
+      return `<b>${u.nome}</b> — não tem escola${NA_REDE[rede].replace(" na", " da")} `
+        + `com concluintes no ENEM 2025.${alvo}`;
+    return `<b>${u.nome}</b> — `
+      + (u.nEsc ? `${u.nEsc} escola${u.nEsc === 1 ? "" : "s"}${NA_REDE[rede]}, ` : "")
+      + `abaixo do mínimo para publicar (3 escolas e 50 participantes).${alvo}`;
   }
+  if(geral)
+    return `<b>${u.nome}</b> — maior lacuna do próprio padrão: `
+      + `<b>C${l[COMP]}</b> (${sinal(l[PERFIL])} pp)`;
   const br = linhaDe(dadosRaiz(0), comp);
   const partes = [`acertam <b>${pct(l[TAXA])}</b>`];
   if(esc.tipo !== "pais"){
@@ -551,6 +614,21 @@ function dicaDe(cod, u){
 
 // quando o mapa e de uma cor so, ele mudou de pergunta -- e a tela declara
 function avisoUniforme(){
+  if(comp === null){
+    // na geral, "uniforme" e todo mundo com a MESMA maior lacuna
+    const tops = unidadesDoMapa().map(u => piorComp(u.rows)).filter(Boolean)
+                                 .map(l => l[COMP]);
+    const alvo = $("aviso-mapa");
+    const conta = new Map();
+    for(const t of tops) conta.set(t, (conta.get(t) || 0) + 1);
+    const [melhor, n] = [...conta.entries()].sort((a, b) => b[1] - a[1])[0] || [null, 0];
+    if(tops.length >= 5 && n >= 0.9 * tops.length){
+      const onde = esc.tipo === "pais" ? "estados" : "cidades publicáveis";
+      alvo.textContent = `Em ${n} de ${tops.length} ${onde}, a maior lacuna é `
+        + `a mesma: C${melhor}. O que ensinar aqui é quase consenso.`;
+    } else alvo.textContent = "";
+    return;
+  }
   const vals = unidadesDoMapa().map(u => linhaDe(u.rows, comp))
     .filter(Boolean).map(l => l[PERFIL]);
   const neg = vals.filter(v => v < 0).length;
@@ -580,7 +658,8 @@ async function cliqueMapa(cod, u){
 function montaChips(){
   const cx = $("chips");
   const unidades = unidadesDoMapa();
-  let s = "";
+  let s = `<button type="button" data-c="g" aria-pressed="${comp === null}"`
+    + ` title="cada lugar pela competência em que mais fica atrás">Visão geral</button>`;
   for(const c of compsDaArea()){
     const v = unidades.map(u => linhaDe(u.rows, c)).filter(Boolean)
                       .map(l => l[PERFIL]);
@@ -592,7 +671,10 @@ function montaChips(){
   }
   cx.innerHTML = s;
   for(const b of cx.querySelectorAll("button"))
-    b.addEventListener("click", () => { comp = +b.dataset.c; render(); });
+    b.addEventListener("click", () => {
+      comp = b.dataset.c === "g" ? null : +b.dataset.c;
+      render();
+    });
 }
 
 // ------------------------------------------------------------- painel
@@ -620,6 +702,16 @@ function desenhaPainel(){
   ul.innerHTML = "";
   $("tri").innerHTML = "";
   const c = celula();
+  const notaB = notaBusca;
+  notaBusca = null;
+  if(notaB && esc.tipo === "ri"){
+    const n = document.createElement("li");
+    n.className = "vazio";
+    n.textContent = `Você buscou ${notaB}, que não atinge o mínimo para `
+      + `publicar sozinho (3 escolas e 50 participantes) — esta é a região `
+      + `imediata dele.`;
+    ul.appendChild(n);
+  }
 
   const tituloRede = rede === "Todas" ? "" : ` · rede ${ROT_REDE[rede].toLowerCase()}`;
 
@@ -629,8 +721,17 @@ function desenhaPainel(){
     $("pan-sub").textContent = "";
     const li = document.createElement("li");
     li.className = "vazio";
-    li.textContent = `${nome} não atinge o mínimo para publicar`
-      + `${NA_REDE[rede]} nesta área (3 escolas e 50 participantes). `;
+    const kkAtual = `${area}|${rede}`;
+    const eAtual = entrada() || {};
+    const nEsc = eAtual.esc && eAtual.esc[kkAtual];
+    // "abaixo do minimo" e "nao existe" sao verdades diferentes (Muriae nao
+    // tem escola municipal nenhuma; a tela dizia "nao atinge o minimo")
+    li.textContent = (rede !== "Todas" && !nEsc && esc.tipo === "mun")
+      ? `${nome} não tem escola${NA_REDE[rede].replace(" na", " da")} com `
+        + `concluintes no ENEM 2025. `
+      : `${nome} ${nEsc ? `tem ${nEsc} escola${nEsc === 1 ? "" : "s"}`
+          + `${NA_REDE[rede]} — abaixo` : "fica abaixo"} do mínimo para `
+        + `publicar${NA_REDE[rede]} (3 escolas e 50 participantes). `;
     // as saidas so sao OFERECIDAS quando existem de verdade -- prometer "a
     // regiao sempre atinge" era falso com rede filtrada (achado do crivo:
     // a Regiao de Imperatriz nao publica na rede federal)
@@ -653,6 +754,11 @@ function desenhaPainel(){
     if(rede !== "Todas" && munEmTodas)
       saida(`Ver ${nome} em todas as redes →`,
             () => { rede = "Todas"; escolheCompetencia(); render(); });
+    // o estado publica nesta rede em quase todo caso: e a saida que sempre
+    // mantem a pessoa DENTRO da rede que ela escolheu
+    if(G.dados[chaveRaiz(esc.uf)])
+      saida(`Ver ${G.ufs[esc.uf][1]}${NA_REDE[rede]} →`,
+            () => navega({tipo:"uf", uf:esc.uf}));
     ul.appendChild(li);
     filhos();
     return;
@@ -660,15 +766,6 @@ function desenhaPainel(){
 
   $("pan-tit").textContent = `${c.nome} — ${NOME_AREA[area]}${tituloRede}`;
 
-  if(notaBusca && esc.tipo === "ri"){
-    const n = document.createElement("li");
-    n.className = "vazio";
-    n.textContent = `Você buscou ${notaBusca}, que não atinge o mínimo para `
-      + `publicar sozinho (3 escolas e 50 participantes) — este é o retrato `
-      + `da região imediata dele.`;
-    ul.appendChild(n);
-  }
-  notaBusca = null;
 
   const brRows = dadosRaiz(0);
   // no nivel pais, QUALQUER rede e a propria referencia: comparar o Brasil
@@ -769,24 +866,30 @@ function filhos(){
   ul.innerHTML = "";
   filtro.hidden = true;
 
+  const geral = comp === null;
+  const escolheL = rows => geral ? piorComp(rows) : linhaDe(rows, comp);
   if(esc.tipo === "pais"){
-    tit.innerHTML = `<b>Estados</b>&nbsp;· pelo desvio do próprio padrão em C${comp} — o mesmo do mapa`;
+    tit.innerHTML = geral
+      ? `<b>Estados</b>&nbsp;· pela competência em que cada um mais fica atrás`
+      : `<b>Estados</b>&nbsp;· pelo desvio do próprio padrão em C${comp} — o mesmo do mapa`;
     grupos(ul, Object.keys(G.ufs).map(u => ({
       cod:u, nome:G.ufs[u][1], extra:G.ufs[u][2],
-      l:linhaDe(dadosRaiz(u), comp),
+      l:escolheL(dadosRaiz(u)),
       vai:() => navega({tipo:"uf", uf:u}),
     })));
     return;
   }
 
   if(esc.tipo === "uf"){
-    tit.innerHTML = `<b>Cidades</b>&nbsp;· pelo desvio do próprio padrão em C${comp}`;
+    tit.innerHTML = geral
+      ? `<b>Cidades</b>&nbsp;· pela competência em que cada uma mais fica atrás`
+      : `<b>Cidades</b>&nbsp;· pelo desvio do próprio padrão em C${comp}`;
     filtro.hidden = false;
     const alvo = norm(filtro.value || "");
     const pk = MUN[esc.uf] || {mun:{}};
     const todas = Object.entries(pk.mun).map(([cod, m]) => ({
       cod, nome:m.nome, ri:m.ri,
-      l:linhaDe((m.dados || {})[`${area}|${rede}`], comp),
+      l:escolheL((m.dados || {})[`${area}|${rede}`]),
       pub:!!(m.dados && m.dados[`${area}|${rede}`]),
       // publica em ALGUMA rede -> painel da cidade (explica e oferece
       // saidas); nunca publicou -> regiao; sem regiao -> nada (e declarado)
@@ -841,18 +944,47 @@ function filhos(){
 
   // regiao imediata: as cidades dela
   const pk = MUN[esc.uf] || {mun:{}};
-  tit.innerHTML = `<b>Cidades desta região</b>&nbsp;· pelo desvio do próprio padrão em C${comp}`;
+  tit.innerHTML = geral
+    ? `<b>Cidades desta região</b>&nbsp;· pela competência em que cada uma mais fica atrás`
+    : `<b>Cidades desta região</b>&nbsp;· pelo desvio do próprio padrão em C${comp}`;
   for(const [cod, m] of Object.entries(pk.mun)){
     if(m.ri !== esc.cod) continue;
     const pub = !!(m.dados && m.dados[`${area}|${rede}`]);
     ul.appendChild(itemFilho({cod, nome:m.nome,
-      l:linhaDe((m.dados || {})[`${area}|${rede}`], comp), pub,
+      l:escolheL((m.dados || {})[`${area}|${rede}`]), pub,
       vai:() => pub ? navega({tipo:"mun", uf:esc.uf, cod}) : null}, !pub));
   }
 }
 
 function grupos(ul, unidades){
   const tem = unidades.filter(u => u.l).sort((a, b) => a.l[PERFIL] - b.l[PERFIL]);
+  if(comp === null){
+    // agrupa por "qual e a maior lacuna daqui" -- o grupo grande primeiro.
+    // Dentro do grupo, quem esta mais fundo primeiro
+    const porComp = new Map();
+    for(const u of tem){
+      if(!porComp.has(u.l[COMP])) porComp.set(u.l[COMP], []);
+      porComp.get(u.l[COMP]).push(u);
+    }
+    for(const [c, membros] of [...porComp.entries()]
+          .sort((a, b) => b[1].length - a[1].length)){
+      const cab = document.createElement("li");
+      cab.className = "grupo";
+      const desc = (G.comp[`${area}|${c}`] || "").split(" ").slice(0, 6).join(" ");
+      cab.innerHTML = `<span><b style="display:inline-block;width:10px;height:10px;`
+        + `border-radius:3px;background:${corComp(c)};margin-right:6px"></b>`
+        + `C${c} — ${desc}…</span><i>${membros.length}</i>`;
+      ul.appendChild(cab);
+      for(const u of membros) ul.appendChild(itemFilho(u, false));
+    }
+    if(!tem.length){
+      const li = document.createElement("li");
+      li.className = "vazio";
+      li.textContent = `Nenhuma unidade publica${NA_REDE[rede]} nesta área.`;
+      ul.appendChild(li);
+    }
+    return;
+  }
   const defs = [
     ["Fica para trás do próprio padrão", v => v <= -CORTE],
     ["Perto do próprio padrão",          v => v > -CORTE && v < CORTE],
@@ -941,35 +1073,12 @@ async function navega(novo){
   render();
 }
 
-// a escolha automatica serve o painel primario de cada nivel: sem unidade, o
-// mapa (maior contraste); com unidade, a lista dela (maior lacuna)
+// toda troca de escopo, area ou rede volta a VISAO GERAL: a escolha
+// automatica de competencia confundia ("por que C6?"), e a geral responde a
+// primeira pergunta sem exigir escolha. Quem quer uma competencia especifica
+// toca no chip ou numa linha do painel
 function escolheCompetencia(){
-  if(esc.tipo === "mun" || esc.tipo === "ri"){
-    const c = celula();
-    if(c && c.dados){
-      const brRows = dadosRaiz(0);
-      let pior = null, piorV = 1e9;
-      for(const l of c.dados){
-        const br = linhaDe(brRows, l[COMP]);
-        const v = br ? l[TAXA] - br[TAXA] : 0;
-        if(v < piorV){ piorV = v; pior = l[COMP]; }
-      }
-      if(pior !== null){ comp = pior; return; }
-    }
-  } else {
-    let melhor = null, maiorDp = -1;
-    for(const c of compsDaArea()){
-      const v = unidadesDoMapa().map(u => linhaDe(u.rows, c)).filter(Boolean)
-                                .map(l => l[PERFIL]);
-      if(v.length < 2) continue;
-      const m = v.reduce((s, x) => s + x, 0) / v.length;
-      const dp = Math.sqrt(v.reduce((s, x) => s + (x - m) ** 2, 0) / v.length);
-      if(dp > maiorDp){ maiorDp = dp; melhor = c; }
-    }
-    if(melhor !== null){ comp = melhor; return; }
-  }
-  const todas = compsDaArea();
-  if(!todas.includes(comp)) comp = todas[0];
+  comp = null;
 }
 
 function pintaBotoes(){
