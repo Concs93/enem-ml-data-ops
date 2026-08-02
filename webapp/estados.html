@@ -129,8 +129,8 @@
   <nav class="nav">
     <span class="brand">ENEM em foco</span>
     <a href="index.html">Para o estudante</a>
+    <a class="on" href="#">Análise por estado</a>
     <a href="metodo.html">Como funciona</a>
-    <a class="on" href="#">Para redes de ensino</a>
     <span class="breve" title="em construção">Apoie</span>
   </nav>
 </header>
@@ -393,8 +393,10 @@ function desenhaPainel(){
 
   const total = G.pts[chave(cod)] ?? 0;
   $("total").innerHTML =
-    `<p class="total">Um passo de avanço no aprendizado${NA_REDE[rede]} `
-    + `valeria <b>≈ +${total} pontos</b> na média — e rende mais aqui:</p>`;
+    `<p class="total">Um passo de avanço (meio nível da escala) em `
+    + `<b>todas</b> as competências${NA_REDE[rede]} valeria `
+    + `<b>≈ +${total} pontos</b> na média — repartido por onde ele rende. `
+    + `Não é um teto: é o valor de um passo.</p>`;
 
   // guarda de margem: com poucos participantes (rede municipal em UF
   // pequena), a taxa que sustenta o calculo e ruidosa -- declara
