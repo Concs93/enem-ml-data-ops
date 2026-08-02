@@ -1,3 +1,13 @@
+{{ config(tags=['precisa_dado']) }}
+
+-- FAIXA 3, nao FAIXA 2 (marcado em 02/08/2026). Este teste afirma PRESENCA
+-- -- e por isso ele existe --, entao ele reprova por construcao num banco
+-- vazio. A CI e a documentacao rodam sobre a raw vazia para perguntar "o
+-- SQL executa?", nao "o dado esta certo?"; a segunda pergunta e do Airflow,
+-- com os 2,6 GB. Afrouxar o teste para passar vazio (um `having count > 0`)
+-- destruiria justamente o defeito que ele pega: a edicao que contribui
+-- ZERO em silencio.
+
 -- Toda edicao do banco tem de entregar a PROVA REGULAR INTEIRA: 45 itens em
 -- CH, CN e MT, 50 em LC (as duas linguas). Nem um a mais, nem um a menos.
 --

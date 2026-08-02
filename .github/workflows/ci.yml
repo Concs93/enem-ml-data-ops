@@ -157,4 +157,6 @@ jobs:
       # Isto prova que o SQL e valido, nunca que o resultado esta certo.
       - name: Modelos e testes sobre a raw vazia
         working-directory: dbt
-        run: dbt build
+        # os testes de PRESENCA (tag precisa_dado) sao da Faixa 3:
+        # afirmam que o dado esta completo, e a raw aqui e vazia
+        run: dbt build --exclude tag:precisa_dado

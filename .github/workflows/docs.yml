@@ -75,7 +75,9 @@ jobs:
         run: |
           dbt deps
           dbt seed
-          dbt build
+          # os testes de PRESENCA (tag precisa_dado) sao da Faixa 3:
+          # afirmam que o dado esta completo, e a raw aqui e vazia
+          dbt build --exclude tag:precisa_dado
           dbt docs generate
 
       # o index.html do dbt busca manifest.json e catalog.json por caminho
