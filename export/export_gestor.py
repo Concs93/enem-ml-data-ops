@@ -60,6 +60,47 @@ def k(*partes):
     return "|".join(str(p) for p in partes)
 
 
+def curva_acertos_nota(cur):
+    """A ponte acertos->nota por area, para converter distancia de acerto em
+    pontos NA MEDIA. Vem do acertos_medio da calibracao (estritamente
+    crescente -- e a serie que o site do aluno ja inverte). Em LC as duas
+    linguas sao fundidas ponderando pelo n de cada faixa; a honestidade de
+    +-13 pontos da conversao nivel<->nota ja esta documentada no projeto."""
+    cur.execute("""
+        select area, nota_faixa + 5 as nota,
+               sum(n * acertos_medio) / sum(n) as acertos
+        from marts.mart_calibracao_nota
+        group by 1, 2 order by 1, 2
+    """)
+    curvas = {}
+    for area, nota, ac in cur.fetchall():
+        curvas.setdefault(area, []).append((float(ac), float(nota)))
+    # monotonica por construcao no miolo; o piso saturado pode oscilar --
+    # colapsa mantendo a maior nota (mesma regra do site do aluno)
+    for area, serie in curvas.items():
+        limpa = []
+        for ac, nota in serie:
+            if limpa and ac <= limpa[-1][0]:
+                limpa[-1] = (limpa[-1][0], max(limpa[-1][1], nota))
+            else:
+                limpa.append((ac, nota))
+        curvas[area] = limpa
+    return curvas
+
+
+def nota_de_acertos(curva, ac):
+    if ac <= curva[0][0]:
+        return curva[0][1]
+    if ac >= curva[-1][0]:
+        return curva[-1][1]
+    for i in range(1, len(curva)):
+        if ac <= curva[i][0]:
+            a0, n0 = curva[i-1]
+            a1, n1 = curva[i]
+            return n0 + (n1 - n0) * (ac - a0) / (a1 - a0)
+    return curva[-1][1]
+
+
 def tabela_tri(cur):
     """Para cada (area, theta da grade): a competencia em que avancar meio
     nivel mais devolve acertos. Em LC usa a lingua da MAIORIA -- derivada do
@@ -167,6 +208,53 @@ def exporta(cur):
             [int(comp), round(float(taxa), 1), round(float(perfil), 1), int(n)])
     pacote["dados"] = dict(dados)
 
+    # ------------------- pontos na media: fechar a distancia para o Brasil
+    # Cenario NOMEADO (a melhoria "X%" generica nao existe): se esta rede
+    # acertasse, em cada competencia em que esta atras, o que o Brasil da
+    # mesma rede acerta, quantos pontos a MEDIA subiria. Convertido pela
+    # curva acertos->nota (nao por inclinacao local: o fator varia de ~32 a
+    # ~14 pts/acerto ao longo da escala) e PARTICIONADO para as partes
+    # somarem o total -- a licao da face do aluno ("somar e exatamente a
+    # conferencia que o leitor faz").
+    curvas = curva_acertos_nota(cur)
+    pacote["pts"] = {}
+    for ch, linhas in list(pacote["dados"].items()):
+        cod, ar, rede = ch.split("|")
+        if cod == "0":
+            continue
+        br = {l[0]: l[1] for l in pacote["dados"].get(k(0, ar, rede), [])}
+        ctx = pacote["ctx"].get(ch)
+        if not br or not ctx or not ctx[0]:
+            continue
+        presentes = ctx[0]
+        # questoes POR ALUNO da competencia = respostas / presentes (em LC a
+        # C2 tem 10 itens distintos mas cada aluno responde 5 -- e por isso
+        # que n_respostas, e nao n_itens, e o divisor certo)
+        q_aluno = {l[0]: l[3] / presentes for l in linhas}
+        atual = sum(l[1] / 100 * q_aluno[l[0]] for l in linhas)
+        delta = {l[0]: max(0.0, (br.get(l[0], 0) - l[1]) / 100) * q_aluno[l[0]]
+                 for l in linhas}
+        total_delta = sum(delta.values())
+        curva = curvas[ar]
+        total_pts = (nota_de_acertos(curva, atual + total_delta)
+                     - nota_de_acertos(curva, atual)) if total_delta > 1e-9 else 0.0
+        total_int = round(total_pts)
+        # particao por resto maior: as partes inteiras somam o total exato
+        if total_int > 0 and total_delta > 0:
+            brutas = {c: total_pts * d / total_delta for c, d in delta.items()}
+            partes = {c: int(v) for c, v in brutas.items()}
+            sobra = total_int - sum(partes.values())
+            for c, _ in sorted(brutas.items(), key=lambda x: -(x[1] % 1)):
+                if sobra <= 0:
+                    break
+                partes[c] += 1
+                sobra -= 1
+        else:
+            partes = {l[0]: 0 for l in linhas}
+        for l in linhas:
+            l.append(partes.get(l[0], 0))
+        pacote["pts"][ch] = total_int
+
     cur.execute("""
         select distinct rede from marts.mart_geografia_competencia
         where nivel = 'uf' and publicavel
@@ -226,6 +314,14 @@ def valida(cur, pacote):
         media = sum(l[2] for l in linhas) / len(linhas)
         if abs(media) > 1.5:
             erros.append(f"perfil: media {media:.2f} em {ch}")
+
+    # as partes dos pontos somam o total (a conferencia que o leitor faz)
+    for ch, total in pacote["pts"].items():
+        soma = sum(l[4] for l in pacote["dados"][ch] if len(l) > 4)
+        if soma != total:
+            erros.append(f"pts: partes somam {soma} != total {total} em {ch}")
+        if total < 0:
+            erros.append(f"pts: total negativo em {ch}")
 
     # o tri aponta competencia que existe na area
     for ch, c in pacote["tri"].items():
