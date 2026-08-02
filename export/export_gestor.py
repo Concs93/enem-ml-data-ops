@@ -7,18 +7,13 @@ por escola sairam do produto. O grao fino convida ao uso que fez o INEP
 descontinuar o "ENEM por Escola"; a analise vive bem por estado e
 competencia. O co_municipio segue como grao de COMPUTO nos marts.
 
-O DESENHO DOS NUMEROS (medido antes de decidido):
-- A tela mostra COMPARACOES SIMPLES: taxa da UF menos taxa do Brasil, na
-  MESMA rede -- subtracao que o leitor confere de cabeca. A ordem e a mesma
-  do indicador centrado em 3.464 de 3.480 listas.
-- O `perfil` (desvio do padrao da propria unidade) so pinta o MAPA e vira
-  anotacao verbal: entre unidades, a diferenca crua e 90%+ ranking (rho
-  0,91-0,97 com o nivel; o perfil, 0,03-0,08).
-- `tri` e a competencia em que AVANCAR mais rende no nivel medio da celula
-  -- contexto, nunca o numero que ordena.
-- `esc` guarda o n_escolas das celulas que EXISTEM mas nao publicam: e o
-  que separa "tem 1 escola federal, abaixo do minimo" de "nao tem escola
-  federal" (so a contagem cadastral viaja; nota de celula fechada, nunca).
+O DESENHO FINAL (02/08/2026, segunda rodada do "simple is best"): a tela
+faz UMA pergunta -- quantos pontos a media subiria se a rede acertasse,
+onde esta atras, o que o Brasil da mesma rede acerta -- repartidos por
+competencia (as partes somam o total). A taxa viaja como recibo; n_respostas
+sustenta a guarda de margem; `esc` separa "nao tem escola da rede" de
+"abaixo do minimo". Perfil e TRI sairam do pacote junto com o mapa
+tematico: o mapa agora e so o seletor de estados.
 
 Regras da fronteira: le SO de marts; valida conservacao e FALHA ALTO antes
 de gravar parcial; grava atomico (tmp + rename). Arredonda UMA vez, para a
@@ -101,57 +96,8 @@ def nota_de_acertos(curva, ac):
     return curva[-1][1]
 
 
-def tabela_tri(cur):
-    """Para cada (area, theta da grade): a competencia em que avancar meio
-    nivel mais devolve acertos. Em LC usa a lingua da MAIORIA -- derivada do
-    proprio banco, nunca transcrita."""
-    cur.execute("""
-        select cod_lingua, sum(n) from marts.mart_calibracao_nota
-        where area = 'LC' group by 1 order by 2 desc
-    """)
-    linhas = [(int(l), float(n)) for l, n in cur.fetchall()]
-    lingua_maioria = linhas[0][0]
-    pct_maioria = round(100.0 * linhas[0][1] / sum(n for _, n in linhas))
-
-    cur.execute("""
-        with h as (
-            select theta, area, competencia,
-                   sum(n_itens)                                   as n_itens,
-                   sum(n_itens * acerto_esperado) / sum(n_itens)  as acerto
-            from marts.mart_perfil_habilidade
-            where cod_lingua is null or cod_lingua = %s
-            group by 1, 2, 3
-        ),
-        ganho as (
-            select a.area, a.theta, a.competencia,
-                   sum(a.n_itens * (b.acerto - a.acerto)) as g
-            from h a
-            join h b on b.area = a.area and b.competencia = a.competencia
-                    and b.theta = a.theta + 0.5
-            group by 1, 2, 3
-        )
-        select distinct on (area, theta) area, theta, competencia
-        from ganho order by area, theta, g desc
-    """, (lingua_maioria,))
-    tri = {(a, float(t)): int(c) for a, t, c in cur.fetchall()}
-    thetas = sorted({t for _, t in tri})
-    rotulo_lc = ("inglês" if lingua_maioria == 0 else "espanhol")
-    return tri, thetas, f"{rotulo_lc}, a língua de {pct_maioria}% dos participantes"
-
-
-def tri_da_media(tri, thetas, area, media_nota):
-    if media_nota is None:
-        return None
-    t = round(((float(media_nota) - 500) / 100.0) / 0.05) * 0.05
-    t = min(max(t, thetas[0]), thetas[-1])
-    return tri.get((area, round(t, 2)))
-
-
 def exporta(cur):
-    tri_tab, tri_grade, tri_nota_lc = tabela_tri(cur)
-
-    pacote = {"edicao": 2025, "areas": sorted(COMP_POR_AREA),
-              "triLC": tri_nota_lc}
+    pacote = {"edicao": 2025, "areas": sorted(COMP_POR_AREA)}
 
     cur.execute("""
         select distinct co_uf, uf, nome_uf, nome_regiao
@@ -177,14 +123,10 @@ def exporta(cur):
         from marts.mart_geografia_area
         where publicavel and nivel in ('pais', 'uf')
     """)
-    ctx, tri_out = {}, {}
+    ctx = {}
     for cod, ar, rede, n, esc, media in cur.fetchall():
         ctx[k(cod, ar, rede)] = [int(n), int(esc), round(float(media))]
-        t = tri_da_media(tri_tab, tri_grade, ar, media)
-        if t is not None:
-            tri_out[k(cod, ar, rede)] = t
     pacote["ctx"] = ctx
-    pacote["tri"] = tri_out
 
     # n_escolas das celulas que existem mas NAO publicam (so cadastral)
     cur.execute("""
@@ -194,18 +136,17 @@ def exporta(cur):
     """)
     pacote["esc"] = {k(c, a, r): int(n) for c, a, r, n in cur.fetchall()}
 
-    # [comp, taxa (1 casa), perfil (1 casa), n_respostas]
+    # [comp, taxa (1 casa -- o recibo), n_respostas (a margem)] + pts no fim
     cur.execute("""
-        select codigo, area, rede, competencia,
-               taxa_acerto, perfil, n_respostas
+        select codigo, area, rede, competencia, taxa_acerto, n_respostas
         from marts.mart_geografia_competencia
         where publicavel and status = 'ok' and nivel in ('pais', 'uf')
         order by codigo, area, rede, competencia
     """)
     dados = defaultdict(list)
-    for cod, ar, rede, comp, taxa, perfil, n in cur.fetchall():
+    for cod, ar, rede, comp, taxa, n in cur.fetchall():
         dados[k(cod, ar, rede)].append(
-            [int(comp), round(float(taxa), 1), round(float(perfil), 1), int(n)])
+            [int(comp), round(float(taxa), 1), int(n)])
     pacote["dados"] = dict(dados)
 
     # ------------------- pontos na media: fechar a distancia para o Brasil
@@ -230,7 +171,7 @@ def exporta(cur):
         # questoes POR ALUNO da competencia = respostas / presentes (em LC a
         # C2 tem 10 itens distintos mas cada aluno responde 5 -- e por isso
         # que n_respostas, e nao n_itens, e o divisor certo)
-        q_aluno = {l[0]: l[3] / presentes for l in linhas}
+        q_aluno = {l[0]: l[2] / presentes for l in linhas}
         atual = sum(l[1] / 100 * q_aluno[l[0]] for l in linhas)
         delta = {l[0]: max(0.0, (br.get(l[0], 0) - l[1]) / 100) * q_aluno[l[0]]
                  for l in linhas}
@@ -283,8 +224,6 @@ def valida(cur, pacote):
                 erros.append(f"ctx: falta {ch}")
             if len(pacote["dados"].get(ch, [])) != n_esp:
                 erros.append(f"dados: {ch} incompleta")
-            if ch not in pacote["tri"]:
-                erros.append(f"tri: falta {ch}")
 
     # paridade ctx <-> dados (um sem o outro e painel morto em silencio)
     if set(pacote["ctx"]) != set(pacote["dados"]):
@@ -309,25 +248,13 @@ def valida(cur, pacote):
             erros.append(f"conservacao: UFs somam {soma:,} em {ar}, "
                          f"pais tem {pais[0]:,}")
 
-    # o perfil zera dentro da celula (guarda frouxa; o dbt test trava exato)
-    for ch, linhas in pacote["dados"].items():
-        media = sum(l[2] for l in linhas) / len(linhas)
-        if abs(media) > 1.5:
-            erros.append(f"perfil: media {media:.2f} em {ch}")
-
     # as partes dos pontos somam o total (a conferencia que o leitor faz)
     for ch, total in pacote["pts"].items():
-        soma = sum(l[4] for l in pacote["dados"][ch] if len(l) > 4)
+        soma = sum(l[3] for l in pacote["dados"][ch] if len(l) > 3)
         if soma != total:
             erros.append(f"pts: partes somam {soma} != total {total} em {ch}")
         if total < 0:
             erros.append(f"pts: total negativo em {ch}")
-
-    # o tri aponta competencia que existe na area
-    for ch, c in pacote["tri"].items():
-        ar = ch.split("|")[1]
-        if k(ar, c) not in pacote["comp"]:
-            erros.append(f"tri: {ch} aponta C{c}, inexistente em {ar}")
 
     return erros
 

@@ -1135,6 +1135,36 @@ Regra da casa desde então: **duas derrapadas seguidas = parar de adivinhar e
 olhar o plano**; referência pequena se materializa, nunca vive em CTE ao
 lado de join grande.
 
+### A pergunta única: quantos pontos, e onde (02/08/2026, rodada final)
+
+Terceira e última rodada do "simple is best", pedida pelo dono do produto:
+*"quero que tragamos só essa questão dos pontos"*. A `redes.html` final faz
+UMA pergunta — **quantos pontos a média subiria se a rede acertasse, onde
+está atrás, o que o Brasil da mesma rede acerta** — repartidos por
+competência (as partes somam o total, validado no export e conferido na
+tela: MA 16+10+10+7+7+6+6 = 62).
+
+O que saiu nesta rodada: o mapa temático (perfil), a visão geral categórica,
+os chips de competência, a caixa de TRI, as anotações de padrão e o pp. **O
+mapa virou seletor neutro** — sem cor por dado, o que elimina por construção
+qualquer resquício de ranking pintado; o hover diz o total do estado.
+`geografia.json`: 99 KB, dez chaves. As três lições da face do aluno
+continuam carregando a conta: cenário nomeado, conversão pela curva
+acertos→nota (não inclinação local), partição por resto maior.
+
+O que a tela responde em três cliques: estado → *"fechar as distâncias
+valeria ≈ +62 pontos — repartidos assim: C1 +16, C6 +10…"* com as taxas
+como recibo em cada linha; estado acima do Brasil em tudo (MG) → a frase
+honesta, ✓ por competência; e "As redes deste estado" com o total de cada
+uma (MA: Todas +62 · Estadual +47 · Privada +37 · Federal +56 · Municipal
++67) — cada rede contra o Brasil dela. As guardas de honestidade
+sobreviveram todas: "não tem escola dessa rede" ≠ "abaixo do mínimo",
+margem declarada quando o N é pouco, e o método nomeia cenário, partição e
+os ±13 da ponte.
+
+O perfil e a infraestrutura ficam nos marts (computo e testes) — a tela é
+que enxugou.
+
 ### Etapa 4 — o que ficou de pé
 
 Schema `marts` (sem prefixo, via `generate_schema_name`), três modelos e quatro
