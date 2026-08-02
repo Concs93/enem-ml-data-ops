@@ -1,8 +1,14 @@
-name: Documentacao
+name: Site e documentacao
 
-# Gera a documentacao do dbt (modelos, colunas, testes e o grafo de lineage)
-# e publica no GitHub Pages. O conteudo vem do CODIGO, nao do dado -- por
-# isso o banco vazio da Faixa 2 basta.
+# Publica no GitHub Pages, num deploy so:
+#   /           o SITE (webapp/) -- o produto: a face do estudante e a
+#               analise por estado. Sao arquivos estaticos com os JSON ja
+#               exportados; nada aqui depende do banco.
+#   /pipeline/  a documentacao do dbt (modelos, colunas, testes, lineage),
+#               gerada do CODIGO -- por isso o banco vazio da Faixa 2 basta.
+#
+# A raiz e o produto de proposito: quem chega no link tem de ver a
+# ferramenta, nao o grafo de lineage.
 on:
   push:
     branches: [main]
@@ -73,13 +79,31 @@ jobs:
           dbt docs generate
 
       # o index.html do dbt busca manifest.json e catalog.json por caminho
-      # relativo -- os tres precisam viajar juntos
+      # relativo -- os tres precisam viajar juntos, e agora dentro de
+      # /pipeline/ (a raiz e do produto)
       - name: Monta o site
         run: |
-          mkdir -p site
-          cp dbt/target/index.html    site/
-          cp dbt/target/manifest.json site/
-          cp dbt/target/catalog.json  site/
+          mkdir -p site/pipeline
+          cp -r webapp/.            site/
+          cp dbt/target/index.html    site/pipeline/
+          cp dbt/target/manifest.json site/pipeline/
+          cp dbt/target/catalog.json  site/pipeline/
+          # sem isto o Jekyll do Pages ignora arquivos e pastas iniciados
+          # por _ ; nao ha nenhum hoje, mas o custo de garantir e zero
+          touch site/.nojekyll
+
+      # guarda de fronteira: o site so vale se os dados exportados
+      # viajarem junto -- pagina que carrega e nao acha o JSON e pior que
+      # pagina que nao carrega
+      - name: Confere os dados do site
+        run: |
+          test -f site/index.html
+          test -f site/estados.html
+          test -f site/dados/motor.json
+          test -f site/dados/geografia.json
+          test -f site/dados/municipios_indice.json
+          test -d site/dados/geo_mun
+          echo "site: $(du -sh site | cut -f1)"
 
       - uses: actions/upload-pages-artifact@v3
         with:

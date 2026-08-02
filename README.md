@@ -1,187 +1,201 @@
-# enem-ml-data-ops
+# ENEM em foco
 
 [![CI](https://github.com/Concs93/enem-ml-data-ops/actions/workflows/ci.yml/badge.svg)](https://github.com/Concs93/enem-ml-data-ops/actions/workflows/ci.yml)
-[![Documentação](https://github.com/Concs93/enem-ml-data-ops/actions/workflows/docs.yml/badge.svg)](https://github.com/Concs93/enem-ml-data-ops/actions/workflows/docs.yml)
+[![Site e documentação](https://github.com/Concs93/enem-ml-data-ops/actions/workflows/docs.yml/badge.svg)](https://github.com/Concs93/enem-ml-data-ops/actions/workflows/docs.yml)
 
-Pipeline de DataOps sobre os microdados do ENEM 2025 (INEP), do CSV bruto ao
-diagnóstico pedagógico por escola — mais um **motor psicométrico** servido
-como tabela e a **geografia em cinco níveis** que levam o diagnóstico de
-município a país. Construído do zero, com testes nos dois lados da fronteira,
-orquestração e documentação publicada. O plano do produto (e o que ficou fora,
-com o porquê) está no [`PLANO.md`](PLANO.md).
+**Um site gratuito que diz ao estudante do ENEM o que estudar primeiro** —
+calculado com o mesmo modelo que o INEP usa para corrigir a prova, sobre os
+microdados públicos de 2025.
 
-**📊 [Documentação e lineage do pipeline](https://concs93.github.io/enem-ml-data-ops/)**
+### 🎯 **[Abrir o site](https://concs93.github.io/enem-ml-data-ops/)**
+
+Sem cadastro, sem servidor, sem coleta: o cálculo roda no navegador de quem
+acessa. Quem digita as respostas da prova as vê corrigidas **no próprio
+aparelho** — o gabarito desce, as respostas nunca sobem.
 
 ---
 
-## O que ele entrega
+## O que o site faz
 
-Dado um `CO_ESCOLA`, o pipeline responde três perguntas:
+**Para o estudante.** Você coloca a nota (e, se quiser, as 45 respostas de
+cada área) e ele responde *o que estudar primeiro para ganhar mais pontos*:
 
-1. **Onde a escola está** — média na escala oficial e percentil entre escolas
-   comparáveis.
-2. **O que os alunos dominam e o que precisa ser desenvolvido** — habilidade a
-   habilidade, contra a referência nacional.
-3. **Quanta confiança cabe em cada número** — quantos alunos, quantos itens, e
-   o que não pôde ser medido.
+- **A prioridade muda com o seu nível.** Em Matemática, quem está em ~550
+  ganha mais estudando "construir significados para os números"; quem está em
+  ~700, geometria. Estudar o que você mais erra costuma ser a pior escolha no
+  curto prazo — o conteúdo distante quase não devolve ponto, e o site mostra
+  por quê.
+- **Com o gabarito, ele fica específico**: quais questões estavam ao seu
+  alcance, quantos pontos cada erro custou, e onde estão os "pontos baratos".
+- **Ele declara o que não sabe.** A prova mede com precisão desigual — ±16
+  pontos na nota 700, ±82 na nota 400 — e a tela muda de linguagem onde a
+  medida é ruim.
 
-Um recorte real, das maiores lacunas de uma escola em Matemática:
+**Análise por estado e cidade.** Busque o seu lugar e veja quantos pontos a
+média subiria com **um passo de avanço** no aprendizado, repartido pelas
+competências da Matriz — e onde esse passo rende mais. Filtrável por rede
+(estadual, privada, federal, municipal).
 
-| habilidade | escola | nacional | dif. |
-|---|---|---|---|
-| H1 — *Reconhecer, no contexto social, diferentes significados e representações dos números e operações* | 8,0% | 59,5% | −51,5 |
-| H4 — *Avaliar a razoabilidade de um resultado numérico na construção de argumentos* | 6,0% | 45,6% | −39,6 |
-| H20 — *Interpretar gráfico cartesiano que represente relações entre grandezas* | 28,0% | 62,9% | −34,9 |
+**Aqui não há ranking.** Nenhum lugar é pintado ou ordenado por desempenho, e
+escola individual fica de fora por decisão: é o uso que fez o INEP
+descontinuar o "ENEM por Escola" em 2015. O critério de publicação (≥ 3
+escolas e ≥ 50 participantes) vale igual para estados e cidades.
 
-Duas das três estão na mesma competência de área — o tipo de padrão que a
-agregação por competência existe para revelar.
+---
 
-## Arquitetura
+## O que sustenta os números
+
+O site é a ponta. Atrás dele há um pipeline que vai do CSV bruto do INEP
+(2,6 GB) até os 100 KB de JSON que o navegador baixa.
 
 ```
-CSV do INEP (2,6 GB)
+CSV bruto (INEP)
   → raw            ingestão via COPY, tudo TEXT, sem interpretação
-  → staging        tipagem + schema canônico (absorve drift entre edições)
-  → intermediate   explosão das respostas + acerto por item
-  → marts          diagnóstico por escola — fronteira de consumo
+  → staging        tipagem + schema canônico (dbt)
+  → intermediate   explosão das respostas + agregação por item
+  → marts          fronteira de consumo — o que o site lê
 ```
 
-| camada | o que tem |
-|---|---|
-| `raw` | 4.810.772 resultados · 4.810.772 participantes · 6.105 itens |
-| `marts` | 29.265 escolas · 120 habilidades · 30 competências |
-
-**Números do pipeline:** 31 modelos · 76 testes dbt · 22 expectations na
-fronteira · 23 tasks orquestradas · execução completa em 43 min.
-
-### A validação que sustenta tudo
-
-A correlação entre o **parâmetro de dificuldade da TRI** (calibrado pelo INEP)
-e a **taxa de acerto calculada do zero** a partir dos vetores de resposta:
+**A validação que sustenta tudo.** A correlação entre o parâmetro de
+dificuldade calibrado pelo INEP e a taxa de acerto que o pipeline calcula do
+zero, a partir dos vetores de resposta:
 
 | área | correlação | taxa média |
 |---|---|---|
 | CH | −0,808 | 35,8% |
 | CN | −0,799 | 32,6% |
-| LC | −0,910 | 45,1% |
+| LC | **−0,910** | 45,1% |
 | MT | −0,854 | 31,9% |
 
 São dois caminhos independentes concordando sobre quais itens são difíceis.
-Se essa correlação vier fraca, alguma junção quebrou — e nenhum outro teste
-pegaria.
+Foi assim que um bug de junção em Linguagens apareceu: a correlação vinha
+−0,027 e a taxa colada no acaso de 20%. Nenhum outro teste teria pego.
 
-## O motor psicométrico
+**O motor psicométrico** (TRI de 3 parâmetros) existe como tabela, não como
+binário: curva característica e informação de Fisher de cada item, numa grade
+de θ. Os parâmetros são os oficiais do INEP — nada é ajustado aqui, só
+avaliado —, e por isso o modelo herda versionamento, teste e documentação do
+próprio dbt.
 
-Os parâmetros de TRI (`a`, `b`, `c`) que o INEP publica viraram um motor
-consultável — **como tabela versionada pelo dbt, não como binário**:
+**Confirmação cruzada:** re-estimar a nota pelo padrão de respostas de 4.000
+participantes dá correlação **0,9907** com a nota oficial.
 
-- **Curva e informação por item × nível** (`mart_curva_item`): a prioridade de
-  estudo ordena pelo **ganho de um passo** — quanto o mesmo avanço de nível
-  rende em cada conteúdo — nunca por taxa de erro: a habilidade que a pessoa
-  mais erra costuma ser a pior escolha de estudo no curto prazo. A informação
-  de Fisher viaja no mart como o fato psicométrico subjacente.
-- **Calibração empírica nota → θ efetivo** (`mart_calibracao_nota`), medida
-  em 1,27 a 1,33 milhão de participantes por área. Não corrige a escala do
-  INEP (`nota = 100·θ + 500` é definição): mede a ponte *nota → acertos
-  esperados*, que o INEP não publica. Coincidem no miolo (diferença ~0,2 entre
-  450 e 700); afastam-se nas caudas — no topo porque a nota vem do padrão e
-  não da contagem, no piso por causa das provas em branco.
-- **Distribuição empírica de acertos por nota** (`mart_distribuicao_acertos`):
-  valida entrada e responde "entre os participantes com a sua nota, esse
-  total está no percentil X" — contagem pura, sem teoria.
+📊 **[Documentação e lineage do pipeline](https://concs93.github.io/enem-ml-data-ops/pipeline/)**
 
-E a **geografia em cinco níveis** (município → região imediata IBGE → UF →
-região → país), com regra dupla de publicação (≥ 3 escolas e ≥ 50
-participantes) aplicada honestamente em todo nível: 45% dos municípios têm
-uma escola só, e publicá-los seria publicar a escola com outro rótulo. Quem
-não passa não some — sobe de nível com o motivo declarado.
+---
 
-## O que os dados esconderam
+## Três coisas que só apareceram medindo
 
-O trabalho interessante deste projeto não foi mover dados, foi encontrar o que
-estava errado em silêncio:
+**1. 184 KB no lugar de 2,6 GB.** Para reunir os itens de seis edições, o
+script lê o diretório central de cada ZIP remoto do INEP e pede por *range*
+só os bytes do arquivo que interessa. Economia de até **19.074×** numa
+edição.
 
-- **Nota 0 é sentinela, não desempenho.** Existem milhares de notas exatamente
-  0 e *nenhuma* entre 0 e 250 — o piso real da escala é ~310. São provas
-  entregues em branco. Um `avg()` ingênuo distorcia a média de 218 escolas em
-  **até 147,5 pontos**.
-- **Uma habilidade que sumia do relatório.** A habilidade 8 de LC é coberta só
-  por itens de espanhol; em 1.824 escolas sem alunos de espanhol, a linha
-  simplesmente não existia. O mart passou a montar um grid completo e a
-  distinguir *não avaliada* de *não administrada*.
-- **Um item escorado que o INEP havia descartado.** O `CN 96748` não é anulado,
-  mas foi abandonado por falha de convergência da TRI — e escapava do filtro,
-  entrando no diagnóstico como item normal.
-- **Ingestão que só parecia idempotente.** O `DROP TABLE` funcionava enquanto
-  nada dependia da `raw`. A primeira execução orquestrada — a primeira vez que
-  o pipeline rodou a *segunda* vez — quebrou na hora.
+**2. Um NULO apagou uma edição inteira, em silêncio.** O `IN_ITEM_ADAPTADO`
+de 2021 vem vazio em vez de `"0"`; `not nulo` é nulo, que não é verdadeiro; o
+filtro descartou os 370 itens da edição sem erro nenhum. Contagem não
+denuncia esse tipo de defeito — só denuncia quem exige **presença de cada
+parte**.
+
+**3. "Acertar uma questão difícil sobe mais" é falso.** Pela equação de
+estimação sob o modelo de 3 parâmetros, sem acerto casual trocar erro por
+acerto move o **mesmo tanto** em qualquer questão; com o acerto casual real
+do ENEM, a fácil move **3,5×** mais. A assimetria inteira é o parâmetro de
+chute — e isso virou uma [quarta lente de
+verificação](.claude/skills/psicometria/SKILL.md), com referências e uma
+lista de frases que soam certas e estão erradas.
+
+---
+
+## Como está testado
+
+Quatro camadas, cada uma respondendo a uma pergunta diferente:
+
+| camada | pergunta | onde |
+|---|---|---|
+| `dbt test` | meu SQL fez o que eu quis? | 100+ testes sobre 41 modelos |
+| Great Expectations | o dado que chegou é o esperado? | fronteira (camada `raw`) |
+| `ci/testa_webapp.js` | a conta do navegador está certa? | 47 casos, código real em sandbox |
+| skill de psicometria | a **teoria** está certa? | referências + cálculo reproduzível |
+
+A CI roda em três faixas conforme o quanto de dado cada uma precisa — e **não
+usa nenhum segredo**, por desenho: o Postgres do job é descartável. Se ela
+precisasse de senha real, seria sinal de que está tocando um ambiente que não
+deveria.
+
+---
 
 ## Como rodar
 
-Requer Docker e Python 3.12+. Os microdados **não** estão no repositório
-(2,6 GB); baixe em [Dados Abertos do INEP](https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/microdados/enem)
-e coloque em `data/raw/`.
+Windows + PowerShell, Postgres em Docker. Sempre da raiz:
 
 ```powershell
-python -m venv .venv; .\.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-cp .env.example .env          # ajuste as credenciais
-. .\load_env.ps1
+.\.venv\Scripts\Activate.ps1
+. .\load_env.ps1          # o ponto e o espaço na frente são obrigatórios
 docker compose up -d
+```
 
-python -m ingestion.load_raw --base itens_prova   --path data/raw/ITENS_PROVA_2025.csv
-python -m ingestion.load_raw --base resultados    --path data/raw/RESULTADOS_2025.csv
-python -m ingestion.load_raw --base participantes --path data/raw/PARTICIPANTES_2025.csv
-python -m quality.expectations_raw
+Os microdados vão para `data/raw/` (fora do Git). Depois:
 
+```powershell
+python -m ingestion.load_raw
 cd dbt; dbt deps; dbt seed
 # um modelo por vez -- ver CLAUDE.md, "Restrições de máquina"
+dbt run --select stg_itens
+...
+dbt test
 ```
 
-Ou tudo de uma vez, pelo Airflow:
-
-```powershell
-docker compose --profile airflow up -d
-docker compose exec airflow airflow pools set banco_pesado 1 "uma varredura por vez"
-docker compose exec airflow airflow dags trigger enem_pipeline
-```
-
-Os **seeds são versionados** de propósito: dá para clonar e rodar `dbt seed`
-sem baixar os microdados.
+O site é estático: `python -m http.server --directory webapp` e abrir
+`localhost:8000`.
 
 ## Stack
 
 **Postgres** · **dbt** (transformação e testes) · **Great Expectations**
 (validação de fronteira) · **Airflow 3** (orquestração) · **Docker** ·
-**GitHub Actions** (CI em três faixas + Pages)
+**GitHub Actions** (CI em três faixas + Pages) · HTML/CSS/JS sem framework
 
 ## Limitações conhecidas
 
-- **Perfil socioeconômico não cruza com desempenho.** As bases de participantes
-  e resultados são desidentificadas pelo INEP e não são relacionáveis — por
-  decisão da fonte, respeitada aqui.
-- **A referência é entre concluintes com escola identificada**, não "o Brasil
-  inteiro". É o peer group correto para diagnóstico de escola, mas precisa ser
-  lido assim.
+- **A ordem exata das competências não atravessa edições.** Medido: a
+  correlação entre o que 2020–2024 prevê e o que 2025 mostra é **+0,27** (e
+  varia por área: LC +0,50 · CH −0,01). O que transfere é a nota (a TRI
+  equaliza) e o princípio de que o ganho mora na fronteira do nível; o
+  ranking exato, não.
+- **Mais da metade das habilidades é medida por um único item** — 62 das 120.
+  Por isso o produto trabalha no grão de **competência** (4 a 11 itens por
+  medida) e publica sempre o lastro.
+- **Perfil socioeconômico não cruza com desempenho.** As bases de
+  participantes e resultados são desidentificadas pelo INEP e não são
+  relacionáveis — decisão da fonte, respeitada aqui.
 - **Só provas regulares.** Acessibilidade, reaplicação e BAM ficam fora —
   62 mil participantes de Belém/Ananindeua/Marituba merecem recorte próprio.
-- **Mais da metade das habilidades é medida por um único item.** Por isso o
-  diagnóstico publica `n_itens_validos` e agrega também por competência.
+- **A referência é entre concluintes com escola identificada**, não "o Brasil
+  inteiro".
+- **MLOps foi descartado por decisão**, não por falta de tempo: dado anual,
+  sem loop de feedback, sem decisão automatizada. O projeto é DataOps +
+  produto analítico. O raciocínio está no [`PLANO.md`](PLANO.md).
 
 ## Estrutura
 
 ```
+├── webapp/       o site (estático; os JSON exportados vivem em dados/)
+├── export/       gera os JSON do site a partir dos marts, com validação
 ├── ingestion/    ingestão e geração dos seeds a partir de artefatos oficiais
 ├── quality/      suites do Great Expectations (fronteira raw)
 ├── dbt/          modelos, seeds, testes
 ├── dags/         DAG do Airflow
-├── ci/           utilidades da CI
+├── ci/           utilidades e testes da CI
 └── .github/      workflows
 ```
 
-O [`CLAUDE.md`](CLAUDE.md) traz as decisões metodológicas, as armadilhas dos
-dados e as restrições de máquina — é o diário técnico do projeto.
+## Documentação
+
+- [`CLAUDE.md`](CLAUDE.md) — o diário de engenharia: cada armadilha dos dados,
+  cada decisão metodológica e o que custou descobrir.
+- [`PLANO.md`](PLANO.md) — o plano do produto e o que ficou fora, com o porquê.
 
 ## Licença
 
-MIT — ver [LICENSE](LICENSE).
+MIT — ver [LICENSE](LICENSE). Os dados são públicos, do INEP (microdados do
+ENEM 2025 e Censo Escolar 2024) e do IBGE (malha territorial).
