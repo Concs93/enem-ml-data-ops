@@ -238,7 +238,9 @@
     competência e a <i>média das próprias competências</i> dele (que somam
     zero por construção). É o que resta depois de remover o nível geral — a
     parte que tem resposta pedagógica. Na visão geral, cada estado recebe a
-    cor da competência em que mais fica atrás do próprio padrão.</p>
+    cor do <b>ponto mais fraco</b> dele — que é relativo: um estado forte
+    pode estar acima do Brasil até no ponto mais fraco, e o cursor sobre o
+    mapa mostra as duas leituras.</p>
     <p><b>A linha verde de "onde avançar rende".</b> A única conta com o
     modelo da prova (TRI): com os parâmetros oficiais dos itens de 2025,
     calculamos em que competência um avanço de meio nível devolve mais
@@ -469,10 +471,14 @@ function desenhaMapa(){
   const sufixo = rede === "Todas" ? "" : ` · rede ${ROT_REDE[rede].toLowerCase()}`;
   if(geral){
     $("mapa-tit").textContent =
-      `Onde cada estado mais fica atrás · ${NOME_AREA[area]}${sufixo}`;
+      `O ponto mais fraco de cada estado · ${NOME_AREA[area]}${sufixo}`;
+    // "ponto mais fraco" e RELATIVO por natureza -- e a frase seguinte
+    // desarma a leitura errada que o dono do produto pegou em MG: o C2 dele
+    // e o ponto mais fraco E esta acima do Brasil ao mesmo tempo
     $("mapa-sub").textContent = `Cada estado recebe a cor da competência em `
-      + `que mais fica atrás do próprio padrão. Toque num código acima para `
-      + `ver uma competência específica.`;
+      + `que fica mais atrás do próprio padrão. É uma medida relativa: um `
+      + `estado forte pode estar acima do Brasil até no ponto mais fraco `
+      + `dele — o cursor mostra as duas leituras.`;
   } else {
     $("mapa-tit").textContent = `C${comp} · ${NOME_AREA[area]}${sufixo}`;
     $("mapa-sub").textContent = G.comp[`${area}|${comp}`] || "";
@@ -491,12 +497,26 @@ function dicaDe(cod, u){
       + (u.nEsc ? `${u.nEsc} escola${u.nEsc === 1 ? "" : "s"}${NA_REDE[rede]}, ` : "")
       + `abaixo do mínimo para publicar (3 escolas e 50 participantes).`;
   }
-  if(comp === null)
-    return `<b>${u.nome}</b> — maior lacuna do próprio padrão: `
-      + `<b>C${l[COMP]}</b> (${sinal(l[PERFIL])} pp)`;
+  if(comp === null){
+    const br = linhaDe(dadosDe(0), l[COMP]);
+    const dif = br ? l[TAXA] - br[TAXA] : null;
+    let fim = "";
+    if(dif !== null)
+      fim = dif >= 0
+        ? ` — ainda assim, <b>${sinal(dif)} pp acima</b> do Brasil${NA_REDE[rede]} nela`
+        : ` — e <b>${sinal(dif)} pp abaixo</b> do Brasil${NA_REDE[rede]} nela`;
+    return `<b>${u.nome}</b> — ponto mais fraco: <b>C${l[COMP]}</b> `
+      + `(${sinal(l[PERFIL])} pp do próprio padrão)${fim}.`;
+  }
   const br = linhaDe(dadosDe(0), comp);
+  // a clausula do padrao explica a COR onde ela e vista: sem isso, MG saia
+  // pintado de "atras" em C2 com numeros acima do Brasil ao lado
   return `<b>${u.nome}</b> — acertam <b>${pct(l[TAXA])}</b>`
-    + (br ? ` · Brasil${NA_REDE[rede]} ${pct(br[TAXA])}` : "");
+    + (br ? ` · Brasil${NA_REDE[rede]} ${pct(br[TAXA])}` : "")
+    + (Math.abs(l[PERFIL]) >= 0.05
+       ? ` · ${Math.abs(l[PERFIL]).toFixed(1).replace(".",",")} pp `
+         + `${l[PERFIL] < 0 ? "atrás" : "à frente"} do próprio padrão`
+       : "");
 }
 
 // quando o mapa e de uma cor so, ele mudou de pergunta -- e a tela declara
@@ -509,8 +529,8 @@ function avisoUniforme(){
     for(const t of tops) conta.set(t, (conta.get(t) || 0) + 1);
     const [melhor, n] = [...conta.entries()].sort((a, b) => b[1] - a[1])[0] || [null, 0];
     if(tops.length >= 5 && n >= 0.9 * tops.length){
-      alvo.textContent = `Em ${n} de ${tops.length} estados, a maior lacuna é `
-        + `a mesma: C${melhor}. O que ensinar aqui é quase consenso.`;
+      alvo.textContent = `Em ${n} de ${tops.length} estados, o ponto mais `
+        + `fraco é o mesmo: C${melhor}. O que ensinar aqui é quase consenso.`;
     } else alvo.textContent = "";
     return;
   }
@@ -531,7 +551,7 @@ function montaChips(){
   const cx = $("chips");
   const us = unidades();
   let s = `<button type="button" data-c="g" aria-pressed="${comp === null}"`
-    + ` title="cada estado pela competência em que mais fica atrás">Visão geral</button>`;
+    + ` title="cada estado pelo ponto mais fraco dele — relativo ao próprio padrão">Visão geral</button>`;
   for(const c of compsDaArea()){
     const v = us.map(u => linhaDe(u.rows, c)).filter(Boolean).map(l => l[PERFIL]);
     const m = v.length ? v.reduce((a, b) => a + b, 0) / v.length : 0;
@@ -679,7 +699,7 @@ function filhos(){
 
   if(esc.tipo === "pais"){
     tit.innerHTML = geral
-      ? `<b>Estados</b>&nbsp;· pela competência em que cada um mais fica atrás`
+      ? `<b>Estados</b>&nbsp;· pelo ponto mais fraco de cada um — relativo ao próprio padrão`
       : `<b>Estados</b>&nbsp;· pelo desvio do próprio padrão em C${comp} — o mesmo do mapa`;
     grupos(ul, unidades().map(u =>
       ({...u, l: geral ? piorComp(u.rows) : linhaDe(u.rows, comp),
