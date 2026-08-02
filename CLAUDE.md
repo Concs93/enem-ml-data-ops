@@ -1183,13 +1183,41 @@ ponte acertos→nota e **reparte** (partes somam o total, validado e
 conferido na tela).
 
 **A honestidade central, declarada no método:** o total varia pouco entre
-lugares (~48–52; meio nível vale ~50 por definição da escala — a
-coincidência é a sanidade da conta) — **a informação está em ONDE o passo
-rende**, e isso muda principalmente **entre redes**: a estadual do MA
+lugares (+64 a +69 entre as 27 UFs em MT; +58 a +67 conforme a área) — **a
+informação está em ONDE o passo rende**, e isso muda principalmente
+**entre redes**: a estadual do MA
 concentra em C1 (13 de 48) com C7 quase nulo (4); a privada de MG espalha
 para C2 e C7 (9 e 8). É a medição de 31/07 (estadual→C1/C7, privada→C2)
 virando produto. O Brasil ganhou o próprio painel — a página abre com o
 potencial do país repartido, não com um convite vazio.
+
+**Correção de 02/08/2026 — o total era ~51 e o "~50 confirma a conta" era
+quase circular.** Os pesos derivavam o nível por `(nota−500)/100`. A fórmula
+não está errada — é a **definição** da escala do INEP — mas é a quantidade
+errada aqui: o ganho sai da TCC, e o `theta_efetivo` é por construção o
+ponto da TCC que reproduz o acerto **observado** da faixa. Como o export
+soma o ganho ao acerto observado do lugar, as duas pontas precisam do mesmo
+θ; com a fórmula media-se a derivada onde aquelas pessoas não estão (MT 515:
+θ 0,15 → modelo prevê ~10,2 acertos, contra 0,57 → observado ~12,6).
+
+O sintoma estava à vista e passou: **+51 idêntico em MT, CH e CN**, três
+curvas diferentes. Com θ = (nota−500)/100, meio passo vale 50 pontos quase
+por construção — o que o método vendia como sanidade era identidade
+aritmética. Depois da troca: **MT +66 · CH +67 · CN +64 · LC +58**. A
+**ordem** das competências, que é a mensagem da página, mudou pouco: 1º
+lugar igual em MT e CN, troca em CH e LC entre praticamente empatadas.
+
+O `int_nivel_por_nota` é a ponte como tabela de consulta. A armadilha do
+desenho: a calibração descarta faixa com n < 100, então **não** cobre a
+escala inteira, e o join novo é INNER — faixa faltando sumiria com gente em
+silêncio. Por isso as faixas vêm dos extremos **físicos** (`int_nota_extremos`,
+população mais ampla) e faixa rala herda a vizinha calibrada: **32 de 274**,
+todas no topo (CH 780–850 · CN 800–850 · LC 750–790 · MT 970–980), nenhuma
+no piso. O `nivel_conserva_populacao` recomputa a população direto do
+`stg_resultados` e exige igualdade exata — as linhas caíram de 50.451 para
+24.443 no `int_uf_nivel` (faixas de nota distintas compartilham θ), sem
+perder ninguém, e é exatamente essa diferença que só um teste de
+**presença** distingue de perda.
 
 ### Municípios de volta, na moeda do passo (02/08/2026, fechamento)
 
