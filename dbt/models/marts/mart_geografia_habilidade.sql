@@ -8,12 +8,11 @@
 -- a mesma receita do mart_diagnostico_habilidade, generalizada para os
 -- cinco niveis numa passada.
 
+-- so tres niveis -- ver a nota do mart_geografia_area
 {% set niveis = [
-    ('municipio',       'g.co_municipio',       'g.municipio'),
-    ('regiao_imediata', 'g.co_regiao_imediata', 'g.nome_regiao_imediata'),
-    ('uf',              'g.co_uf',              'g.nome_uf'),
-    ('regiao',          'g.co_regiao',          'g.nome_regiao'),
-    ('pais',            '0',                    "'Brasil'"),
+    ('uf',     'g.co_uf',     'g.nome_uf'),
+    ('regiao', 'g.co_regiao', 'g.nome_regiao'),
+    ('pais',   '0',           "'Brasil'"),
 ] %}
 
 with base as (

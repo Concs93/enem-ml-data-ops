@@ -1,11 +1,9 @@
 -- Conservacao de populacao na geografia, com igualdade EXATA:
 --   pais == soma das escolas (nenhum participante some ao subir de nivel)
---   municipio == pais (nenhum municipio caiu no join com o mapa)
---
--- A regiao imediata fica DE FORA de proposito: Boa Esperanca do Norte/MT
--- (municipio de 2025) nao pertence a nenhuma regiao imediata na divisao de
--- 2024, entao aquele nivel legitimamente nao soma o pais -- e uma diferenca
--- documentada, nao um vazamento.
+--   uf e regiao == pais (nenhuma unidade caiu no join com o cadastro)
+-- (municipio e regiao imediata sairam do mart em 02/08/2026 -- a
+-- conservacao municipio->uf continua garantida na origem, porque a UF e
+-- somada a partir do proprio int_acerto_item_municipio)
 with esperado as (
     select area, sum(n_presentes) as presentes
     from {{ ref('mart_escola_area') }} m
@@ -20,7 +18,7 @@ por_nivel as (
     -- somar sem filtrar contaria cada participante duas vezes nos DOIS lados
     -- da comparacao, e o teste passaria verde escondendo o defeito
     where rede = 'Todas'
-      and nivel in ('pais', 'municipio', 'uf', 'regiao')
+      and nivel in ('pais', 'uf', 'regiao')
     group by 1, 2
 )
 select n.nivel, n.area, n.presentes, e.presentes as esperado

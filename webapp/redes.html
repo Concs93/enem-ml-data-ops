@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>O diagnóstico do seu lugar — ENEM em foco</title>
+<title>O que cada rede precisa ensinar — ENEM em foco</title>
 <style>
   :root{
     --bg:#fbfaf7; --surface:#ffffff; --text:#20211f; --muted:#5f625d;
@@ -17,7 +17,6 @@
     --r-card:14px; --r-ctrl:10px; --r-chip:6px; --r-pill:999px;
     --serif:Georgia,'Iowan Old Style','Times New Roman',serif;
     --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
-    --mono:'SFMono-Regular',Consolas,Menlo,monospace;
   }
   :root{color-scheme:light}
   *{box-sizing:border-box}
@@ -44,9 +43,7 @@
          font-family:var(--sans);font-size:var(--fs-200);color:var(--muted);max-width:68ch}
 
   /* ---- controles ---- */
-  .controles{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin:0 0 14px;
-       font-family:var(--sans)}
-  .abas{display:flex;flex-wrap:wrap;gap:8px}
+  .abas{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px;font-family:var(--sans)}
   .abas button{font-weight:600;font-size:var(--fs-200);padding:8px 16px;cursor:pointer;
        border:1px solid var(--border);border-radius:var(--r-pill);
        background:var(--surface);color:var(--accent-deep);
@@ -54,28 +51,7 @@
   .abas button:hover{border-color:var(--accent)}
   .abas button[aria-pressed=true]{background:var(--accent-fill);color:var(--sobre-accent);
        border-color:var(--accent-fill)}
-
-  /* a busca e a porta de quem ja sabe aonde quer chegar: num mapa de 27
-     estados ninguem clica num municipio de poucos pixels */
-  .busca{position:relative;margin-left:auto;min-width:230px;flex:0 1 300px}
-  .busca input{width:100%;font-family:var(--sans);font-size:16px; /* 16px trava o zoom do iOS */
-       padding:8px 13px;border:1px solid var(--border);border-radius:var(--r-pill);
-       background:var(--surface);color:var(--text)}
-  .busca input::placeholder{color:var(--muted)}
-  .busca ul{position:absolute;z-index:30;top:calc(100% + 4px);left:0;right:0;
-       margin:0;padding:4px;list-style:none;background:var(--surface);
-       border:1px solid var(--border);border-radius:var(--r-ctrl);
-       box-shadow:0 8px 24px rgba(0,0,0,.10);max-height:320px;overflow-y:auto}
-  .busca ul:empty{display:none}
-  .busca li button{width:100%;text-align:left;border:0;background:none;cursor:pointer;
-       font-family:var(--sans);font-size:var(--fs-200);padding:7px 10px;
-       border-radius:var(--r-chip);color:var(--text)}
-  .busca li button:hover,.busca li button:focus-visible{background:var(--chip)}
-  .busca li button i{font-style:normal;color:var(--muted)}
-  .busca li button em{font-style:normal;display:block;font-size:var(--fs-100);color:var(--warn)}
-
-  .abas.redes{margin:-4px 0 18px;align-items:center;gap:6px;display:flex;flex-wrap:wrap;
-       font-family:var(--sans)}
+  .abas.redes{margin:-4px 0 18px;align-items:center;gap:6px}
   .abas.redes .rot{font-size:var(--fs-100);color:var(--muted);margin-right:4px}
   .abas.redes button{font-weight:500;font-size:var(--fs-100);padding:5px 12px;
        background:var(--bg)}
@@ -109,15 +85,20 @@
   #mapa path{stroke:var(--surface);stroke-width:.6;cursor:pointer;transition:opacity .12s}
   #mapa path:hover{opacity:.75}
   #mapa path.sel{stroke:var(--text);stroke-width:1.8}
-  #mapa path.mem{stroke:var(--accent-deep);stroke-width:1.1}
   #mapa text{font-family:var(--sans);font-weight:600;pointer-events:none;
        fill:#20211f;opacity:.65}
   #mapa text.claro{fill:#ffffff;opacity:.92}
+  .legenda-geral{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:10px;
+       font-family:var(--sans);font-size:var(--fs-100);color:var(--muted)}
+  .legenda-geral:empty{display:none}
+  .legenda-geral i{font-style:normal;display:inline-flex;align-items:center;gap:5px;
+       font-variant-numeric:tabular-nums}
+  .legenda-geral b{width:11px;height:11px;border-radius:3px}
   .escala{display:flex;align-items:center;gap:10px;margin-top:10px;
        font-family:var(--sans);font-size:var(--fs-100);color:var(--muted)}
-  /* display:flex VENCE o atributo hidden -- sem esta regra, a regua da
-     escala continuava visivel na visao geral (mesma familia do .hab .pos
-     vencido por especificidade, ja documentada no projeto) */
+  /* display:flex VENCE o atributo hidden -- sem esta regra, a regua ficava
+     visivel na visao geral (mesma familia do .hab .pos vencido por
+     especificidade, ja documentada no projeto) */
   .escala[hidden]{display:none}
   .escala .barra{flex:1;height:9px;border-radius:var(--r-pill);min-width:80px}
   .unidade{font-family:var(--sans);font-size:var(--fs-100);color:var(--muted);
@@ -126,12 +107,6 @@
   .dica{font-family:var(--sans);font-size:var(--fs-100);color:var(--muted);
        margin:8px 0 0;min-height:2.6em}
   .dica b{color:var(--text)}
-  .legenda-geral{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:10px;
-       font-family:var(--sans);font-size:var(--fs-100);color:var(--muted)}
-  .legenda-geral:empty{display:none}
-  .legenda-geral i{font-style:normal;display:inline-flex;align-items:center;gap:5px;
-       font-variant-numeric:tabular-nums}
-  .legenda-geral b{width:11px;height:11px;border-radius:3px}
   .aviso-mapa{font-family:var(--sans);font-size:var(--fs-100);color:var(--warn);
        background:var(--warn-soft);border-radius:var(--r-chip);padding:8px 12px;
        margin:10px 0 0;line-height:1.5}
@@ -161,8 +136,6 @@
        font-variant-numeric:tabular-nums;white-space:nowrap}
   ul.lista .val em{font-style:normal;font-weight:500;font-size:var(--fs-100);
        margin-left:2px;opacity:.7}
-  ul.lista .vs{font-size:var(--fs-100);color:var(--muted);text-align:right;
-       font-variant-numeric:tabular-nums;white-space:nowrap;grid-column:2}
   ul.lista .pista{grid-column:1/-1;font-size:var(--fs-100);color:var(--muted)}
   ul.lista li.grupo{display:flex;justify-content:space-between;align-items:baseline;
        gap:12px;font-family:var(--sans);font-size:var(--fs-100);font-weight:700;
@@ -170,15 +143,11 @@
        padding:16px 6px 5px;border-top:1px solid var(--border)}
   ul.lista li.grupo:first-child{padding-top:2px}
   ul.lista li.grupo i{font-style:normal;font-weight:400;letter-spacing:0;
-       text-transform:none;font-variant-numeric:tabular-nums;max-width:24ch;text-align:right}
+       text-transform:none;font-variant-numeric:tabular-nums;max-width:26ch;text-align:right}
   ul.lista li.grupo + li{border-top:0}
   ul.lista li.vazio{font-family:var(--sans);font-size:var(--fs-200);color:var(--muted);
        padding:14px 6px;line-height:1.55}
   ul.lista li.apagado .rot,ul.lista li.apagado .val{opacity:.5}
-
-  .filtro-cidades{width:100%;font-family:var(--sans);font-size:var(--fs-200);
-       padding:7px 12px;margin:2px 0 8px;border:1px solid var(--border);
-       border-radius:var(--r-ctrl);background:var(--bg);color:var(--text)}
 
   .tri-box{font-family:var(--sans);font-size:var(--fs-200);color:var(--muted);
        background:var(--tip-soft);border-radius:var(--r-card);padding:12px 15px;
@@ -196,7 +165,6 @@
   @media(max-width:940px){
     .painel{grid-template-columns:1fr}
     .painel > :first-child{position:static}
-    .busca{margin-left:0;flex:1 1 100%}
   }
 </style>
 </head>
@@ -206,27 +174,20 @@
     <span class="brand">ENEM em foco</span>
     <a href="index.html">Para o estudante</a>
     <a href="metodo.html">Como funciona</a>
-    <a class="on" href="#">Para escolas e redes</a>
+    <a class="on" href="#">Para redes de ensino</a>
     <span class="breve" title="em construção">Apoie</span>
   </nav>
 </header>
 <main>
-  <h1>O diagnóstico do seu lugar</h1>
-  <p class="lede">Do Brasil ao seu estado, à sua cidade e à sua rede: o que os
-  concluintes de lá acertaram no ENEM 2025, conteúdo por conteúdo.</p>
+  <h1>O que cada rede precisa ensinar</h1>
+  <p class="lede">O Brasil e cada estado, competência por competência e rede
+  por rede: o que os concluintes de lá acertaram no ENEM 2025.</p>
 
-  <div class="controles">
-    <div class="abas" role="group" aria-label="Área de conhecimento">
-      <button type="button" data-area="CH" aria-pressed="false">Humanas</button>
-      <button type="button" data-area="CN" aria-pressed="false">Natureza</button>
-      <button type="button" data-area="LC" aria-pressed="false">Linguagens</button>
-      <button type="button" data-area="MT" aria-pressed="false">Matemática</button>
-    </div>
-    <div class="busca">
-      <input type="search" id="busca" placeholder="Buscar sua cidade…"
-             autocomplete="off" aria-label="Buscar cidade">
-      <ul id="busca-out" role="listbox"></ul>
-    </div>
+  <div class="abas" role="group" aria-label="Área de conhecimento">
+    <button type="button" data-area="CH" aria-pressed="false">Humanas</button>
+    <button type="button" data-area="CN" aria-pressed="false">Natureza</button>
+    <button type="button" data-area="LC" aria-pressed="false">Linguagens</button>
+    <button type="button" data-area="MT" aria-pressed="false">Matemática</button>
   </div>
   <div class="abas redes" role="group" aria-label="Rede de ensino" id="abas-rede"></div>
 
@@ -255,15 +216,13 @@
       <ul class="lista" id="pan-lista"></ul>
       <div id="tri"></div>
       <p class="caminho" id="filhos-tit" style="margin-top:18px"></p>
-      <input class="filtro-cidades" id="filtro" placeholder="Filtrar pelo nome…"
-             aria-label="Filtrar cidades" hidden>
       <ul class="lista" id="filhos"></ul>
     </div>
   </div>
 
   <p class="nota"><b>Dois papéis, duas medidas.</b> Os números da lista são
   subtrações simples — a taxa de acerto daqui menos a de lá, conferível de
-  cabeça. Já o <b>mapa</b> pinta cada lugar pelo desvio <i>do próprio
+  cabeça. Já o <b>mapa</b> pinta cada estado pelo desvio <i>do próprio
   padrão</i>: medido no ENEM 2025, <b>mais de 90%</b> da diferença crua entre
   lugares é só "quem vai melhor no geral" — pintar por ela seria um ranking
   com outro nome, e ranking não diz o que ensinar.</p>
@@ -271,29 +230,34 @@
   <details class="metodo">
     <summary>Como este número é calculado</summary>
     <p><b>A conta da lista.</b> Somamos os acertos de todos os concluintes do
-    lugar em cada <b>competência</b> da Matriz do INEP e dividimos pelas
+    estado em cada <b>competência</b> da Matriz do INEP e dividimos pelas
     respostas. O número grande é essa taxa menos a do Brasil <b>na mesma
-    rede</b>; na cidade, mostramos também a distância para o estado. Nada é
-    ajustado por modelo — é contagem, conferível por subtração.</p>
-    <p><b>A cor do mapa.</b> Cada lugar é pintado pela distância entre a
+    rede</b>. Nada é ajustado por modelo — é contagem, conferível por
+    subtração.</p>
+    <p><b>A cor do mapa.</b> Cada estado é pintado pela distância entre a
     competência e a <i>média das próprias competências</i> dele (que somam
     zero por construção). É o que resta depois de remover o nível geral — a
-    parte que tem resposta pedagógica.</p>
-    <p><b>A linha verde de "onde avançar rende".</b> Essa é a única conta com
-    o modelo da prova (TRI): usando os parâmetros oficiais dos itens de 2025,
+    parte que tem resposta pedagógica. Na visão geral, cada estado recebe a
+    cor da competência em que mais fica atrás do próprio padrão.</p>
+    <p><b>A linha verde de "onde avançar rende".</b> A única conta com o
+    modelo da prova (TRI): com os parâmetros oficiais dos itens de 2025,
     calculamos em que competência um avanço de meio nível devolve mais
     acertos, no nível médio do lugar. É quase um fato nacional — muda pouco
-    de um lugar para outro — e por isso é contexto, nunca o número que ordena
-    a lista.</p>
+    de um lugar para outro — e por isso é contexto, nunca o número que
+    ordena a lista.</p>
     <p><b>Quem está aqui.</b> Só quem estava <b>concluindo o ensino médio em
     2025</b> e fez prova regular — 1,7 milhão de pessoas; treineiros e quem
-    já tinha concluído ficam de fora. Publicamos um lugar quando ele tem ao
-    menos <b>3 escolas e 50 participantes</b> na rede escolhida: abaixo disso
-    o número é instável e potencialmente identificável, e a tela oferece a
-    região imediata (IBGE), que sempre atinge o mínimo.</p>
+    já tinha concluído ficam de fora. Um recorte é publicado quando tem ao
+    menos <b>3 escolas e 50 participantes</b> na rede escolhida — no nível
+    de estado, isso só deixa de fora a rede municipal em parte deles (ensino
+    médio municipal é exceção legal: só município rico o oferece).</p>
+    <p><b>Por que só até o estado.</b> Grão mais fino (cidade, escola)
+    convida ao ranqueamento que fez o INEP descontinuar o "ENEM por Escola"
+    em 2015. Estado e competência é onde o dado é sólido e o uso é
+    pedagógico.</p>
     <p>Fontes: <a href="https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/microdados/enem">microdados
     do ENEM 2025</a>, <a href="https://download.inep.gov.br/download/enem/matriz_referencia.pdf">Matriz
-    de Referência</a> e malhas territoriais do IBGE.</p>
+    de Referência</a> e malha territorial do IBGE.</p>
   </details>
 </main>
 <footer>
@@ -311,28 +275,18 @@ const NA_REDE = {Todas:"", Estadual:" na rede estadual", Privada:" na rede priva
                  Federal:" na rede federal", Municipal:" na rede municipal"};
 
 // Corte dos grupos e da cor: 1 pp separa o que se destaca do que oscila
-// (o desvio-padrao do perfil entre UFs e 1,14 pp).
-const CORTE = 1.0;
-// Escala de cor do mapa por escopo, fixa de proposito (normalizar por selecao
-// inventa contraste): +-3,5 cobre as UFs; municipios espalham mais, e o p95
-// medido do |perfil| municipal e 4,96 -- dai +-5.
-const LIM_ESCOPO = {pais: 3.5, mun: 5.0};
+// (o desvio-padrao do perfil entre UFs e 1,14 pp). Escala do mapa fixa em
+// +-3,5 -- normalizar por selecao inventa contraste.
+const CORTE = 1.0, LIM = 3.5;
 
-// paleta CATEGORICA da visao geral: uma cor por competencia (ate 9, LC).
-// Tons afastados entre si e legiveis sobre fundo claro
+// paleta CATEGORICA da visao geral: uma cor por competencia (ate 9, LC)
 const PALETA = ["#0f766e", "#b45309", "#6d28d9", "#be185d", "#1d4ed8",
                 "#4d7c0f", "#0e7490", "#a21caf", "#78350f"];
 const corComp = c => PALETA[(c - 1) % PALETA.length];
-// a competencia em que a unidade mais fica atras do proprio padrao
-function piorComp(rows){
-  let m = null;
-  for(const l of rows || []) if(!m || l[PERFIL] < m[PERFIL]) m = l;
-  return m;
-}
 
 const FRIO = [15, 118, 110], NEUTRO = [237, 235, 228], QUENTE = [180, 83, 9];
-function cor(v, lim){
-  const t = Math.max(-1, Math.min(1, (v || 0) / lim));
+function cor(v){
+  const t = Math.max(-1, Math.min(1, (v || 0) / LIM));
   const [a, b] = t < 0 ? [NEUTRO, QUENTE] : [NEUTRO, FRIO];
   const f = Math.pow(Math.abs(t), 0.75);
   return `rgb(${a.map((c,i)=>Math.round(c+(b[i]-c)*f)).join(",")})`;
@@ -340,48 +294,40 @@ function cor(v, lim){
 const sinal = v => (v > 0 ? "+" : v < 0 ? "−" : "") +
                    Math.abs(v).toFixed(1).replace(".", ",");
 const pct = v => v.toFixed(1).replace(".", ",") + "%";
-const norm = s => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
 
 // ------------------------------------------------------------------ estado
-let G = null, MALHA_UF = null, INDICE = null;
-const MUN = {}, MALHA_MUN = {};      // caches por UF
-// comp = null e a VISAO GERAL (o padrao): o mapa pinta cada lugar pela
-// competencia em que ele mais fica atras do proprio padrao, sem exigir que
-// a pessoa escolha uma -- pedido do dono do produto
+let G = null, MALHA_UF = null;
+// comp = null e a VISAO GERAL (o padrao): o mapa pinta cada estado pela
+// competencia em que ele mais fica atras do proprio padrao
 let area = "MT", rede = "Todas", comp = null;
-// esc = {tipo:'pais'} | {tipo:'uf',uf} | {tipo:'mun',uf,cod} | {tipo:'ri',uf,cod}
+// esc = {tipo:'pais'} | {tipo:'uf', uf} -- so dois niveis, por decisao
+// ("simple is best", 02/08/2026)
 let esc = {tipo: "pais"};
-let geracao = 0;                     // invalida cliques rapidos concorrentes
 
 // posicoes no vetor [comp, taxa, perfil, n_respostas]
 const COMP = 0, TAXA = 1, PERFIL = 2, N = 3;
 
-// ------------------------------------------------------------------ acesso
-const chaveRaiz = cod => `${cod}|${area}|${rede}`;
-const dadosRaiz = cod => G.dados[chaveRaiz(cod)] || null;
+const chave = cod => `${cod}|${area}|${rede}`;
+const dadosDe = cod => G.dados[chave(cod)] || null;
 const linhaDe = (rows, c) => rows ? rows.find(l => l[COMP] === c) : null;
-
-function entrada(){          // o registro da unidade atual no pacote da UF
-  if(esc.tipo === "mun") return (MUN[esc.uf] || {mun:{}}).mun[esc.cod] || null;
-  if(esc.tipo === "ri")  return (MUN[esc.uf] || {ri:{}}).ri[esc.cod] || null;
-  return null;
+const compsDaArea = () => Object.keys(G.comp)
+  .filter(c => c.startsWith(area + "|")).map(c => +c.split("|")[1])
+  .sort((a, b) => a - b);
+// a competencia em que a unidade mais fica atras do proprio padrao
+function piorComp(rows){
+  let m = null;
+  for(const l of rows || []) if(!m || l[PERFIL] < m[PERFIL]) m = l;
+  return m;
 }
-function celula(){           // {nome, ctx, dados, tri} da unidade atual
-  if(esc.tipo === "pais")
-    return {nome:"Brasil", ctx:G.ctx[chaveRaiz(0)], dados:dadosRaiz(0),
-            tri:G.tri[chaveRaiz(0)]};
-  if(esc.tipo === "uf")
-    return {nome:G.ufs[esc.uf][1], ctx:G.ctx[chaveRaiz(esc.uf)],
-            dados:dadosRaiz(esc.uf), tri:G.tri[chaveRaiz(esc.uf)]};
-  const e = entrada();
-  if(!e) return null;
-  const kk = `${area}|${rede}`;
-  const nome = esc.tipo === "ri" ? `Região de ${e.nome}` : e.nome;
-  return {nome, ctx:e.ctx && e.ctx[kk], dados:e.dados && e.dados[kk],
-          tri:e.tri && e.tri[kk]};
-}
+const unidades = () => Object.keys(G.ufs).map(u =>
+  ({cod:u, nome:G.ufs[u][1], extra:G.ufs[u][2], rows:dadosDe(u),
+    nEsc:G.esc[chave(u)] || null}));
 
-// taxa media da area (ponderada pelas respostas) -- o "patamar" declarado
+const erroPadrao = l => l[N] > 0
+  ? 100 * Math.sqrt((l[TAXA]/100) * (1 - l[TAXA]/100) / l[N]) : Infinity;
+const impreciso = l => erroPadrao(l) > CORTE;
+
+// taxa media da area ponderada pelas respostas -- o patamar declarado
 function taxaArea(rows){
   if(!rows || !rows.length) return null;
   let s = 0, n = 0;
@@ -389,45 +335,25 @@ function taxaArea(rows){
   return n ? s / n : null;
 }
 
-const compsDaArea = () => Object.keys(G.comp)
-  .filter(c => c.startsWith(area + "|")).map(c => +c.split("|")[1])
-  .sort((a, b) => a - b);
-
-// as unidades do escopo do MAPA: [{cod, nome, rows}]
-function unidadesDoMapa(){
-  if(esc.tipo === "pais")
-    return Object.keys(G.ufs).map(u => ({cod:u, nome:G.ufs[u][1],
-                                         rows:dadosRaiz(u)}));
-  const pk = MUN[esc.uf];
-  if(!pk) return [];
-  return Object.entries(pk.mun).map(([cod, m]) =>
-    ({cod, nome:m.nome, ri:m.ri,
-      rows:(m.dados && m.dados[`${area}|${rede}`]) || null,
-      nEsc:(m.esc && m.esc[`${area}|${rede}`]) || null}));
-}
-
-const erroPadrao = l => l[N] > 0
-  ? 100 * Math.sqrt((l[TAXA]/100) * (1 - l[TAXA]/100) / l[N]) : Infinity;
-const impreciso = l => erroPadrao(l) > CORTE;
-
 // -------------------------------------------------------------- geometria
 const W = 560, H = 540, PAD = 12;
-function projetor(feicoes){
+let proj = null;
+function preparaProjecao(){
   let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
-  for(const f of feicoes) for(const [x, y] of pontos(f.geometry)){
+  for(const f of MALHA_UF.features) for(const [x, y] of pontos(f.geometry)){
     if(x < x0) x0 = x; if(x > x1) x1 = x;
     if(y < y0) y0 = y; if(y > y1) y1 = y;
   }
   const kx = Math.cos((y0 + y1) / 2 * Math.PI / 180);
   const s = Math.min((W - 2*PAD) / ((x1 - x0) * kx), (H - 2*PAD) / (y1 - y0));
   const dx = (W - (x1 - x0) * kx * s) / 2, dy = (H - (y1 - y0) * s) / 2;
-  return ([x, y]) => [dx + (x - x0) * kx * s, dy + (y1 - y) * s];
+  proj = ([x, y]) => [dx + (x - x0) * kx * s, dy + (y1 - y) * s];
 }
 function* pontos(g){
   const aneis = g.type === "Polygon" ? g.coordinates : g.coordinates.flat();
   for(const anel of aneis) for(const p of anel) yield p;
 }
-function caminhoSvg(g, proj){
+function caminhoSvg(g){
   const aneis = g.type === "Polygon" ? g.coordinates : g.coordinates.flat();
   let d = "";
   for(const anel of aneis)
@@ -436,7 +362,7 @@ function caminhoSvg(g, proj){
 }
 // rotulo pelo MAIOR anel, aprovado por AREA projetada (caixa envolvente
 // aprova faixa fina: PB, RN e AL saiam com a sigla no mar) e por colisao
-function rotulo(g, proj, fonte){
+function rotulo(g, fonte){
   const aneis = g.type === "Polygon" ? g.coordinates : g.coordinates.flat();
   let melhor = null, maior = -1;
   for(const anel of aneis){
@@ -468,66 +394,41 @@ function colocaRotulos(cands, fonte){
   }
   return postos;
 }
+// com viewBox fixo, "10px" nao e 10px na tela: o tamanho sai da razao entre
+// o viewBox e a largura renderizada; abaixo de 420px os rotulos saem de vez
 const ALVO_PX = 10, LARG_MIN_ROTULO = 420;
 function tamanhoFonte(svg){
   const larg = svg.getBoundingClientRect().width || W;
   return larg < LARG_MIN_ROTULO ? 0 : ALVO_PX * (W / larg);
 }
 
-// ------------------------------------------------------------ carregamento
-async function pegaJson(url){
-  const r = await fetch(url);
-  if(!r.ok) throw new Error(`${url}: HTTP ${r.status}`);
-  return r.json();
-}
-// cache da PROMESSA, nao do valor resolvido: dois cliques sobrepostos na
-// mesma UF compartilham o download em vez de dispara-lo duas vezes. Uma
-// promessa rejeitada e removida para permitir tentar de novo
-const CARGA = {};
-function carregaUF(uf){
-  if(!CARGA[uf]){
-    CARGA[uf] = Promise.all([
-      pegaJson(`dados/geo_mun/${uf}.json`).then(v => { MUN[uf] = v; }),
-      pegaJson(`dados/malha_mun/${uf}.json`).then(v => { MALHA_MUN[uf] = v; }),
-    ]).catch(e => { delete CARGA[uf]; throw e; });
-  }
-  return CARGA[uf];
-}
-
 // ------------------------------------------------------------------- mapa
 function desenhaMapa(){
   const svg = $("mapa");
   svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  // a dica guarda o ultimo estado sob o cursor; trocar de selecao deixaria
+  // um numero antigo ao lado da lista nova
   $("dica").textContent = "Passe o cursor pelo mapa.";
-  const escopoPais = esc.tipo === "pais";
-  const lim = escopoPais ? LIM_ESCOPO.pais : LIM_ESCOPO.mun;
-  const feicoes = escopoPais ? MALHA_UF.features
-                             : (MALHA_MUN[esc.uf] || {features:[]}).features;
-  const proj = projetor(feicoes.length ? feicoes : MALHA_UF.features);
-  const unidades = new Map(unidadesDoMapa().map(u => [String(u.cod), u]));
-  const fonte = escopoPais ? tamanhoFonte(svg) : 0;   // municipio: sem rotulo
-                                                      // (centenas; hover+busca)
+  const geral = comp === null;
+  const us = new Map(unidades().map(u => [u.cod, u]));
+  const fonte = tamanhoFonte(svg);
   let s = "";
   const cands = [];
-  const geral = comp === null;
-  for(const f of feicoes){
-    const cod = String(escopoPais ? f.properties.uf : f.properties.m);
-    const u = unidades.get(cod);
+  for(const f of MALHA_UF.features){
+    const cod = String(f.properties.uf);
+    const u = us.get(cod);
     const l = u ? (geral ? piorComp(u.rows) : linhaDe(u.rows, comp)) : null;
     const v = l ? l[PERFIL] : null;
-    const selecionada = (esc.tipo === "uf" && false) ||
-      (escopoPais ? false : esc.tipo === "mun" && cod === String(esc.cod));
-    const membro = esc.tipo === "ri" && u && u.ri === esc.cod;
-    s += `<path d="${caminhoSvg(f.geometry, proj)}"`
+    s += `<path d="${caminhoSvg(f.geometry)}"`
       + ` fill="${v === null ? "var(--chip)"
-                 : geral ? corComp(l[COMP]) : cor(v, lim)}"`
+                 : geral ? corComp(l[COMP]) : cor(v)}"`
       + ` data-cod="${cod}" tabindex="0" role="button"`
-      + ` class="${selecionada ? "sel" : membro ? "mem" : ""}"`
+      + ` class="${esc.tipo === "uf" && cod === esc.uf ? "sel" : ""}"`
       + ` aria-label="${u ? u.nome : cod}"><title>${u ? u.nome : ""}</title></path>`;
-    if(fonte && u){
-      const r = rotulo(f.geometry, proj, fonte);
+    if(fonte){
+      const r = rotulo(f.geometry, fonte);
       if(r.cabe) cands.push({...r, sigla:G.ufs[cod][0],
-                             claro:Math.abs(v || 0) > 2.2});
+                             claro:geral || Math.abs(v || 0) > 2.2});
     }
   }
   svg.innerHTML = s + colocaRotulos(cands, fonte).map(q =>
@@ -537,12 +438,13 @@ function desenhaMapa(){
 
   for(const p of svg.querySelectorAll("path")){
     const cod = p.dataset.cod;
-    const u = unidades.get(cod);
-    p.addEventListener("click", () => cliqueMapa(cod, u));
+    // clicar de novo no selecionado volta ao Brasil
+    p.addEventListener("click", () =>
+      navega(esc.tipo === "uf" && esc.uf === cod ? {tipo:"pais"} : {tipo:"uf", uf:cod}));
     p.addEventListener("keydown", e => {
-      if(e.key === "Enter" || e.key === " "){ e.preventDefault(); cliqueMapa(cod, u); }
+      if(e.key === "Enter" || e.key === " "){ e.preventDefault(); p.click(); }
     });
-    const mostra = () => { $("dica").innerHTML = dicaDe(cod, u); };
+    const mostra = () => { $("dica").innerHTML = dicaDe(cod, us.get(cod)); };
     p.addEventListener("mouseenter", mostra);
     p.addEventListener("focus", mostra);
   }
@@ -550,10 +452,8 @@ function desenhaMapa(){
   document.querySelector(".escala").hidden = geral;
   const leg = $("legenda-geral");
   if(geral){
-    // a legenda so lista as cores QUE APARECEM, com a contagem: e ela que
-    // transforma o mapa categorico em frase ("em 14 estados, a lacuna e C6")
     const conta = new Map();
-    for(const u of unidades.values()){
+    for(const u of us.values()){
       const pc = piorComp(u.rows);
       if(pc) conta.set(pc[COMP], (conta.get(pc[COMP]) || 0) + 1);
     }
@@ -563,106 +463,77 @@ function desenhaMapa(){
   } else {
     leg.innerHTML = "";
     $("esc-barra").style.background =
-      `linear-gradient(90deg, ${cor(-lim, lim)}, ${cor(0, lim)}, ${cor(lim, lim)})`;
+      `linear-gradient(90deg, ${cor(-LIM)}, ${cor(0)}, ${cor(LIM)})`;
   }
 
-  const sufixo = (rede === "Todas" ? "" : ` · rede ${ROT_REDE[rede].toLowerCase()}`)
-    + (escopoPais ? "" : ` · ${G.ufs[esc.uf][1]}`);
+  const sufixo = rede === "Todas" ? "" : ` · rede ${ROT_REDE[rede].toLowerCase()}`;
   if(geral){
-    $("mapa-tit").textContent = `Onde cada ${escopoPais ? "estado" : "cidade"} `
-      + `mais fica atrás · ${NOME_AREA[area]}${sufixo}`;
-    $("mapa-sub").textContent = `Cada lugar recebe a cor da competência em `
+    $("mapa-tit").textContent =
+      `Onde cada estado mais fica atrás · ${NOME_AREA[area]}${sufixo}`;
+    $("mapa-sub").textContent = `Cada estado recebe a cor da competência em `
       + `que mais fica atrás do próprio padrão. Toque num código acima para `
       + `ver uma competência específica.`;
   } else {
     $("mapa-tit").textContent = `C${comp} · ${NOME_AREA[area]}${sufixo}`;
     $("mapa-sub").textContent = G.comp[`${area}|${comp}`] || "";
   }
-
   avisoUniforme();
 }
 
 function dicaDe(cod, u){
-  if(!u) return `<b>${cod}</b> — sem participantes com escola identificada.`;
-  const geral = comp === null;
-  const l = geral ? piorComp(u.rows) : linhaDe(u.rows, comp);
+  const l = u ? ((comp === null) ? piorComp(u.rows) : linhaDe(u.rows, comp)) : null;
   if(!l){
-    const alvo = (esc.tipo !== "pais" && u.ri)
-      ? " Clique para ver a região dele." : "";
-    // "abaixo do minimo" e "nao existe" sao verdades diferentes: Muriae nao
-    // tem escola municipal NENHUMA, e a tela dizia "nao atinge o minimo"
-    // (achado do dono do produto)
+    // "abaixo do minimo" e "nao existe" sao verdades diferentes
     if(rede !== "Todas" && !u.nEsc)
-      return `<b>${u.nome}</b> — não tem escola${NA_REDE[rede].replace(" na", " da")} `
-        + `com concluintes no ENEM 2025.${alvo}`;
+      return `<b>${u.nome}</b> — não tem escola`
+        + `${NA_REDE[rede].replace(" na", " da")} com concluintes no ENEM 2025.`;
     return `<b>${u.nome}</b> — `
       + (u.nEsc ? `${u.nEsc} escola${u.nEsc === 1 ? "" : "s"}${NA_REDE[rede]}, ` : "")
-      + `abaixo do mínimo para publicar (3 escolas e 50 participantes).${alvo}`;
+      + `abaixo do mínimo para publicar (3 escolas e 50 participantes).`;
   }
-  if(geral)
+  if(comp === null)
     return `<b>${u.nome}</b> — maior lacuna do próprio padrão: `
       + `<b>C${l[COMP]}</b> (${sinal(l[PERFIL])} pp)`;
-  const br = linhaDe(dadosRaiz(0), comp);
-  const partes = [`acertam <b>${pct(l[TAXA])}</b>`];
-  if(esc.tipo !== "pais"){
-    const uf = linhaDe(dadosRaiz(esc.uf), comp);
-    if(uf) partes.push(`${G.ufs[esc.uf][0]} ${pct(uf[TAXA])}`);
-  }
-  if(br) partes.push(`Brasil${NA_REDE[rede]} ${pct(br[TAXA])}`);
-  return `<b>${u.nome}</b> — ${partes.join(" · ")}`;
+  const br = linhaDe(dadosDe(0), comp);
+  return `<b>${u.nome}</b> — acertam <b>${pct(l[TAXA])}</b>`
+    + (br ? ` · Brasil${NA_REDE[rede]} ${pct(br[TAXA])}` : "");
 }
 
 // quando o mapa e de uma cor so, ele mudou de pergunta -- e a tela declara
 function avisoUniforme(){
+  const alvo = $("aviso-mapa");
   if(comp === null){
-    // na geral, "uniforme" e todo mundo com a MESMA maior lacuna
-    const tops = unidadesDoMapa().map(u => piorComp(u.rows)).filter(Boolean)
-                                 .map(l => l[COMP]);
-    const alvo = $("aviso-mapa");
+    const tops = unidades().map(u => piorComp(u.rows)).filter(Boolean)
+                           .map(l => l[COMP]);
     const conta = new Map();
     for(const t of tops) conta.set(t, (conta.get(t) || 0) + 1);
     const [melhor, n] = [...conta.entries()].sort((a, b) => b[1] - a[1])[0] || [null, 0];
     if(tops.length >= 5 && n >= 0.9 * tops.length){
-      const onde = esc.tipo === "pais" ? "estados" : "cidades publicáveis";
-      alvo.textContent = `Em ${n} de ${tops.length} ${onde}, a maior lacuna é `
+      alvo.textContent = `Em ${n} de ${tops.length} estados, a maior lacuna é `
         + `a mesma: C${melhor}. O que ensinar aqui é quase consenso.`;
     } else alvo.textContent = "";
     return;
   }
-  const vals = unidadesDoMapa().map(u => linhaDe(u.rows, comp))
-    .filter(Boolean).map(l => l[PERFIL]);
+  const vals = unidades().map(u => linhaDe(u.rows, comp)).filter(Boolean)
+                         .map(l => l[PERFIL]);
   const neg = vals.filter(v => v < 0).length;
-  const alvo = $("aviso-mapa");
   if(vals.length >= 5 && (neg >= 0.9*vals.length || neg <= 0.1*vals.length)){
     const atras = neg > vals.length / 2;
-    const onde = esc.tipo === "pais" ? "estados" : "cidades publicáveis";
-    const de = esc.tipo === "pais" ? "da rede no país" : "do estado";
     alvo.textContent = `Em ${atras ? neg : vals.length - neg} de ${vals.length} `
-      + `${onde}, esta competência fica ${atras ? "atrás" : "à frente"} do `
-      + `próprio padrão — é uma característica ${de}, não diferença entre `
-      + (esc.tipo === "pais" ? "eles." : "elas.");
-  } else {
-    alvo.textContent = "";
-  }
-}
-
-async function cliqueMapa(cod, u){
-  if(esc.tipo === "pais"){ await navega({tipo:"uf", uf:cod}); return; }
-  if(!u) return;
-  const l = linhaDe(u.rows, comp) || (u.rows && u.rows.length);
-  if(u.rows) await navega({tipo:"mun", uf:esc.uf, cod});
-  else if(u.ri) await navega({tipo:"ri", uf:esc.uf, cod:u.ri});
+      + `estados, esta competência fica ${atras ? "atrás" : "à frente"} do `
+      + `próprio padrão — é uma característica da rede no país, não diferença `
+      + `entre eles.`;
+  } else alvo.textContent = "";
 }
 
 // ------------------------------------------------------------------ chips
 function montaChips(){
   const cx = $("chips");
-  const unidades = unidadesDoMapa();
+  const us = unidades();
   let s = `<button type="button" data-c="g" aria-pressed="${comp === null}"`
-    + ` title="cada lugar pela competência em que mais fica atrás">Visão geral</button>`;
+    + ` title="cada estado pela competência em que mais fica atrás">Visão geral</button>`;
   for(const c of compsDaArea()){
-    const v = unidades.map(u => linhaDe(u.rows, c)).filter(Boolean)
-                      .map(l => l[PERFIL]);
+    const v = us.map(u => linhaDe(u.rows, c)).filter(Boolean).map(l => l[PERFIL]);
     const m = v.length ? v.reduce((a, b) => a + b, 0) / v.length : 0;
     s += `<button type="button" data-c="${c}" aria-pressed="${c === comp}"`
       + ` title="${(G.comp[`${area}|${c}`] || "").replace(/"/g, "&quot;")}"`
@@ -680,20 +551,11 @@ function montaChips(){
 // ------------------------------------------------------------- painel
 function trilha(){
   const cam = $("caminho");
-  const seg = [];
-  const btn = (rot, fn) => `<button type="button" data-nav="${fn}">${rot}</button>`;
   if(esc.tipo === "pais"){ cam.innerHTML = "<b>Brasil</b>"; return; }
-  seg.push(btn("Brasil", "pais"));
-  if(esc.tipo === "uf"){ seg.push(`<b>${G.ufs[esc.uf][1]}</b>`); }
-  else {
-    seg.push(btn(G.ufs[esc.uf][1], "uf"));
-    const c = celula();
-    seg.push(`<b>${c ? c.nome : entrada() && entrada().nome || "—"}</b>`);
-  }
-  cam.innerHTML = seg.join(" ▸ ");
-  for(const b of cam.querySelectorAll("button"))
-    b.addEventListener("click", () => navega(
-      b.dataset.nav === "pais" ? {tipo:"pais"} : {tipo:"uf", uf:esc.uf}));
+  cam.innerHTML = `<button type="button" data-nav="pais">Brasil</button> ▸ `
+    + `<b>${G.ufs[esc.uf][1]}</b>`;
+  const b = cam.querySelector("button");
+  if(b) b.addEventListener("click", () => navega({tipo:"pais"}));
 }
 
 function desenhaPainel(){
@@ -701,98 +563,56 @@ function desenhaPainel(){
   const ul = $("pan-lista");
   ul.innerHTML = "";
   $("tri").innerHTML = "";
-  const c = celula();
-  const notaB = notaBusca;
-  notaBusca = null;
-  if(notaB && esc.tipo === "ri"){
-    const n = document.createElement("li");
-    n.className = "vazio";
-    n.textContent = `Você buscou ${notaB}, que não atinge o mínimo para `
-      + `publicar sozinho (3 escolas e 50 participantes) — esta é a região `
-      + `imediata dele.`;
-    ul.appendChild(n);
-  }
-
+  const cod = esc.tipo === "pais" ? 0 : esc.uf;
+  const nome = esc.tipo === "pais" ? "Brasil" : G.ufs[esc.uf][1];
+  const ctx = G.ctx[chave(cod)];
+  const rows = dadosDe(cod);
   const tituloRede = rede === "Todas" ? "" : ` · rede ${ROT_REDE[rede].toLowerCase()}`;
+  $("pan-tit").textContent = `${nome} — ${NOME_AREA[area]}${tituloRede}`;
 
-  if(!c || !c.ctx || !c.dados){
-    const nome = c ? c.nome : (entrada() || {}).nome || "—";
-    $("pan-tit").textContent = `${nome} — ${NOME_AREA[area]}${tituloRede}`;
+  if(!ctx || !rows){
     $("pan-sub").textContent = "";
     const li = document.createElement("li");
     li.className = "vazio";
-    const kkAtual = `${area}|${rede}`;
-    const eAtual = entrada() || {};
-    const nEsc = eAtual.esc && eAtual.esc[kkAtual];
-    // "abaixo do minimo" e "nao existe" sao verdades diferentes (Muriae nao
-    // tem escola municipal nenhuma; a tela dizia "nao atinge o minimo")
-    li.textContent = (rede !== "Todas" && !nEsc && esc.tipo === "mun")
+    const nEsc = G.esc[chave(cod)];
+    li.textContent = (rede !== "Todas" && !nEsc)
       ? `${nome} não tem escola${NA_REDE[rede].replace(" na", " da")} com `
         + `concluintes no ENEM 2025. `
       : `${nome} ${nEsc ? `tem ${nEsc} escola${nEsc === 1 ? "" : "s"}`
           + `${NA_REDE[rede]} — abaixo` : "fica abaixo"} do mínimo para `
         + `publicar${NA_REDE[rede]} (3 escolas e 50 participantes). `;
-    // as saidas so sao OFERECIDAS quando existem de verdade -- prometer "a
-    // regiao sempre atinge" era falso com rede filtrada (achado do crivo:
-    // a Regiao de Imperatriz nao publica na rede federal)
-    const kk = `${area}|${rede}`;
-    const e = entrada() || {};
-    const pk = MUN[esc.uf] || {ri:{}};
-    const riPublica = esc.tipo === "mun" && e.ri && pk.ri[String(e.ri)]
-      && pk.ri[String(e.ri)].dados && pk.ri[String(e.ri)].dados[kk];
-    const munEmTodas = e.dados && e.dados[`${area}|Todas`];
-    const saida = (rot, fn) => {
+    if(rede !== "Todas" && G.dados[`${cod}|${area}|Todas`]){
       const b = document.createElement("button");
-      b.type = "button"; b.className = "linha"; b.textContent = rot;
+      b.type = "button"; b.className = "linha";
+      b.textContent = `Ver ${nome} em todas as redes →`;
       b.style.color = "var(--accent-deep)"; b.style.fontWeight = "600";
-      b.addEventListener("click", fn);
+      b.addEventListener("click", () => { rede = "Todas"; escolheCompetencia(); render(); });
       li.appendChild(b);
-    };
-    if(riPublica)
-      saida(`Ver a região imediata dele${NA_REDE[rede]} →`,
-            () => navega({tipo:"ri", uf:esc.uf, cod:e.ri}));
-    if(rede !== "Todas" && munEmTodas)
-      saida(`Ver ${nome} em todas as redes →`,
-            () => { rede = "Todas"; escolheCompetencia(); render(); });
-    // o estado publica nesta rede em quase todo caso: e a saida que sempre
-    // mantem a pessoa DENTRO da rede que ela escolheu
-    if(G.dados[chaveRaiz(esc.uf)])
-      saida(`Ver ${G.ufs[esc.uf][1]}${NA_REDE[rede]} →`,
-            () => navega({tipo:"uf", uf:esc.uf}));
+    }
     ul.appendChild(li);
     filhos();
     return;
   }
 
-  $("pan-tit").textContent = `${c.nome} — ${NOME_AREA[area]}${tituloRede}`;
-
-
-  const brRows = dadosRaiz(0);
+  const brRows = dadosDe(0);
   // no nivel pais, QUALQUER rede e a propria referencia: comparar o Brasil
   // com ele mesmo dava sete "0,0 pp" ordenados por acaso (achado do crivo).
   // A excecao da taxa absoluta e por NIVEL, nao por rede
   const nivelPais = esc.tipo === "pais";
-  const taxaAqui = taxaArea(c.dados), taxaBr = taxaArea(brRows);
+  const taxaAqui = taxaArea(rows), taxaBr = taxaArea(brRows);
 
-  let sub = `${c.ctx[1].toLocaleString("pt-BR")} escolas · `
-          + `${c.ctx[0].toLocaleString("pt-BR")} participantes · `
-          + `média ${c.ctx[2]}`;
+  let sub = `${ctx[1].toLocaleString("pt-BR")} escolas · `
+          + `${ctx[0].toLocaleString("pt-BR")} participantes · média ${ctx[2]}`;
   if(!nivelPais && taxaAqui !== null && taxaBr !== null)
     sub += ` · no conjunto da área, ${sinal(taxaAqui - taxaBr)} pp vs o `
          + `Brasil${NA_REDE[rede]}`;
 
-  // referencia do segundo numero (so cidade/regiao): o estado, mesma rede
-  const ufRows = (esc.tipo === "mun" || esc.tipo === "ri")
-    ? dadosRaiz(esc.uf) : null;
-
-  // o numero grande de cada linha
   const grande = l => {
     if(nivelPais) return l[TAXA];
     const br = linhaDe(brRows, l[COMP]);
     return br ? l[TAXA] - br[TAXA] : null;
   };
-
-  const lista = c.dados.slice().sort((a, b) => grande(a) - grande(b));
+  const lista = rows.slice().sort((a, b) => grande(a) - grande(b));
   const frouxa = lista.filter(impreciso).length > lista.length / 2;
   if(frouxa){
     const margem = lista.reduce((s2, l) => s2 + erroPadrao(l), 0) / lista.length;
@@ -807,7 +627,6 @@ function desenhaPainel(){
   $("pan-sub").textContent = sub;
 
   for(const l of lista){
-    const li = document.createElement("li");
     const v = grande(l);
     const n = G.itens[`${area}|${l[COMP]}`];
     let pista = (n ? `medido em ${n} ${n === 1 ? "questão" : "questões"} · ` : "")
@@ -823,16 +642,9 @@ function desenhaPainel(){
     if(impreciso(l) && !frouxa)
       pista += ` · margem ±${erroPadrao(l).toFixed(1).replace(".",",")} pp`;
 
-    let meio = "";
-    if(ufRows){
-      const uf = linhaDe(ufRows, l[COMP]);
-      if(uf) meio = `<span class="vs">vs ${G.ufs[esc.uf][0]}: `
-        + `${sinal(l[TAXA] - uf[TAXA])} pp</span>`;
-    }
-
+    const li = document.createElement("li");
     const b = document.createElement("button");
-    b.type = "button";
-    b.className = "linha";
+    b.type = "button"; b.className = "linha";
     if(l[COMP] === comp) b.setAttribute("aria-pressed", "true");
     b.innerHTML = `<span class="rot"><b>C${l[COMP]}</b> `
       + `${G.comp[`${area}|${l[COMP]}`] || ""}</span>`
@@ -841,7 +653,6 @@ function desenhaPainel(){
            : v <= -CORTE ? "var(--warn)"
            : v >= CORTE ? "var(--accent-deep)" : "var(--muted)"}">`
       + (nivelPais ? pct(v) : `${sinal(v)}<em>pp</em>`) + `</span>`
-      + meio
       + `<span class="pista">${pista}</span>`;
     b.addEventListener("click", () => { comp = l[COMP]; render(); });
     li.appendChild(b);
@@ -849,118 +660,68 @@ function desenhaPainel(){
   }
 
   // a linha de TRI: contexto, nunca o numero que ordena
-  if(c.tri != null){
-    const d = (G.comp[`${area}|${c.tri}`] || "").split(" ").slice(0, 9).join(" ");
+  const t = G.tri[chave(cod)];
+  if(t != null){
+    const d = (G.comp[`${area}|${t}`] || "").split(" ").slice(0, 9).join(" ");
     $("tri").innerHTML = `<p class="tri-box">Pelo modelo da prova (TRI), no `
-      + `nível médio daqui (nota ~${c.ctx[2]}) o conteúdo em que avançar `
-      + `<b>mais rende acertos</b> é <b>C${c.tri}</b> — ${d}…`
+      + `nível médio daqui (nota ~${ctx[2]}) o conteúdo em que avançar `
+      + `<b>mais rende acertos</b> é <b>C${t}</b> — ${d}…`
       + (area === "LC" ? ` Calculado com a prova de ${G.triLC}.` : "") + `</p>`;
   }
-
   filhos();
 }
 
 // ------------------------------------------------- os filhos de cada nivel
 function filhos(){
-  const ul = $("filhos"), tit = $("filhos-tit"), filtro = $("filtro");
+  const ul = $("filhos"), tit = $("filhos-tit");
   ul.innerHTML = "";
-  filtro.hidden = true;
-
   const geral = comp === null;
-  const escolheL = rows => geral ? piorComp(rows) : linhaDe(rows, comp);
+
   if(esc.tipo === "pais"){
     tit.innerHTML = geral
       ? `<b>Estados</b>&nbsp;· pela competência em que cada um mais fica atrás`
       : `<b>Estados</b>&nbsp;· pelo desvio do próprio padrão em C${comp} — o mesmo do mapa`;
-    grupos(ul, Object.keys(G.ufs).map(u => ({
-      cod:u, nome:G.ufs[u][1], extra:G.ufs[u][2],
-      l:escolheL(dadosRaiz(u)),
-      vai:() => navega({tipo:"uf", uf:u}),
-    })));
+    grupos(ul, unidades().map(u =>
+      ({...u, l: geral ? piorComp(u.rows) : linhaDe(u.rows, comp),
+        vai: () => navega({tipo:"uf", uf:u.cod})})));
     return;
   }
 
-  if(esc.tipo === "uf"){
-    tit.innerHTML = geral
-      ? `<b>Cidades</b>&nbsp;· pela competência em que cada uma mais fica atrás`
-      : `<b>Cidades</b>&nbsp;· pelo desvio do próprio padrão em C${comp}`;
-    filtro.hidden = false;
-    const alvo = norm(filtro.value || "");
-    const pk = MUN[esc.uf] || {mun:{}};
-    const todas = Object.entries(pk.mun).map(([cod, m]) => ({
-      cod, nome:m.nome, ri:m.ri,
-      l:escolheL((m.dados || {})[`${area}|${rede}`]),
-      pub:!!(m.dados && m.dados[`${area}|${rede}`]),
-      // publica em ALGUMA rede -> painel da cidade (explica e oferece
-      // saidas); nunca publicou -> regiao; sem regiao -> nada (e declarado)
-      vai:m.dados ? (() => navega({tipo:"mun", uf:esc.uf, cod}))
-        : m.ri ? (() => navega({tipo:"ri", uf:esc.uf, cod:m.ri})) : null,
-    })).filter(m => !alvo || norm(m.nome).includes(alvo));
-    // com filtro ativo, lista vazia e obvia (o grupo "sem o minimo" ainda
-    // aparece) -- a mensagem "nenhuma unidade publica" seria falsa
-    if(todas.some(m => m.pub) || !alvo) grupos(ul, todas.filter(m => m.pub));
-    const fora = todas.filter(m => !m.pub);
-    if(fora.length){
-      const cab = document.createElement("li");
-      cab.className = "grupo";
-      cab.innerHTML = `<span>Sem o mínimo para publicar${NA_REDE[rede]}</span>`
-                    + `<i>${fora.length}</i>`;
-      ul.appendChild(cab);
-      for(const m of fora) ul.appendChild(itemFilho(m, true));
+  // dentro do estado: as redes dele -- o unico mergulho que restou, e o que
+  // a pergunta pedagogica precisa
+  tit.innerHTML = `<b>As redes deste estado</b>`;
+  for(const r of G.redes){
+    const ch = `${esc.uf}|${area}|${r}`;
+    const ctx = G.ctx[ch];
+    const li = document.createElement("li");
+    if(ctx){
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "linha";
+      if(r === rede) b.setAttribute("aria-pressed", "true");
+      b.innerHTML = `<span class="rot">${ROT_REDE[r]}</span>`
+        + `<span class="val" style="color:var(--muted)">`
+        + `${ctx[0].toLocaleString("pt-BR")}</span>`
+        + `<span class="pista">${ctx[1].toLocaleString("pt-BR")} `
+        + `${ctx[1] === 1 ? "escola" : "escolas"} · média ${ctx[2]}</span>`;
+      b.addEventListener("click", () => { rede = r; escolheCompetencia(); render(); });
+      li.appendChild(b);
+    } else {
+      const nEsc = G.esc[ch];
+      li.className = "apagado";
+      li.innerHTML = `<div class="linha" style="cursor:default">`
+        + `<span class="rot">${ROT_REDE[r]}</span>`
+        + `<span class="pista">${nEsc
+            ? `${nEsc} escola${nEsc === 1 ? "" : "s"} — abaixo do mínimo`
+            : "não tem escola dessa rede"}</span></div>`;
     }
-    return;
-  }
-
-  if(esc.tipo === "mun"){
-    tit.innerHTML = `<b>As redes daqui</b>`;
-    const e = entrada() || {};
-    let alguma = false;
-    for(const r of G.redes){
-      const kk = `${area}|${r}`;
-      const ctx = e.ctx && e.ctx[kk];
-      const li = document.createElement("li");
-      if(ctx){
-        alguma = true;
-        const b = document.createElement("button");
-        b.type = "button"; b.className = "linha";
-        if(r === rede) b.setAttribute("aria-pressed", "true");
-        b.innerHTML = `<span class="rot">${ROT_REDE[r]}</span>`
-          + `<span class="val" style="color:var(--muted)">`
-          + `${ctx[0].toLocaleString("pt-BR")}</span>`
-          + `<span class="pista">${ctx[1]} ${ctx[1] === 1 ? "escola" : "escolas"}`
-          + ` · média ${ctx[2]}</span>`;
-        b.addEventListener("click", () => { rede = r; escolheCompetencia(); render(); });
-        li.appendChild(b);
-      } else {
-        li.className = "apagado";
-        li.innerHTML = `<div class="linha"><span class="rot">${ROT_REDE[r]}</span>`
-          + `<span class="pista">não atinge o mínimo aqui</span></div>`;
-      }
-      ul.appendChild(li);
-    }
-    if(!alguma) tit.innerHTML = "";
-    return;
-  }
-
-  // regiao imediata: as cidades dela
-  const pk = MUN[esc.uf] || {mun:{}};
-  tit.innerHTML = geral
-    ? `<b>Cidades desta região</b>&nbsp;· pela competência em que cada uma mais fica atrás`
-    : `<b>Cidades desta região</b>&nbsp;· pelo desvio do próprio padrão em C${comp}`;
-  for(const [cod, m] of Object.entries(pk.mun)){
-    if(m.ri !== esc.cod) continue;
-    const pub = !!(m.dados && m.dados[`${area}|${rede}`]);
-    ul.appendChild(itemFilho({cod, nome:m.nome,
-      l:escolheL((m.dados || {})[`${area}|${rede}`]), pub,
-      vai:() => pub ? navega({tipo:"mun", uf:esc.uf, cod}) : null}, !pub));
+    ul.appendChild(li);
   }
 }
 
-function grupos(ul, unidades){
-  const tem = unidades.filter(u => u.l).sort((a, b) => a.l[PERFIL] - b.l[PERFIL]);
+function grupos(ul, us){
+  const tem = us.filter(u => u.l).sort((a, b) => a.l[PERFIL] - b.l[PERFIL]);
   if(comp === null){
-    // agrupa por "qual e a maior lacuna daqui" -- o grupo grande primeiro.
-    // Dentro do grupo, quem esta mais fundo primeiro
+    // agrupa por "qual e a maior lacuna daqui" -- o grupo grande primeiro
     const porComp = new Map();
     for(const u of tem){
       if(!porComp.has(u.l[COMP])) porComp.set(u.l[COMP], []);
@@ -975,13 +736,7 @@ function grupos(ul, unidades){
         + `border-radius:3px;background:${corComp(c)};margin-right:6px"></b>`
         + `C${c} — ${desc}…</span><i>${membros.length}</i>`;
       ul.appendChild(cab);
-      for(const u of membros) ul.appendChild(itemFilho(u, false));
-    }
-    if(!tem.length){
-      const li = document.createElement("li");
-      li.className = "vazio";
-      li.textContent = `Nenhuma unidade publica${NA_REDE[rede]} nesta área.`;
-      ul.appendChild(li);
+      for(const u of membros) ul.appendChild(itemFilho(u));
     }
     return;
   }
@@ -990,10 +745,6 @@ function grupos(ul, unidades){
     ["Perto do próprio padrão",          v => v > -CORTE && v < CORTE],
     ["Vai à frente do próprio padrão",   v => v >= CORTE],
   ];
-  const vals = tem.map(u => u.l[PERFIL]);
-  const neg = vals.filter(v => v < 0).length;
-  // grupos so quando ha o que separar; num escopo uniforme viram 27 itens
-  // num grupo so, e o cabecalho vira ruido
   for(const [titulo, dentro] of defs){
     const membros = tem.filter(u => dentro(u.l[PERFIL]));
     if(!membros.length) continue;
@@ -1001,85 +752,37 @@ function grupos(ul, unidades){
     cab.className = "grupo";
     cab.innerHTML = `<span>${titulo}</span><i>${membros.length}</i>`;
     ul.appendChild(cab);
-    for(const u of membros) ul.appendChild(itemFilho(u, false));
+    for(const u of membros) ul.appendChild(itemFilho(u));
   }
   if(!tem.length){
     const li = document.createElement("li");
     li.className = "vazio";
-    li.textContent = `Nenhuma unidade publica${NA_REDE[rede]} nesta área.`;
+    li.textContent = `Nenhum estado publica${NA_REDE[rede]} nesta área.`;
     ul.appendChild(li);
   }
 }
 
-function itemFilho(u, apagado){
+function itemFilho(u){
   const li = document.createElement("li");
-  if(apagado) li.className = "apagado";
-  // sem acao possivel (ex.: Boa Esperanca do Norte, sem regiao imediata na
-  // divisao de 2024), a linha nao pode PARECER clicavel: botao morto ensina
-  // o leitor a desistir dos vivos
-  const b = document.createElement(u.vai ? "button" : "div");
-  if(u.vai) b.type = "button";
-  b.className = "linha";
-  if(!u.vai) b.style.cursor = "default";
+  const b = document.createElement("button");
+  b.type = "button"; b.className = "linha";
   b.innerHTML = `<span class="rot">${u.nome}`
     + (u.extra ? ` <i>· ${u.extra}</i>` : "") + `</span>`
-    + (u.l ? `<span class="val" style="color:${
-          u.l[PERFIL] <= -CORTE ? "var(--warn)"
-        : u.l[PERFIL] >= CORTE ? "var(--accent-deep)" : "var(--muted)"}">`
-        + `${sinal(u.l[PERFIL])}<em>pp</em></span>`
-      : `<span class="pista">${u.vai ? `sem o mínimo${NA_REDE[rede]}`
-          : "sem o mínimo, e sem região imediata na divisão do IBGE"}</span>`);
-  if(u.vai) b.addEventListener("click", u.vai);
+    + `<span class="val" style="color:${
+        u.l[PERFIL] <= -CORTE ? "var(--warn)"
+      : u.l[PERFIL] >= CORTE ? "var(--accent-deep)" : "var(--muted)"}">`
+    + `${sinal(u.l[PERFIL])}<em>pp</em></span>`;
+  b.addEventListener("click", u.vai);
   li.appendChild(b);
   return li;
 }
 
 // --------------------------------------------------------------- navegacao
-// aviso de uma vez so: "voce buscou X, que nao publica -- esta e a regiao
-// dele". Vive aqui e nao num estado global solto para morrer na navegacao
-// seguinte
-let notaBusca = null;
+function navega(novo){ esc = novo; escolheCompetencia(); render(); }
 
-async function navega(novo){
-  const g = ++geracao;
-  if(novo.tipo !== "pais"){
-    try {
-      $("dica").textContent = `Carregando ${G.ufs[novo.uf][1]}…`;
-      await carregaUF(novo.uf);
-    } catch(e){
-      // um clique mais novo pode ja ter redesenhado a tela: so escreve o
-      // erro se ESTA navegacao ainda e a vigente (achado do crivo)
-      if(g === geracao)
-        $("dica").innerHTML = "<b>Não foi possível carregar este estado.</b>";
-      console.error(e);
-      return;
-    }
-  }
-  if(g !== geracao) return;      // um clique mais novo venceu este
-  // a busca resolve o destino AQUI, depois do pacote carregado e ainda sob
-  // o token -- resolver fora dele deixava um clique antigo atropelar o novo
-  if(novo.tipo === "busca"){
-    const m = MUN[novo.uf].mun[String(novo.cod)];
-    if(m && m.dados) novo = {tipo:"mun", uf:novo.uf, cod:String(novo.cod)};
-    else if(m && m.ri){
-      notaBusca = m.nome;
-      novo = {tipo:"ri", uf:novo.uf, cod:m.ri};
-    }
-    else novo = {tipo:"uf", uf:novo.uf};
-  }
-  esc = novo;
-  $("filtro").value = "";        // o filtro de cidades nao atravessa escopo
-  escolheCompetencia();
-  render();
-}
-
-// toda troca de escopo, area ou rede volta a VISAO GERAL: a escolha
-// automatica de competencia confundia ("por que C6?"), e a geral responde a
-// primeira pergunta sem exigir escolha. Quem quer uma competencia especifica
-// toca no chip ou numa linha do painel
-function escolheCompetencia(){
-  comp = null;
-}
+// toda troca volta a VISAO GERAL: a escolha automatica de competencia
+// confundia ("por que C6?"), e a geral responde sem exigir escolha
+function escolheCompetencia(){ comp = null; }
 
 function pintaBotoes(){
   for(const b of document.querySelectorAll(".abas:not(.redes) button"))
@@ -1090,42 +793,6 @@ function pintaBotoes(){
 
 function render(){ desenhaMapa(); montaChips(); desenhaPainel(); pintaBotoes(); }
 
-// ------------------------------------------------------------------- busca
-async function abreBusca(){
-  if(!INDICE){
-    try { INDICE = await pegaJson("dados/municipios_indice.json"); }
-    catch(e){ console.error(e); INDICE = []; }
-    // quem digita rapido dispara o input ANTES de o indice chegar do fetch --
-    // sem este redesenho, a lista fica vazia ate a proxima tecla
-    buscaRender();
-  }
-}
-function buscaRender(){
-  const out = $("busca-out");
-  const alvo = norm($("busca").value.trim());
-  if(alvo.length < 2 || !INDICE){ out.innerHTML = ""; return; }
-  const achados = [];
-  for(const [cod, nome, sigla, pub] of INDICE){
-    if(norm(nome).includes(alvo)){
-      achados.push([cod, nome, sigla, pub]);
-      if(achados.length >= 12) break;
-    }
-  }
-  out.innerHTML = achados.map(([cod, nome, sigla, pub]) =>
-    `<li role="option"><button type="button" data-cod="${cod}">`
-    + `${nome} <i>· ${sigla}</i>`
-    + (pub ? "" : `<em>sem o mínimo para publicar — abre a região</em>`)
-    + `</button></li>`).join("");
-  for(const b of out.querySelectorAll("button"))
-    b.addEventListener("click", () => escolheBusca(+b.dataset.cod));
-}
-async function escolheBusca(cod){
-  $("busca-out").innerHTML = "";
-  $("busca").value = "";
-  await navega({tipo:"busca", uf:String(Math.floor(cod / 100000)), cod});
-}
-
-// ------------------------------------------------------------------- boot
 function montaBotoesRede(){
   const cx = $("abas-rede");
   cx.innerHTML = `<span class="rot">Rede:</span>`;
@@ -1137,9 +804,10 @@ function montaBotoesRede(){
   }
 }
 
+// ------------------------------------------------------------------- boot
 Promise.all([
-  pegaJson("dados/geografia.json"),
-  pegaJson("dados/malha_uf.json"),
+  fetch("dados/geografia.json").then(r => r.json()),
+  fetch("dados/malha_uf.json").then(r => r.json()),
 ]).then(([g, m]) => {
   G = g; MALHA_UF = m;
   const noMapa = new Set(MALHA_UF.features.map(f => String(f.properties.uf)));
@@ -1151,6 +819,7 @@ Promise.all([
       + `entre a malha e os dados (${orfas.join(", ")}).`;
     return;
   }
+  preparaProjecao();
   montaBotoesRede();
   escolheCompetencia();
   render();
@@ -1161,15 +830,6 @@ Promise.all([
 
 for(const b of document.querySelectorAll(".abas:not(.redes) button"))
   b.addEventListener("click", () => { area = b.dataset.area; escolheCompetencia(); render(); });
-$("busca").addEventListener("focus", abreBusca);
-$("busca").addEventListener("input", buscaRender);
-$("busca").addEventListener("keydown", e => {
-  if(e.key === "Escape"){ $("busca-out").innerHTML = ""; }
-});
-$("filtro").addEventListener("input", () => filhos());
-document.addEventListener("click", e => {
-  if(!e.target.closest(".busca")) $("busca-out").innerHTML = "";
-});
 
 let esperando = null;
 addEventListener("resize", () => {

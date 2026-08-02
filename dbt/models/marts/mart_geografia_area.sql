@@ -25,12 +25,16 @@
 -- UF; 1o digito = regiao), o municipio permanece, e apenas o nivel
 -- regiao_imediata nao o contem (a divisao de 2024 realmente nao o continha).
 
+-- SO TRES NIVEIS por decisao do dono do produto (02/08/2026, "simple is
+-- best"): municipio e regiao imediata sairam do PRODUTO -- o grao fino
+-- convida ao uso que o INEP ja viu ("ENEM por Escola", descontinuado) e a
+-- analise vive bem por estado e competencia. O co_municipio continua sendo
+-- o grao de COMPUTO (int_acerto_item_municipio); o que sumiu e a linha
+-- publicada, nao a soma.
 {% set niveis = [
-    ('municipio',       'g.co_municipio',       'g.municipio',            'g.co_regiao_imediata'),
-    ('regiao_imediata', 'g.co_regiao_imediata', 'g.nome_regiao_imediata', 'g.co_uf'),
-    ('uf',              'g.co_uf',              'g.nome_uf',              'g.co_regiao'),
-    ('regiao',          'g.co_regiao',          'g.nome_regiao',          '0'),
-    ('pais',            '0',                    "'Brasil'",               'null::int'),
+    ('uf',     'g.co_uf',     'g.nome_uf',     'g.co_regiao'),
+    ('regiao', 'g.co_regiao', 'g.nome_regiao', '0'),
+    ('pais',   '0',           "'Brasil'",      'null::int'),
 ] %}
 
 with base as (

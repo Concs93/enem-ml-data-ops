@@ -288,8 +288,8 @@ models:
 
   - name: mart_geografia_area
     description: >
-      A face do gestor, nivel area - municipio, regiao imediata (IBGE 2017),
-      UF, regiao e pais numa tabela so. Regra dupla de publicacao (3 escolas
+      A face do gestor, nivel area - UF, regiao e pais (municipio e regiao
+      imediata sairam do produto em 02/08/2026: simple is best). Regra dupla de publicacao (3 escolas
       E 50 participantes) aplicada honestamente em TODO nivel; quem nao passa
       fica na tabela com publicavel = false e codigo_pai apontando para onde
       subir. Boa Esperanca do Norte/MT (municipio de 2025, fora do Censo
@@ -303,7 +303,7 @@ models:
         tests:
           - not_null
           - accepted_values:
-              values: ['municipio', 'regiao_imediata', 'uf', 'regiao', 'pais']
+              values: ['uf', 'regiao', 'pais']
       - name: nome
         tests: [not_null]
       - name: publicavel

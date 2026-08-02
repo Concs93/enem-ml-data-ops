@@ -1100,6 +1100,41 @@ De passagem: `display:flex` vence o atributo `hidden` — a régua da escala
 ficava visível na visão geral. Mesma família do `.hab .pos` vencido por
 especificidade.
 
+### Simple is best: só estado e competência (02/08/2026)
+
+Decisão do dono do produto, no mesmo dia em que o relatório por escola ficou
+pronto e verificado: **"sem escolas — pode dar problema eventualmente. E da
+análise por estado, pode tirar o grão de município também."** O precedente
+institucional apoia: o INEP descontinuou o "ENEM por Escola" (2005–2015)
+pelo uso ranqueador. O produto final da face do gestor é **Brasil + 27 UFs,
+por competência e por rede**, com a visão geral categórica, o mapa por
+`perfil` e as comparações simples na lista.
+
+O que foi removido — e como: `escola.html`, os 18.117 JSONs por escola, os
+pacotes municipais (`geo_mun/`, `malha_mun/`, índices) e as páginas de
+navegação por cidade. Os 47 MB de dados de escola tinham entrado **num
+único commit ainda não publicado** — saíram por `reset --soft`, então
+**nunca existiram na história** do repositório. Os marts de geografia
+voltaram a três níveis (uf, região, país: 604 · 4.530 · 3.960 linhas); o
+`co_municipio` segue como grão de **cômputo** no `int_acerto_item_municipio`,
+e a conservação município→UF continua garantida na origem. Modelos do
+relatório por escola (`int_escola_nivel`, `int_estudo_referencia`,
+`mart_escola_estudo`) e tabelas correspondentes foram removidos; o
+`int_nivel_nacional` ficou (referência empírica por nível, 3.646 linhas —
+serve o resíduo aparcado, se voltar).
+
+**A lição de engenharia da tarde fica registrada mesmo com a funcionalidade
+removida** — custou três tentativas (51 + 20 + 11 min, duas canceladas): a
+consulta única do estudo por escola derramava dezenas de GB de temporários.
+O `EXPLAIN` mostrou o culpado real — cadeia de CTEs sem estatística fazia o
+planejador estimar **rows=1** e escolher laço aninhado com **varredura
+completa da referência por linha** dos ~19 mi do join. Nem `grouping sets`
+nem `is not distinct from` (os dois primeiros palpites). A cura era
+materializar as duas pontas — pesos e referência — e o mart fechou em 127 s.
+Regra da casa desde então: **duas derrapadas seguidas = parar de adivinhar e
+olhar o plano**; referência pequena se materializa, nunca vive em CTE ao
+lado de join grande.
+
 ### Etapa 4 — o que ficou de pé
 
 Schema `marts` (sem prefixo, via `generate_schema_name`), três modelos e quatro
