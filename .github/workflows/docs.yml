@@ -102,8 +102,12 @@ jobs:
           test -f site/index.html
           test -f site/estados.html
           test -f site/apoie.html
-          # pagina de apoio sem o QR e um pedido de dinheiro sem como pagar
-          grep -q 'br.gov.bcb.pix' site/apoie.html
+          # Pagina de apoio sem QR e sem chave e pedido de dinheiro sem como
+          # pagar. NAO procurar pelo payload ("br.gov.bcb.pix"): ele nao existe
+          # como texto na pagina -- vira modulos do QR dentro do <path>. Esta
+          # guarda ja reprovou uma vez procurando exatamente isso.
+          grep -q 'QR Code do PIX' site/apoie.html
+          grep -q 'CHAVE_PIX = "[0-9a-zA-Z]' site/apoie.html
           test -f site/dados/motor.json
           test -f site/dados/geografia.json
           test -f site/dados/municipios_indice.json
