@@ -6,3 +6,6 @@ dbt-postgres>=1.8
 openpyxl>=3.1
 pdfplumber>=0.11
 great_expectations>=1.0
+# so para regerar o QR do PIX (export/build_pix_qr.py). O site nao depende
+# dele: o que vai ao ar e o SVG ja gerado, dentro do proprio HTML
+segno>=1.6

@@ -101,6 +101,9 @@ jobs:
         run: |
           test -f site/index.html
           test -f site/estados.html
+          test -f site/apoie.html
+          # pagina de apoio sem o QR e um pedido de dinheiro sem como pagar
+          grep -q 'br.gov.bcb.pix' site/apoie.html
           test -f site/dados/motor.json
           test -f site/dados/geografia.json
           test -f site/dados/municipios_indice.json
