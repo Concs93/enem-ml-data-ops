@@ -15,3 +15,6 @@ dbt/.user.yml
 referencias/*
 !referencias/LEIA-ME.md
 !referencias/INDICE.md
+# prints de divulgacao: derivados do site, reproduzidos por
+# divulgacao/gera_prints.py. Versiona-se a receita, nao a foto
+divulgacao/*.png
